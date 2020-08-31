@@ -8,7 +8,7 @@ let followersList;
 let followersListClone;
 let scroll = setInterval(updateScroll, 200);
 let stopCheck = setInterval(function () {
-    stopTask(1)
+    stopTask(1);
 }, 200);
 
 function stopTask(number) {
@@ -17,7 +17,7 @@ function stopTask(number) {
             clearInterval(scroll);
             followedList = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
             followedListClone = [...followedList];
-            sleep(200)
+            sleep(200);
             followersF();
         }
     } else if (number === 2) {
@@ -42,7 +42,7 @@ function followersF() {
     followersList = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
     scroll = setInterval(updateScroll, 200);
     stopCheck = setInterval(function () {
-        stopTask(2)
+        stopTask(2);
     }, 200);
 }
 
@@ -50,7 +50,7 @@ function followersF() {
 //Prints the users who does not follow you back in the console.
 function users() {
     let usernames = followersListClone.map(function (x) {
-        return x.title
+        return x.title;
     });
 
     for (let i = 0; i < followedListClone.length; i++) {
