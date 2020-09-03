@@ -1,6 +1,7 @@
 //Followed count number
 document.getElementsByClassName("-nal3 ")[2].click();
-let followed = parseInt(document.getElementsByClassName("g47SY")[2].innerHTML);
+
+let followed = followEDcount(2);
 let followedList = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
 let followedListClone;
 let followers;
@@ -38,7 +39,7 @@ function stopTask(number) {
 function followersF() {
     clearInterval(stopCheck);
     document.getElementsByClassName("-nal3 ")[1].click();
-    followers = parseInt(document.getElementsByClassName("g47SY")[1].innerHTML);
+    followers = followEDcount(1);
     followersList = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
     scroll = setInterval(updateScroll, 200);
     stopCheck = setInterval(function () {
@@ -65,7 +66,6 @@ function users() {
 function updateScroll() {
     let element = document.getElementsByClassName("isgrP")[0];
     element.scrollTop = element.scrollHeight;
-    numeroACC = element.scrollTop;
 }
 
 function sleep(milliseconds) {
@@ -74,5 +74,14 @@ function sleep(milliseconds) {
         if ((new Date().getTime() - start) > milliseconds) {
             break;
         }
+    }
+}
+
+function followEDcount(num) {
+    if (document.getElementsByClassName("g47SY")[num].title==="") {
+        return parseInt(document.getElementsByClassName("g47SY")[num].innerText.toString().replace(",",""));
+    }
+    else {
+        return parseInt(document.getElementsByClassName("g47SY")[num].title.toString().replace(",",""));
     }
 }
