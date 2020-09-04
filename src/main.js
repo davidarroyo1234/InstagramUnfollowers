@@ -79,9 +79,9 @@ function sleep(milliseconds) {
 
 function followEDcount(num) {
     if (document.getElementsByClassName("g47SY")[num].title==="") {
-        return parseInt(document.getElementsByClassName("g47SY")[num].innerText.toString().replace(",",""));
+        return parseInt(document.getElementsByClassName("g47SY")[num].innerText.toString().replace(/[,|.]/,""));
     }
     else {
-        return parseInt(document.getElementsByClassName("g47SY")[num].title.toString().replace(",",""));
+        return parseInt(document.getElementsByClassName("g47SY")[num].title.toString().replace(/[,|.]/,""));
     }
 }
