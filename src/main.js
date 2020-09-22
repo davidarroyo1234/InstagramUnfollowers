@@ -11,7 +11,7 @@ let followers;
 let followersList;
 let followersListClone;
 // starts updating scroll
-let scroll = setInterval(updateScroll, 1500);
+let scroll = setInterval(updateScroll, 1000);
 //starts checking if it is over.
 let stopCheck = setInterval(function () {
     stopTask(1);
@@ -59,10 +59,10 @@ function followersF() {
     document.getElementsByClassName("-nal3 ")[1].click();
     followers = followEDcount(1);
     followersList = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
-    scroll = setInterval(updateScroll, 200);
+    scroll = setInterval(updateScroll, 1000);
     stopCheck = setInterval(function () {
         stopTask(2);
-    }, 200);
+    }, 1000);
 }
 
 
@@ -86,8 +86,8 @@ function users (option) {
 		for (let i = 0; i < followedListClone.length; i++) {
 			if (!usernames.includes(followedListClone[i].title)) {
 				if (counterStop <= 30) {
-					console.log("Waiting 2 secs before unfollowing");
-					sleep(2000);
+					console.log("Securing navigation before starting new unfollow: ");
+					sleepRandTime(5, 10);
 					unfollowUser(followedListClone[i].title);
 					counterStop++;
 					console.log(counterStop + " unfollows.");
@@ -133,7 +133,7 @@ function unfollowUser(user) {
 			buttonsOfDoc[i + 1].click();
 			// Confirm unfollow
 			confirmButton[0].click();
-			sleepRandom (6,30);
+			sleepRandom (8,30);
 			break;
 		}
 	}
@@ -166,7 +166,8 @@ function sleep(milliseconds) {
  */
 function sleepRandom (secsMin, secsMax) {
 	if(secsMin < secsMax) {
-		let sleepRandTime = Math.round( (Math.random()*secsMax) + secsMin);
+		let sleepRandTime = Math.round( (Math.random()*secsMax));
+		if(sleepRandTime <= secsMin) sleepRandTime = secsMin;
 		console.log("Sleeping for "+msToTime(sleepRandTime*1000)+".");
 		sleep(sleepRandTime*1000);
 	} else {
