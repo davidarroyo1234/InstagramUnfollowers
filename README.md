@@ -11,6 +11,9 @@ document.getElementsByClassName("-nal3 ")[2].click();let followedListClone,follo
  4. It will start scrolling your followers until reach the end, then It'll print it on the console.
  ![Output after finishing](https://github.com/davidarroyo1234/InstagramUnfollowers/blob/master/Readme/Pixelated%20result.png?raw=true)
  
+ 5. Once it finishes printing the users, it will ask you if you want to unfollow them with a Pop-Up.
+ ![Pop up confirmation](https://github.com/davidarroyo1234/InstagramUnfollowers/blob/master/Readme/InstaConfirmation.png)
+ 
 
 ***The more users you have to check, more time it will take***
 
