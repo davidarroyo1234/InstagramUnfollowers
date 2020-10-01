@@ -1,6 +1,6 @@
 # Instagram unfollower checker.
 
-
+[![Maintenance](https://img.shields.io/maintenance/yes/2020)](https://github.com/davidarroyo1234/InstagramUnfollowers)
 ### Steps:
  1. Go to the profile you want to check. (Must be public or following them if its private.)
  2. Copy the code: 
