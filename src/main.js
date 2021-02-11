@@ -73,8 +73,9 @@ function followersF() {
  */
 var checkExist
 var usernames;
+
 async function users(option) {
-     usernames = followersListClone.map(function (x) {
+    usernames = followersListClone.map(function (x) {
         return x.title;
     });
     if (option === 1) {
@@ -86,10 +87,9 @@ async function users(option) {
     } else if (option === 2) {
 
         await document.getElementsByClassName("-nal3 ")[2].click();
-        checkExist = setInterval(function() {
+        checkExist = setInterval(function () {
             let pop = document.getElementsByClassName("-nal3 ")[2];
             if (pop !== undefined) {
-                console.log("Exists!");
                 execute()
                 clearInterval(checkExist);
             }
@@ -99,6 +99,7 @@ async function users(option) {
 
 
 function execute() {
+
     let counterStop = 0;
     for (let i = 0; i < followedListClone.length; i++) {
         if (!usernames.includes(followedListClone[i].title)) {
@@ -120,6 +121,7 @@ function execute() {
                 console.log(counterStop + " unfollows!");
             }
         }
+
     }
 }
 
@@ -130,19 +132,13 @@ function execute() {
 
 function unfollowUser(user) {
     console.log("Unfollowing user: @" + user + ".");
-    //enter inside followed list
-    let listOfFollowed = document.getElementsByClassName("pbNvD  fPMEg     HYpXt")[0];
-    let clickFollowed = document.getElementsByClassName("-nal3 ")[2];
-    if (!listOfFollowed) {
-        clickFollowed.click();
-    }
     // locate user into classes "FPmhX notranslate  _0imsa "
     let userPlace = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
     // locate button into calsses "sqdOP  L3NKy    _8A5w5    "
     let buttonsOfDoc = document.getElementsByClassName("sqdOP  L3NKy    _8A5w5    ");
     let confirmButton = document.getElementsByClassName("aOOlW -Cab_   ");
     for (let i = 0; i < userPlace.length; i++) {
-        let nowUser = userPlace[i].title.toString().replace(/[,|.]/, "");
+        let nowUser = userPlace[i].title.toString();
         //console.log(nowUser + " === " + user);
         if (nowUser === user) {
             // select right button and click it
