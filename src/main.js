@@ -103,7 +103,7 @@ function execute() {
     let counterStop = 0;
     for (let i = 0; i < followedListClone.length; i++) {
         if (!usernames.includes(followedListClone[i].title)) {
-            if (counterStop <= 30) {
+            if (counterStop <= 14) {
                 console.log("Securing navigation before starting new unfollow: ");
                 sleepRandom(5, 10);
                 unfollowUser(followedListClone[i].title);
