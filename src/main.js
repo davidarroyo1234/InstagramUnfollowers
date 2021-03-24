@@ -3,6 +3,7 @@
 document.getElementsByClassName("-nal3 ")[2].click();
 
 //take number of followed people
+
 let followed = followEDcount(2);
 //take the first part of the followed list
 let followedList = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
@@ -10,12 +11,13 @@ let followedListClone;
 let followers;
 let followersList;
 let followersListClone;
+let timeMS = 100;
 // starts updating scroll
-let scroll = setInterval(updateScroll, 1000);
+let scroll = setInterval(updateScroll, timeMS);
 //starts checking if it is over.
 let stopCheck = setInterval(function () {
     stopTask(1);
-}, 1000);
+}, 700);
 
 /**
  * Checks if the loop needs to stop. Restarts if it is not over yet.
@@ -23,30 +25,64 @@ let stopCheck = setInterval(function () {
  *                            "2" checks if the followersList is in same length as follower title.
  *
  */
+
+var repeatCountFollowedLenght = 0;
+var repeatCountFollowed = 0;
+var skip = false;
+
+var repeatCountFollowingLenght = 0;
+var repeatCountFollowing = 0;
+
 function stopTask(number) {
-    if (number === 1) {
-        console.log("Verifying: " + parseInt(followedList.length) + "/" + followed + " followed people.");
-        if (followed <= parseInt(followedList.length) || followed - 1 <= parseInt(followedList.length)) {
-            clearInterval(scroll);
-            console.log(" All donne. Starting to look for who follow you...");
-            followedList = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
-            followedListClone = [...followedList];
-            followersF();
-        }
-    } else if (number === 2) {
-        console.log("Verifying: " + parseInt(followersList.length) + "/" + followers + " people who follow you.");
-        if (followers <= parseInt(followersList.length) || followers - 1 <= parseInt(followersList.length)) {
-            followersList = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
-            followersListClone = [...followersList];
-            clearInterval(scroll);
-            console.log(" All donne. Starting to look for who follow you back...");
-            users(1);
-            clearInterval(stopCheck);
-            document.getElementsByClassName("-nal3 ")[2].click();
-            sleep(3000);
-            wantUnfollow = confirm("Do you want to unfollow this people we listed?");
-            wantUnfollow ? users(2) : console.log("Thank You! All finished :)");
-            //document.getElementsByClassName("wpO6b ")[1].click();
+    if (document.getElementsByClassName("Igw0E IwRSH YBx95 _4EzTm _9qQ0O ZUqME").length <= 0) {
+        if (number === 1) {
+
+            if (repeatCountFollowedLenght !== followedList.length) {
+                repeatCountFollowedLenght = followedList.length
+                repeatCountFollowed = 0;
+            } else {
+                repeatCountFollowed++;
+            }
+
+            if (repeatCountFollowed >= 5) {
+                skip = true;
+            }
+
+            console.log("Verifying: " + parseInt(followedList.length) + "/" + followed + " followed people.");
+            if ((followed <= parseInt(followedList.length) || followed - 1 <= parseInt(followedList.length)) || skip) {
+                skip = false;
+                clearInterval(scroll);
+                console.log(" All donne. Starting to look for who follow you...");
+                followedList = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
+                followedListClone = [...followedList];
+                followersF();
+            }
+        } else if (number === 2) {
+            if (repeatCountFollowedLenght !== followersList.length) {
+                repeatCountFollowingLenght = followersList.length
+            } else {
+                repeatCountFollowing++;
+                repeatCountFollowing = 0;
+            }
+
+            if (repeatCountFollowing >= 5) {
+                skip = true;
+            }
+            console.log("Verifying: " + parseInt(followersList.length) + "/" + followers + " people who follow you.");
+            if ((followers <= parseInt(followersList.length) || followers - 1 <= parseInt(followersList.length)) || skip) {
+                skip = false;
+                followersList = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
+                followersListClone = [...followersList];
+                clearInterval(scroll);
+                console.log(" All donne. Starting to look for who follow you back...");
+                users(1);
+                clearInterval(stopCheck);
+                document.getElementsByClassName("-nal3 ")[2].click();
+                sleep(3000);
+                wantUnfollow = confirm("Do you want to unfollow this people we listed?");
+                wantUnfollow ? users(2) : console.log("Thank You! All finished :)");
+                //document.getElementsByClassName("wpO6b ")[1].click();
+            }
         }
     }
 }
@@ -59,7 +95,7 @@ function followersF() {
     document.getElementsByClassName("-nal3 ")[1].click();
     followers = followEDcount(1);
     followersList = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
-    scroll = setInterval(updateScroll, 1000);
+    scroll = setInterval(updateScroll, timeMS);
     stopCheck = setInterval(function () {
         stopTask(2);
     }, 1000);
@@ -156,9 +192,11 @@ function unfollowUser(user) {
  * Refreshes the scroll limit by updating div class element that holds the list and the scroll.
  */
 function updateScroll() {
-    //gets the div class element that holds the list and the scroll.
-    let element = document.getElementsByClassName("isgrP")[0];
-    element.scrollTop = element.scrollHeight;
+    if (document.getElementsByClassName("Igw0E IwRSH YBx95 _4EzTm _9qQ0O ZUqME").length <= 0) {
+        //gets the div class element that holds the list and the scroll.
+        let element = document.getElementsByClassName("isgrP")[0];
+        element.scrollTop = element.scrollHeight;
+    }
 }
 
 /**
