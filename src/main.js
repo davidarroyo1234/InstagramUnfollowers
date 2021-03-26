@@ -33,18 +33,21 @@ var skip = false;
 var repeatCountFollowingLenght = 0;
 var repeatCountFollowing = 0;
 
+var skipLimit = 15
+
 function stopTask(number) {
-    if (document.getElementsByClassName("Igw0E IwRSH YBx95 _4EzTm _9qQ0O ZUqME").length <= 0) {
         if (number === 1) {
+
 
             if (repeatCountFollowedLenght !== followedList.length) {
                 repeatCountFollowedLenght = followedList.length
                 repeatCountFollowed = 0;
             } else {
                 repeatCountFollowed++;
+                console.log(`retrying scroll ${repeatCountFollowed}/${skipLimit}`)
             }
 
-            if (repeatCountFollowed >= 5) {
+            if (repeatCountFollowed >= skipLimit) {
                 skip = true;
             }
 
@@ -62,10 +65,10 @@ function stopTask(number) {
                 repeatCountFollowingLenght = followersList.length
             } else {
                 repeatCountFollowing++;
-                repeatCountFollowing = 0;
+                console.log(`retrying scroll ${repeatCountFollowing}/${skipLimit}`)
             }
 
-            if (repeatCountFollowing >= 5) {
+            if (repeatCountFollowing >= skipLimit) {
                 skip = true;
             }
             console.log("Verifying: " + parseInt(followersList.length) + "/" + followers + " people who follow you.");
@@ -79,12 +82,12 @@ function stopTask(number) {
                 clearInterval(stopCheck);
                 document.getElementsByClassName("-nal3 ")[2].click();
                 sleep(3000);
-                wantUnfollow = confirm("Do you want to unfollow this people we listed?");
+                wantUnfollow = confirm("Do you want to unfollow this people we listed? (Accept only if its you OWN profile!!)");
                 wantUnfollow ? users(2) : console.log("Thank You! All finished :)");
                 //document.getElementsByClassName("wpO6b ")[1].click();
             }
         }
-    }
+
 }
 
 /**
@@ -192,11 +195,11 @@ function unfollowUser(user) {
  * Refreshes the scroll limit by updating div class element that holds the list and the scroll.
  */
 function updateScroll() {
-    if (document.getElementsByClassName("Igw0E IwRSH YBx95 _4EzTm _9qQ0O ZUqME").length <= 0) {
+
         //gets the div class element that holds the list and the scroll.
         let element = document.getElementsByClassName("isgrP")[0];
         element.scrollTop = element.scrollHeight;
-    }
+
 }
 
 /**
