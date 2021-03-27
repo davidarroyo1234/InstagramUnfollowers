@@ -61,7 +61,7 @@ function stopTask(number) {
                 followersF();
             }
         } else if (number === 2) {
-            if (repeatCountFollowedLenght !== followersList.length) {
+            if (repeatCountFollowingLenght !== followersList.length) {
                 repeatCountFollowingLenght = followersList.length
             } else {
                 repeatCountFollowing++;
