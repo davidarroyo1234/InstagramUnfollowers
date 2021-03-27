@@ -63,6 +63,7 @@ function stopTask(number) {
         } else if (number === 2) {
             if (repeatCountFollowingLenght !== followersList.length) {
                 repeatCountFollowingLenght = followersList.length
+                repeatCountFollowing = 0;
             } else {
                 repeatCountFollowing++;
                 console.log(`retrying scroll ${repeatCountFollowing}/${skipLimit}`)
