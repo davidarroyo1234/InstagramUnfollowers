@@ -1,261 +1,109 @@
-//Followed count number
-//open followed people
-document.getElementsByClassName("-nal3 ")[2].click();
-
-//take number of followed people
-
-let followed = followEDcount(2);
-//take the first part of the followed list
-let followedList = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
-let followedListClone;
-let followers;
-let followersList;
-let followersListClone;
-let timeMS = 100;
-// starts updating scroll
-let scroll = setInterval(updateScroll, timeMS);
-//starts checking if it is over.
-let stopCheck = setInterval(function () {
-    stopTask(1);
-}, 700);
-
-/**
- * Checks if the loop needs to stop. Restarts if it is not over yet.
- * @param  {Number} number  "1" checks if the followedList is in same length as following title.
- *                            "2" checks if the followersList is in same length as follower title.
- *
- */
-
-var repeatCountFollowedLenght = 0;
-var repeatCountFollowed = 0;
-var skip = false;
-
-var repeatCountFollowingLenght = 0;
-var repeatCountFollowing = 0;
-
-var skipLimit = 15
-
-function stopTask(number) {
-        if (number === 1) {
-
-
-            if (repeatCountFollowedLenght !== followedList.length) {
-                repeatCountFollowedLenght = followedList.length
-                repeatCountFollowed = 0;
-            } else {
-                repeatCountFollowed++;
-                console.log(`retrying scroll ${repeatCountFollowed}/${skipLimit}`)
-            }
-
-            if (repeatCountFollowed >= skipLimit) {
-                skip = true;
-            }
-
-            console.log("Verifying: " + parseInt(followedList.length) + "/" + followed + " followed people.");
-            if ((followed <= parseInt(followedList.length) || followed - 1 <= parseInt(followedList.length)) || skip) {
-                skip = false;
-                clearInterval(scroll);
-                console.log(" All donne. Starting to look for who follow you...");
-                followedList = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
-                followedListClone = [...followedList];
-                followersF();
-            }
-        } else if (number === 2) {
-            if (repeatCountFollowingLenght !== followersList.length) {
-                repeatCountFollowingLenght = followersList.length
-                repeatCountFollowing = 0;
-            } else {
-                repeatCountFollowing++;
-                console.log(`retrying scroll ${repeatCountFollowing}/${skipLimit}`)
-            }
-
-            if (repeatCountFollowing >= skipLimit) {
-                skip = true;
-            }
-            console.log("Verifying: " + parseInt(followersList.length) + "/" + followers + " people who follow you.");
-            if ((followers <= parseInt(followersList.length) || followers - 1 <= parseInt(followersList.length)) || skip) {
-                skip = false;
-                followersList = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
-                followersListClone = [...followersList];
-                clearInterval(scroll);
-                console.log(" All donne. Starting to look for who follow you back...");
-                users(1);
-                clearInterval(stopCheck);
-                document.getElementsByClassName("-nal3 ")[2].click();
-                sleep(3000);
-                wantUnfollow = confirm("Do you want to unfollow this people we listed? (Accept only if its you OWN profile!!)");
-                wantUnfollow ? users(2) : console.log("Thank You! All finished :)");
-                //document.getElementsByClassName("wpO6b ")[1].click();
-            }
-        }
-
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
-/**
- * Stops old check in followed and starts checking followers.
- */
-function followersF() {
-    clearInterval(stopCheck);
-    document.getElementsByClassName("-nal3 ")[1].click();
-    followers = followEDcount(1);
-    followersList = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
-    scroll = setInterval(updateScroll, timeMS);
-    stopCheck = setInterval(function () {
-        stopTask(2);
-    }, 1000);
-}
-
-
-/**
- * Prints the users who does not follow you back in the console.
- * @param {Number} option "1" for printing users.
- option "2" for gradual unfollowing users.
- */
-var checkExist
-var usernames;
-
-async function users(option) {
-    usernames = followersListClone.map(function (x) {
-        return x.title;
+function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
     });
-    if (option === 1) {
-        for (let i = 0; i < followedListClone.length; i++) {
-            if (!usernames.includes(followedListClone[i].title)) {
-                console.log(followedListClone[i].title);
-            }
-        }
-    } else if (option === 2) {
-
-        await document.getElementsByClassName("-nal3 ")[2].click();
-        checkExist = setInterval(function () {
-            let pop = document.getElementsByClassName("-nal3 ")[2];
-            if (pop !== undefined) {
-                execute()
-                clearInterval(checkExist);
-            }
-        }, 100);
-    }
 }
 
-
-function execute() {
-
-    let counterStop = 0;
-    for (let i = 0; i < followedListClone.length; i++) {
-        if (!usernames.includes(followedListClone[i].title)) {
-            if (counterStop <= 14) {
-                console.log("Securing navigation before starting new unfollow: ");
-                sleepRandom(5, 10);
-                unfollowUser(followedListClone[i].title);
-                counterStop++;
-                console.log(counterStop + " unfollows.");
-            } else {
-                console.log(counterStop + " unfollows. Need to sleep... Sleeping for 5 min");
-                // sleeping for 5 min
-                sleep(300 * 1000);
-                console.log("Restarting cicle.");
-                counterStop = 0;
-                sleep(2000);
-                unfollowUser(followedListClone[i].title);
-                counterStop++;
-                console.log(counterStop + " unfollows!");
-            }
-        }
-
-    }
+function afterUrlGenerator(nextCode) {
+    return `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24","after":"${nextCode}"}`;
 }
 
-/**
- * Unfollow a user.
- * @param  {String} user user id from instagram.
- */
+function unfollowUserUrlGenerator(idToUnfollow) {
+    return `https://www.instagram.com/web/friendships/${idToUnfollow}/unfollow/`;
+}
 
-function unfollowUser(user) {
-    console.log("Unfollowing user: @" + user + ".");
-    // locate user into classes "FPmhX notranslate  _0imsa "
-    let userPlace = document.getElementsByClassName("FPmhX notranslate  _0imsa ");
-    // locate button into calsses "sqdOP  L3NKy    _8A5w5    "
-    let buttonsOfDoc = document.getElementsByClassName("sqdOP  L3NKy    _8A5w5    ");
-    let confirmButton = document.getElementsByClassName("aOOlW -Cab_   ");
-    for (let i = 0; i < userPlace.length; i++) {
-        let nowUser = userPlace[i].title.toString();
-        //console.log(nowUser + " === " + user);
-        if (nowUser === user) {
-            // select right button and click it
-            buttonsOfDoc[i + 1].click();
-            // Confirm unfollow
-            confirmButton[0].click();
-            sleepRandom(8, 30);
-            break;
+let csrftoken = getCookie("csrftoken");
+let ds_user_id = getCookie("ds_user_id");
+let initialURL = `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24"}`;
+
+let doNext = true;
+let followedPeople;
+let filteredList = [];
+let getUnfollowCounter = 0;
+let scrollCicle = 0;
+
+startScript()
+async function startScript(){
+    while (doNext) {
+        let receivedData
+        try {
+            receivedData = await fetch(initialURL).then(res => res.json());
+        } catch (e) {
+            continue;
+        }
+
+        if (!followedPeople) {
+            followedPeople = receivedData.data.user.edge_follow.count;
+        }
+
+        doNext = receivedData.data.user.edge_follow.page_info.has_next_page;
+        initialURL = afterUrlGenerator(receivedData.data.user.edge_follow.page_info.end_cursor);
+        getUnfollowCounter += receivedData.data.user.edge_follow.edges.length;
+        console.log(`%c Progress ${getUnfollowCounter}/${followedPeople}`, 'background: #222; color: #bada55;font-size: 35px;');
+
+        receivedData.data.user.edge_follow.edges.forEach(x => {
+            if (!x.node.follows_viewer) {
+                filteredList.push(x.node);
+                console.log(x.node.username);
+            }
+        })
+
+        await sleep(Math.floor(Math.random() * (1000 - 600)) + 1000);
+        scrollCicle++;
+        if (scrollCicle > 6){
+            scrollCicle = 0;
+            console.log(`%c Sleeping 10 segs to prevent getting temp blocked`, 'background: #222; color: ##FF0000;font-size: 35px;');
+
+            await sleep(10000);
         }
     }
 
-}
+    console.clear();
 
-/**
- * Refreshes the scroll limit by updating div class element that holds the list and the scroll.
- */
-function updateScroll() {
+    console.log(`%c ${filteredList.length} users don't follow you`, 'background: #222; color: #bada55;font-size: 25px;');
 
-        //gets the div class element that holds the list and the scroll.
-        let element = document.getElementsByClassName("isgrP")[0];
-        element.scrollTop = element.scrollHeight;
+    filteredList.forEach(x => {
+        console.log(x.username);
+    });
 
-}
+    wantUnfollow = confirm("Do you want to unfollow this people we listed?");
 
-/**
- * Sleep the code for the seconds choosen in milliseconds.
- * @param  {Number} milliseconds Number in milliseconds to sleep the code for a while.
- */
-function sleep(milliseconds) {
-    const date = Date.now();
-    let currentDate = null;
-    do {
-        currentDate = Date.now();
-    } while (currentDate - date < milliseconds);
-}
+    if (wantUnfollow) {
+        let counter = 0;
+        unfollowSleepCounter = 0;
+        for (const x of filteredList) {
 
-/**
- * Stop code random between secsMin and secsMax defined.
- * @param {Number} secs Time limit in seconds that will be sorted randomly.
- */
-function sleepRandom(secsMin, secsMax) {
-    if (secsMin < secsMax) {
-        let sleepRandTime = Math.round((Math.random() * secsMax));
-        if (sleepRandTime <= secsMin) sleepRandTime = secsMin;
-        console.log("Sleeping for " + msToTime(sleepRandTime * 1000) + ".");
-        sleep(sleepRandTime * 1000);
+            try {
+                await fetch(unfollowUserUrlGenerator(x.id), {
+                    "headers": {
+                        "content-type": "application/x-www-form-urlencoded",
+                        "x-csrftoken": csrftoken,
+                    },
+                    "method": "POST",
+                    "mode": "cors",
+                    "credentials": "include"
+                });
+            } catch (e) {
+            }
+
+            await sleep(Math.floor(Math.random() * (6000 - 4000)) + 4000);
+            counter++;
+            unfollowSleepCounter++;
+            if (unfollowSleepCounter >= 5) {
+                console.log(`%c Sleeping 5 minutes to prevent getting temp blocked`, 'background: #222; color: ##FF0000;font-size: 35px;');
+                unfollowSleepCounter = 0;
+                await sleep(300000)
+            }
+            console.log(`Unfollowed ${counter}/${filteredList.length}`)
+        }
+        console.log(`%c All DONE!`, 'background: #222; color: #bada55;font-size: 25px;');
     } else {
-        throw "Secs Min, cant be higher then secsMax";
-    }
-}
-
-/**
- * Translate miliseconds to seconds.
- * @param {Number} miliseconds Time in miliseconds
- */
-function msToTime(miliseconds) {
-    let s = miliseconds;
-    var ms = s % 1000;
-    s = (s - ms) / 1000;
-    var secs = s % 60;
-    s = (s - secs) / 60;
-    var mins = s % 60;
-    var hrs = (s - mins) / 60;
-
-    //return hrs + ':' + mins + ':' + secs + '.' + ms;
-    return secs + ' secs';
-}
-
-/**
- * Takes the number of followed people title or follower title (1 for follower, 2 for followed)
- * @param  {Number} num Choose 1 to return follower number or 2 for followed
- * @return {Number} Returns the number of following or followed.
- */
-function followEDcount(num) {
-    if (document.getElementsByClassName("g47SY")[num].title === "") {
-        return parseInt(document.getElementsByClassName("g47SY")[num].innerText.toString().replace(/[,|.]/, ""));
-    } else {
-        return parseInt(document.getElementsByClassName("g47SY")[num].title.toString().replace(/[,|.]/, ""));
+        console.log(`%c All DONE!`, 'background: #222; color: #bada55;font-size: 25px;');
     }
 }
