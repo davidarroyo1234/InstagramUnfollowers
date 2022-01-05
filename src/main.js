@@ -45,13 +45,20 @@ async function startScript(){
         doNext = receivedData.data.user.edge_follow.page_info.has_next_page;
         initialURL = afterUrlGenerator(receivedData.data.user.edge_follow.page_info.end_cursor);
         getUnfollowCounter += receivedData.data.user.edge_follow.edges.length;
-        console.log(`%c Progress ${getUnfollowCounter}/${followedPeople}`, 'background: #222; color: #bada55;font-size: 35px;');
+
 
         receivedData.data.user.edge_follow.edges.forEach(x => {
             if (!x.node.follows_viewer) {
                 filteredList.push(x.node);
-                console.log(x.node.username);
             }
+        })
+
+        console.clear();
+        console.log(`%c Progress ${getUnfollowCounter}/${followedPeople} (${parseInt((getUnfollowCounter/followedPeople)*100)}%)`, 'background: #222; color: #bada55;font-size: 35px;');
+        console.log(`%c This users don't follow you (Still in progress)`, 'background: #222; color: #FC4119;font-size: 13px;');
+
+        filteredList.forEach(x =>{
+            console.log(x.username);
         })
 
         await sleep(Math.floor(Math.random() * (1000 - 600)) + 1000);
