@@ -4,7 +4,7 @@
 ## **WARNING**: The last update is calling to instagram api to be faster.
 if you prefer to use the old way go to this [commit](https://github.com/davidarroyo1234/InstagramUnfollowers/tree/50a0bcbc9fe349b8664a74c0e4477bc974d0352b).
 
-[![Maintenance](https://img.shields.io/maintenance/yes/2021)](https://github.com/davidarroyo1234/InstagramUnfollowers)
+[![Maintenance](https://img.shields.io/maintenance/yes/2022)](https://github.com/davidarroyo1234/InstagramUnfollowers)
 ### Steps:
 1. Copy the code:   
  ```js
