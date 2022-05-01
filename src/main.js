@@ -65,7 +65,7 @@ async function startScript(){
         scrollCicle++;
         if (scrollCicle > 6){
             scrollCicle = 0;
-            console.log(`%c Sleeping 10 segs to prevent getting temp blocked`, 'background: #222; color: ##FF0000;font-size: 35px;');
+            console.log(`%c Sleeping 10 secs to prevent getting temp blocked`, 'background: #222; color: ##FF0000;font-size: 35px;');
 
             await sleep(10000);
         }
