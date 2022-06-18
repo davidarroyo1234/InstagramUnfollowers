@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "prettier": "^2.7.1",
+    "uglify-js": "^3.16.1"
+  },
+  "scripts": {
+    "uglify": "npx uglifyjs --compress --mangle --output min/min.js -- src/main.js",
+    "bookmarkletify": "node scripts/bookmarkletify.js min/min.js",
+    "build": "npx prettier -w src/*.js && npm run uglify && npm run bookmarkletify && node scripts/update-readme"
+  }
+}
