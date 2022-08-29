@@ -81,7 +81,7 @@ window.toggleAllUsers = (status = false) => {
     if (!status) {
         userIdsToUnfollow = [];
     } else {
-        userIdsToUnfollow = [...nonFollowersList];
+        userIdsToUnfollow = nonFollowersList.map(user => user.id);
     }
     onToggleUser();
 };
