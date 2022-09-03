@@ -50,7 +50,7 @@ function getElementByClass(className) {
     return el;
 }
 
-function getNonFollowerById(userId) {
+function getUserById(userId) {
     const user = nonFollowersList.find((user) => {
         return user.id.toString() === userId.toString();
     });
@@ -236,7 +236,7 @@ window.unfollow = async () => {
     isActiveProcess = true;
     let counter = 0;
     for (const id of userIdsToUnfollow) {
-        const user = getNonFollowerById(id);
+        const user = getUserById(id);
         try {
             await fetch(unfollowUserUrlGenerator(id), {
                 headers: {
