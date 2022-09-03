@@ -235,6 +235,8 @@ window.unfollow = async () => {
     const elResultsContainer = getElementByClass('.iu_results-container');
     elResultsContainer.innerHTML = '';
 
+    const scrollToBottom = () => window.scrollTo(0, elResultsContainer.scrollHeight);
+
     isActiveProcess = true;
     let counter = 0;
     for (const id of userIdsToUnfollow) {
@@ -261,8 +263,7 @@ window.unfollow = async () => {
                 user.username
             } [${counter + 1}/${userIdsToUnfollow.length}]</div>`;
         }
-        window.scrollTo(0, elResultsContainer.scrollHeight);
-
+        scrollToBottom();
         await sleep(Math.floor(Math.random() * (6000 - 4000)) + 4000);
 
         counter += 1;
@@ -273,12 +274,14 @@ window.unfollow = async () => {
         if (counter % 5 === 0) {
             elResultsContainer.innerHTML +=
                 '<hr /><div style="padding:1rem;font-size:1.25em;color:#d7d356;">Sleeping 5 minutes to prevent getting temp blocked...</div><hr />';
+            scrollToBottom();
             await sleep(300000);
         }
     }
 
     isActiveProcess = false;
     elResultsContainer.innerHTML += `<hr /><div style='padding:1rem;font-size:1.25em;color:#56d756;'>All DONE!</div><hr />`;
+    scrollToBottom();
 };
 
 function init() {
