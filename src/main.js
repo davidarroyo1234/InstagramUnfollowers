@@ -123,6 +123,8 @@ function renderResults(resultsList) {
 }
 
 async function run(shouldIncludeVerifiedAccounts) {
+    const elShouldIncludeVerified = getElementByClass('.iu_include-verified-checkbox');
+    elShouldIncludeVerified.disabled = true;
     nonFollowersList = await getNonFollowersList(shouldIncludeVerifiedAccounts);
     renderResults(nonFollowersList);
 }
