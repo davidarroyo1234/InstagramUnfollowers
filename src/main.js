@@ -6,6 +6,8 @@ let nonFollowersList = [];
 let userIdsToUnfollow = [];
 let isActiveProcess = false;
 
+// Prompt user if he tries to leave while in the middle of a process (searching / unfollowing / etc..)
+// This is especially good for avoiding accidental tab closing which would result in a frustrating experience.
 window.addEventListener('beforeunload', (e) => {
     if (!isActiveProcess) {
         return;
