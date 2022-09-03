@@ -105,12 +105,12 @@ function renderResults(resultsList) {
             <div style='display:flex;align-items:center;flex:1;'>\
                 <img src=${user.profile_pic_url} width='75px' style='border-radius:50%;' />&nbsp;&nbsp;&nbsp;&nbsp;\
                 <div style='display:flex;flex-direction:column;'>\
-                    <span style='font-size:1.75em;'>${user.username}</span>\
-                    <span style='font-size:1em;'>${user.full_name}</span>\
+                    <span style='font-size:1.7em;'>${user.username}</span>\
+                    <span style='font-size:0.8em;'>${user.full_name}</span>\
                 </div>\
                 ${
                     user.is_verified
-                        ? `&nbsp;&nbsp;<div style='background-color:#49adf4;border-radius:50%;padding:0.2rem 0.3rem;font-size:0.35em;height:fit-content;'>✔</div>`
+                        ? `&nbsp;&nbsp;&nbsp;<div style='background-color:#49adf4;border-radius:50%;padding:0.2rem 0.3rem;font-size:0.35em;height:fit-content;'>✔</div>`
                         : ''
                 }\
             </div>\
