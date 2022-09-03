@@ -262,7 +262,12 @@ window.unfollow = async () => {
         window.scrollTo(0, elResultsContainer.scrollHeight);
 
         await sleep(Math.floor(Math.random() * (6000 - 4000)) + 4000);
+
         counter += 1;
+        // If unfollowing the last user in the list, no reason to wait 5 minutes.
+        if (id === userIdsToUnfollow[userIdsToUnfollow.length - 1]) {
+            break;
+        }
         if (counter % 5 === 0) {
             elResultsContainer.innerHTML +=
                 '<hr /><div style="padding:1rem;font-size:1.25em;color:#d7d356;">Sleeping 5 minutes to prevent getting temp blocked...</div><hr />';
