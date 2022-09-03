@@ -115,6 +115,13 @@ function renderResults(resultsList) {
                         ? `&nbsp;&nbsp;&nbsp;<div style='background-color:#49adf4;border-radius:50%;padding:0.2rem 0.3rem;font-size:0.35em;height:fit-content;'>✔</div>`
                         : ''
                 }\
+                ${
+                    user.is_private
+                        ? `<div style="display:flex;width:100%;justify-content:space-around;">\
+                            <span style="border: 2px solid #51bb42;border-radius:25px;padding:0.5rem;color:#51bb42;font-weight:500;">Private</span>\
+                          </div>`
+                        : ''
+                }\
             </div>\
             <input class='account-checkbox' type='checkbox' style='height:1.1rem;width:1.1rem;' onchange='toggleUser(${
                 user.id
