@@ -8,7 +8,7 @@ let isActiveProcess = false;
 
 // Prompt user if he tries to leave while in the middle of a process (searching / unfollowing / etc..)
 // This is especially good for avoiding accidental tab closing which would result in a frustrating experience.
-window.addEventListener('beforeunload', (e) => {
+window.addEventListener('beforeunload', e => {
     if (!isActiveProcess) {
         return;
     }
@@ -24,7 +24,7 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 function sleep(ms) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         setTimeout(resolve, ms);
     });
 }
@@ -53,7 +53,7 @@ function getElementByClass(className) {
 }
 
 function getUserById(userId) {
-    const user = nonFollowersList.find((user) => {
+    const user = nonFollowersList.find(user => {
         return user.id.toString() === userId.toString();
     });
     if (user === undefined) {
@@ -69,21 +69,21 @@ function onToggleUser() {
 // Some functions needed to be placed on the window.
 // This is due to the way the are used in the inlined template here.
 // Placing them on the window was the only way to make them work for some reason.
-window.toggleUser = (userId) => {
+window.toggleUser = userId => {
     if (userIdsToUnfollow.indexOf(userId) === -1) {
         userIdsToUnfollow = [...userIdsToUnfollow, userId];
     } else {
-        userIdsToUnfollow = userIdsToUnfollow.filter((id) => id !== userId);
+        userIdsToUnfollow = userIdsToUnfollow.filter(id => id !== userId);
     }
     onToggleUser();
 };
 
 window.toggleAllUsers = (status = false) => {
-    document.querySelectorAll('input.account-checkbox').forEach((e) => (e.checked = status));
+    document.querySelectorAll('input.account-checkbox').forEach(e => (e.checked = status));
     if (!status) {
         userIdsToUnfollow = [];
     } else {
-        userIdsToUnfollow = [...nonFollowersList];
+        userIdsToUnfollow = nonFollowersList.map(user => user.id);
     }
     onToggleUser();
 };
@@ -97,7 +97,7 @@ function renderResults(resultsList) {
     const elResultsContainer = getElementByClass('.iu_results-container');
     elResultsContainer.innerHTML = '';
     let currentChar = '';
-    sortedList.forEach((user) => {
+    sortedList.forEach(user => {
         const firstChar = user.username.substring(0, 1).toUpperCase();
         if (currentChar !== firstChar) {
             currentChar = firstChar;
@@ -187,7 +187,7 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
     while (hasNext) {
         let receivedData;
         try {
-            receivedData = await fetch(url).then((res) => res.json());
+            receivedData = await fetch(url).then(res => res.json());
         } catch (e) {
             continue;
         }
@@ -200,7 +200,7 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
         url = afterUrlGenerator(receivedData.data.user.edge_follow.page_info.end_cursor);
         currentFollowedUsersCount += receivedData.data.user.edge_follow.edges.length;
 
-        receivedData.data.user.edge_follow.edges.forEach((x) => {
+        receivedData.data.user.edge_follow.edges.forEach(x => {
             if (!shouldIncludeVerifiedAccounts && x.node.is_verified) {
                 return;
             }
