@@ -6,6 +6,8 @@ let nonFollowersList = [];
 let userIdsToUnfollow = [];
 let isActiveProcess = false;
 
+// Prompt user if he tries to leave while in the middle of a process (searching / unfollowing / etc..)
+// This is especially good for avoiding accidental tab closing which would result in a frustrating experience.
 window.addEventListener('beforeunload', e => {
     if (!isActiveProcess) {
         return;
@@ -50,7 +52,7 @@ function getElementByClass(className) {
     return el;
 }
 
-function getNonFollowerById(userId) {
+function getUserById(userId) {
     const user = nonFollowersList.find(user => {
         return user.id.toString() === userId.toString();
     });
@@ -105,12 +107,19 @@ function renderResults(resultsList) {
             <div style='display:flex;align-items:center;flex:1;'>\
                 <img src=${user.profile_pic_url} width='75px' style='border-radius:50%;' />&nbsp;&nbsp;&nbsp;&nbsp;\
                 <div style='display:flex;flex-direction:column;'>\
-                    <span style='font-size:1.75em;'>${user.username}</span>\
-                    <span style='font-size:1em;'>${user.full_name}</span>\
+                    <span style='font-size:1.7em;'>${user.username}</span>\
+                    <span style='font-size:0.8em;'>${user.full_name}</span>\
                 </div>\
                 ${
                     user.is_verified
-                        ? `&nbsp;&nbsp;<div style='background-color:#49adf4;border-radius:50%;padding:0.2rem 0.3rem;font-size:0.35em;height:fit-content;'>✔</div>`
+                        ? `&nbsp;&nbsp;&nbsp;<div style='background-color:#49adf4;border-radius:50%;padding:0.2rem 0.3rem;font-size:0.35em;height:fit-content;'>✔</div>`
+                        : ''
+                }\
+                ${
+                    user.is_private
+                        ? `<div style="display:flex;width:100%;justify-content:space-around;">\
+                            <span style="border: 2px solid #51bb42;border-radius:25px;padding:0.5rem;color:#51bb42;font-weight:500;">Private</span>\
+                          </div>`
                         : ''
                 }\
             </div>\
@@ -123,6 +132,8 @@ function renderResults(resultsList) {
 }
 
 async function run(shouldIncludeVerifiedAccounts) {
+    const elShouldIncludeVerified = getElementByClass('.iu_include-verified-checkbox');
+    elShouldIncludeVerified.disabled = true;
     nonFollowersList = await getNonFollowersList(shouldIncludeVerifiedAccounts);
     renderResults(nonFollowersList);
 }
@@ -233,10 +244,12 @@ window.unfollow = async () => {
     const elResultsContainer = getElementByClass('.iu_results-container');
     elResultsContainer.innerHTML = '';
 
+    const scrollToBottom = () => window.scrollTo(0, elResultsContainer.scrollHeight);
+
     isActiveProcess = true;
     let counter = 0;
     for (const id of userIdsToUnfollow) {
-        const user = getNonFollowerById(id);
+        const user = getUserById(id);
         try {
             await fetch(unfollowUserUrlGenerator(id), {
                 headers: {
@@ -259,19 +272,25 @@ window.unfollow = async () => {
                 user.username
             } [${counter + 1}/${userIdsToUnfollow.length}]</div>`;
         }
-        window.scrollTo(0, elResultsContainer.scrollHeight);
-
+        scrollToBottom();
         await sleep(Math.floor(Math.random() * (6000 - 4000)) + 4000);
+
         counter += 1;
+        // If unfollowing the last user in the list, no reason to wait 5 minutes.
+        if (id === userIdsToUnfollow[userIdsToUnfollow.length - 1]) {
+            break;
+        }
         if (counter % 5 === 0) {
             elResultsContainer.innerHTML +=
                 '<hr /><div style="padding:1rem;font-size:1.25em;color:#d7d356;">Sleeping 5 minutes to prevent getting temp blocked...</div><hr />';
+            scrollToBottom();
             await sleep(300000);
         }
     }
 
     isActiveProcess = false;
     elResultsContainer.innerHTML += `<hr /><div style='padding:1rem;font-size:1.25em;color:#56d756;'>All DONE!</div><hr />`;
+    scrollToBottom();
 };
 
 function init() {
