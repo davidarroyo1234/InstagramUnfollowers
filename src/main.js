@@ -74,7 +74,7 @@ function copyListToClipboard() {
 }
 
 function copyToClipboard(text) {
-    navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(text);
 
     alert('List copied to clipboard!');
 }
