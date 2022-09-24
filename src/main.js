@@ -73,9 +73,8 @@ function copyListToClipboard() {
     copyToClipboard(output);
 }
 
-function copyToClipboard(text) {
+async function copyToClipboard(text) {
     await navigator.clipboard.writeText(text);
-
     alert('List copied to clipboard!');
 }
 
@@ -145,13 +144,12 @@ function renderResults(resultsList) {
             })' />\
         </label>`;
     });
-    getElementByClass('.iu_main-btn').remove();
 }
 
 async function run(shouldIncludeVerifiedAccounts) {
+    getElementByClass('.iu_main-btn').remove();
     getElementByClass('.iu_include-verified-checkbox').disabled = true;
-    nonFollowersList = await getNonFollowersList(shouldIncludeVerifiedAccounts);
-    renderResults(nonFollowersList);
+    await getNonFollowersList(shouldIncludeVerifiedAccounts);
     getElementByClass('.copyListToClipboardButton').disabled = false;
 }
 
@@ -165,10 +163,14 @@ function renderOverlay() {
         <div style='font-family:monospace;font-size:1.5em;cursor:pointer;' onclick='location.reload()'>InstagramUnfollowers</div>\
         <button class='copyListToClipboardButton' style='background:none;color:white;border: 1px solid white;border-radius:15px;padding:0.5em;cursor:pointer' onclick='copyListToClipboard()' disabled>Copy List to Clipboard</button>\
         <label style='display:flex;cursor:pointer;'><input type='checkbox' class='iu_include-verified-checkbox' />&nbsp;Include verified</label>\
+        <div class="progress-bar" style="display:none; width: 120px;height: 30px;border-radius: 5px;margin: 20px 10px;border: 1px solid #7b7777;overflow: hidden;position: relative;">
+            <span class="loading-percentage" style="width: 0;height: 100%;display: block;color: white;line-height: 30px;position: absolute;text-align: end;padding-right: 5px;background-color: #7b7777;">0%</span>
+        </div>
         <div>Non-followers: <span class='iu_nonfollower-count' /></div>\
         <div style='font-size:1.2em;text-decoration:underline;color:red;cursor:pointer;' onclick='unfollow()'>Unfollow Selected <span class='iu_selected-count'>[0]</span></div>\
         <input type='checkbox' class='iu_toggle-all-checkbox' style='height:1.1rem;width:1.1rem;' onclick='toggleAllUsers(this.checked)' disabled />\
     </header>\
+    <div class="sleeping" style="position: fixed; bottom: 0; left: 0px; right: 0px; display: none; padding: 1rem; background-color: #000000; z-index: 1;color: #ffffff;"></div>
     <button class='iu_main-btn' style='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:2em;cursor:pointer;height:160px;width:160px;border-radius:50%;background:transparent;color:currentColor;border:1px solid currentColor;'>RUN</button>\
     <div class='iu_results-container' style='transform:translateY(75px)'></div>`;
     document.body.replaceChildren(el);
@@ -184,6 +186,9 @@ function renderOverlay() {
 }
 
 async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
+    const progressBar = getElementByClass('.progress-bar');
+    progressBar.style.display = 'block';
+
     if (isActiveProcess) {
         return;
     }
@@ -197,10 +202,11 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
 
     const ds_user_id = getCookie('ds_user_id');
     let url = `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24"}`;
-
-    const elMainBtn = getElementByClass('.iu_main-btn');
+    const loadingPercentage = getElementByClass('.loading-percentage');
     const elResultsContainer = getElementByClass('.iu_results-container');
     const elNonFollowerCount = getElementByClass('.iu_nonfollower-count');
+    const sleepingContainer = getElementByClass('.sleeping');
+    const sleepingText = getElementByClass('.sleeping');
 
     while (hasNext) {
         let receivedData;
@@ -227,22 +233,29 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
             }
         });
 
-        elMainBtn.innerHTML = `${Math.round((currentFollowedUsersCount / totalFollowedUsersCount) * 100)}%`;
+        let percentage = `${Math.round((currentFollowedUsersCount / totalFollowedUsersCount) * 100)}%`;
+        loadingPercentage.innerHTML = percentage;
+        loadingPercentage.style.width = percentage;
         elResultsContainer.innerHTML = '';
         elNonFollowerCount.innerHTML = list.length.toString();
+        renderResults(list);
 
         await sleep(Math.floor(Math.random() * (1000 - 600)) + 1000);
         scrollCycle++;
         if (scrollCycle > 6) {
             scrollCycle = 0;
-            elResultsContainer.innerHTML =
-                '<span style="margin:1rem;">Sleeping 10 secs to prevent getting temp blocked...</span>';
+            sleepingContainer.style.display = 'block';
+            sleepingText.innerHTML = 'Sleeping 10 secs to prevent getting temp blocked...';
             await sleep(10000);
         }
+        sleepingContainer.style.display = 'none';
     }
+    loadingPercentage.style.backgroundColor = '#59A942FF';
+    loadingPercentage.innerHTML = 'DONE';
+    loadingPercentage.style.textAlign = 'center';
 
+    nonFollowersList = list;
     isActiveProcess = false;
-    return list;
 }
 
 window.unfollow = async () => {
@@ -257,7 +270,8 @@ window.unfollow = async () => {
     if (csrftoken === undefined) {
         throw new Error('csrftoken cookie is undefined');
     }
-
+    const sleepingContainer = getElementByClass('.sleeping');
+    const sleepingInfo = getElementByClass('.sleeping-text');
     getElementByClass('.iu_toggle-all-checkbox').disabled = true;
     const elResultsContainer = getElementByClass('.iu_results-container');
     elResultsContainer.innerHTML = '';
@@ -299,11 +313,12 @@ window.unfollow = async () => {
             break;
         }
         if (counter % 5 === 0) {
-            elResultsContainer.innerHTML +=
-                '<hr /><div style="padding:1rem;font-size:1.25em;color:#d7d356;">Sleeping 5 minutes to prevent getting temp blocked...</div><hr />';
+            sleepingContainer.style.display = 'inline-grid';
+            sleepingInfo.innerHTML = 'Sleeping 5 minutes to prevent getting temp blocked...';
             scrollToBottom();
             await sleep(300000);
         }
+        sleepingContainer.style.display = 'none';
     }
 
     isActiveProcess = false;
