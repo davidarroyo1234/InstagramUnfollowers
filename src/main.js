@@ -47,7 +47,7 @@ function unfollowUserUrlGenerator(idToUnfollow) {
 function getElementByClass(className) {
     const el = document.querySelector(className);
     if (el === null) {
-        throw new Error(`Unable to find element by class. className: ${className}`);
+        throw new Error(`Unable to find element by class: ${className}`);
     }
     return el;
 }
@@ -95,7 +95,7 @@ window.toggleUser = userId => {
 };
 
 window.toggleAllUsers = (status = false) => {
-    document.querySelectorAll('input.account-checkbox').forEach(e => (e.checked = status));
+    document.querySelectorAll('.iu_account-checkbox').forEach(e => (e.checked = status));
     if (!status) {
         userIdsToUnfollow = [];
     } else {
@@ -131,13 +131,13 @@ function renderResults(resultsList) {
                 }
                 ${
                     user.is_private
-                        ? `<div style="display:flex;width:100%;justify-content:space-around;">
-                            <span style="border: 2px solid #51bb42;border-radius:25px;padding:0.5rem;color:#51bb42;font-weight:500;">Private</span>
+                        ? `<div style='display:flex;width:100%;justify-content:space-around;'>
+                            <span style='border: 2px solid #51bb42;border-radius:25px;padding:0.5rem;color:#51bb42;font-weight:500;'>Private</span>
                           </div>`
                         : ''
                 }
             </div>
-            <input class='account-checkbox' type='checkbox' style='height:1.1rem;width:1.1rem;' onchange='toggleUser(${
+            <input class='iu_account-checkbox' type='checkbox' style='height:1.1rem;width:1.1rem;' onchange='toggleUser(${
                 user.id
             })' />
         </label>`;
@@ -147,8 +147,8 @@ function renderResults(resultsList) {
 async function run(shouldIncludeVerifiedAccounts) {
     getElementByClass('.iu_main-btn').remove();
     getElementByClass('.iu_include-verified-checkbox').disabled = true;
-    await getNonFollowersList(shouldIncludeVerifiedAccounts);
-    getElementByClass('.copyListToClipboardButton').disabled = false;
+    nonFollowersList = await getNonFollowersList(shouldIncludeVerifiedAccounts);
+    getElementByClass('.ui_copy-list-btn').disabled = false;
 }
 
 function renderOverlay() {
@@ -159,16 +159,17 @@ function renderOverlay() {
     el.setAttribute('style', ['background-color:#222', 'color:#fff', 'height:100%', 'font-family:system-ui'].join(';'));
     el.innerHTML = `<header style='position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:1rem;height:2.5rem;background-color:#333;z-index:1;'>
         <div style='font-family:monospace;font-size:1.5em;cursor:pointer;' onclick='location.reload()'>InstagramUnfollowers</div>
-        <button class='copyListToClipboardButton' style='background:none;color:white;border: 1px solid white;border-radius:15px;padding:0.5em;cursor:pointer' onclick='copyListToClipboard()' disabled>Copy List to Clipboard</button>
+        <button class='ui_copy-list-btn' style='background:none;color:white;border: 1px solid white;border-radius:15px;padding:0.5em;cursor:pointer' onclick='copyListToClipboard()' disabled>Copy List to Clipboard</button>
         <label style='display:flex;cursor:pointer;'><input type='checkbox' class='iu_include-verified-checkbox' />&nbsp;Include verified</label>
-        <div class="progress-bar" style="display:none; width: 120px;height: 30px;border-radius: 5px;margin: 20px 10px;border: 1px solid #7b7777;overflow: hidden;position: relative;">
-            <span class="loading-percentage" style="width: 0;height: 100%;display: block;color: white;line-height: 30px;position: absolute;text-align: end;padding-right: 5px;background-color: #7b7777;">0%</span>
+        <div class='iu_progressbar-container' style='display:none;width:120px;height:30px;border-radius:5px;position:relative;border:1px solid #7b7777;'>
+            <div class='iu_progressbar-bar' style='width:0;height:100%;background-color:#7b7777;'></div>
+            <label class='iu_progressbar-text' style='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);'>0%</label>
         </div>
         <div>Non-followers: <span class='iu_nonfollower-count' /></div>
         <div style='font-size:1.2em;text-decoration:underline;color:red;cursor:pointer;' onclick='unfollow()'>Unfollow Selected <span class='iu_selected-count'>[0]</span></div>
         <input type='checkbox' class='iu_toggle-all-checkbox' style='height:1.1rem;width:1.1rem;' onclick='toggleAllUsers(this.checked)' disabled />
     </header>
-    <div class="sleeping" style="position: fixed; bottom: 0; left: 0px; right: 0px; display: none; padding: 1rem; background-color: #000000; z-index: 1;color: #ffffff;"></div>
+    <div class='iu_sleeping-container' style='position: fixed; bottom: 0; left: 0px; right: 0px; display: none; padding: 1rem; background-color: #000; z-index: 1;color: yellow; font-weight:bold'></div>
     <button class='iu_main-btn' style='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:2em;cursor:pointer;height:160px;width:160px;border-radius:50%;background:transparent;color:currentColor;border:1px solid currentColor;'>RUN</button>
     <div class='iu_results-container' style='transform:translateY(75px)'></div>`;
     document.body.replaceChildren(el);
@@ -184,9 +185,6 @@ function renderOverlay() {
 }
 
 async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
-    const progressBar = getElementByClass('.progress-bar');
-    progressBar.style.display = 'block';
-
     if (isActiveProcess) {
         return;
     }
@@ -200,17 +198,19 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
 
     const ds_user_id = getCookie('ds_user_id');
     let url = `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24"}`;
-    const loadingPercentage = getElementByClass('.loading-percentage');
-    const elResultsContainer = getElementByClass('.iu_results-container');
+
+    getElementByClass('.iu_progressbar-container').style.display = 'block';
+    const elProgressbarBar = getElementByClass('.iu_progressbar-bar');
+    const elProgressbarText = getElementByClass('.iu_progressbar-text');
     const elNonFollowerCount = getElementByClass('.iu_nonfollower-count');
-    const sleepingContainer = getElementByClass('.sleeping');
-    const sleepingText = getElementByClass('.sleeping');
+    const elSleepingContainer = getElementByClass('.iu_sleeping-container');
 
     while (hasNext) {
         let receivedData;
         try {
             receivedData = await fetch(url).then(res => res.json());
         } catch (e) {
+            console.error(e);
             continue;
         }
 
@@ -231,10 +231,9 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
             }
         });
 
-        let percentage = `${Math.round((currentFollowedUsersCount / totalFollowedUsersCount) * 100)}%`;
-        loadingPercentage.innerHTML = percentage;
-        loadingPercentage.style.width = percentage;
-        elResultsContainer.innerHTML = '';
+        const percentage = `${Math.round((currentFollowedUsersCount / totalFollowedUsersCount) * 100)}%`;
+        elProgressbarText.innerHTML = percentage;
+        elProgressbarBar.style.width = percentage;
         elNonFollowerCount.innerHTML = list.length.toString();
         renderResults(list);
 
@@ -242,18 +241,17 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
         scrollCycle++;
         if (scrollCycle > 6) {
             scrollCycle = 0;
-            sleepingContainer.style.display = 'block';
-            sleepingText.innerHTML = 'Sleeping 10 secs to prevent getting temp blocked...';
+            elSleepingContainer.style.display = 'block';
+            elSleepingContainer.innerHTML = 'Sleeping 10 secs to prevent getting temp blocked...';
             await sleep(10000);
         }
-        sleepingContainer.style.display = 'none';
+        elSleepingContainer.style.display = 'none';
     }
-    loadingPercentage.style.backgroundColor = '#59A942FF';
-    loadingPercentage.innerHTML = 'DONE';
-    loadingPercentage.style.textAlign = 'center';
+    elProgressbarBar.style.backgroundColor = '#59A942';
+    elProgressbarText.innerHTML = 'DONE';
 
-    nonFollowersList = list;
     isActiveProcess = false;
+    return list;
 }
 
 window.unfollow = async () => {
@@ -268,8 +266,7 @@ window.unfollow = async () => {
     if (csrftoken === undefined) {
         throw new Error('csrftoken cookie is undefined');
     }
-    const sleepingContainer = getElementByClass('.sleeping');
-    const sleepingInfo = getElementByClass('.sleeping-text');
+    const sleepingContainer = getElementByClass('.iu_sleeping-container');
     getElementByClass('.iu_toggle-all-checkbox').disabled = true;
     const elResultsContainer = getElementByClass('.iu_results-container');
     elResultsContainer.innerHTML = '';
@@ -311,7 +308,7 @@ window.unfollow = async () => {
             break;
         }
         if (counter % 5 === 0) {
-            sleepingContainer.style.display = 'inline-grid';
+            sleepingContainer.style.display = 'block';
             sleepingInfo.innerHTML = 'Sleeping 5 minutes to prevent getting temp blocked...';
             scrollToBottom();
             await sleep(300000);
