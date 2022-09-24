@@ -73,9 +73,8 @@ function copyListToClipboard() {
     copyToClipboard(output);
 }
 
-function copyToClipboard(text) {
+async function copyToClipboard(text) {
     await navigator.clipboard.writeText(text);
-
     alert('List copied to clipboard!');
 }
 
@@ -148,11 +147,9 @@ function renderResults(resultsList) {
 }
 
 async function run(shouldIncludeVerifiedAccounts) {
-    getElementByClass('.iu_main-btn').style.display = 'none';
+    getElementByClass('.iu_main-btn').remove();
     getElementByClass('.iu_include-verified-checkbox').disabled = true;
     await getNonFollowersList(shouldIncludeVerifiedAccounts);
-    nonFollowersList = await getNonFollowersList(shouldIncludeVerifiedAccounts);
-    renderResults(nonFollowersList);
     getElementByClass('.copyListToClipboardButton').disabled = false;
 }
 
@@ -173,10 +170,7 @@ function renderOverlay() {
         <div style='font-size:1.2em;text-decoration:underline;color:red;cursor:pointer;' onclick='unfollow()'>Unfollow Selected <span class='iu_selected-count'>[0]</span></div>\
         <input type='checkbox' class='iu_toggle-all-checkbox' style='height:1.1rem;width:1.1rem;' onclick='toggleAllUsers(this.checked)' disabled />\
     </header>\
-    <div class="sleeping" style="position:fixed;top:55px;left:0;right:0;display:none;align-items:center;padding:0.7rem;height:1.7rem;background-color:#333;z-index:1;">
-        <hr class="solid" style="border-top: 1px solid #bbb;border-radius: 5px;width: 100%">
-        <label class="sleeping-text" style="color: red;margin-left: 16px;text-align: center"></label>
-    </div>
+    <div class="sleeping" style="position: fixed; bottom: 0; left: 0px; right: 0px; display: none; padding: 1rem; background-color: #000000; z-index: 1;color: #ffffff;"></div>
     <button class='iu_main-btn' style='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:2em;cursor:pointer;height:160px;width:160px;border-radius:50%;background:transparent;color:currentColor;border:1px solid currentColor;'>RUN</button>\
     <div class='iu_results-container' style='transform:translateY(75px)'></div>`;
     document.body.replaceChildren(el);
@@ -211,8 +205,8 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
     const loadingPercentage = getElementByClass('.loading-percentage');
     const elResultsContainer = getElementByClass('.iu_results-container');
     const elNonFollowerCount = getElementByClass('.iu_nonfollower-count');
-    let sleepingContainer = getElementByClass('.sleeping');
-    let sleepingText = getElementByClass('.sleeping-text');
+    const sleepingContainer = getElementByClass('.sleeping');
+    const sleepingText = getElementByClass('.sleeping');
 
     while (hasNext) {
         let receivedData;
@@ -250,7 +244,7 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
         scrollCycle++;
         if (scrollCycle > 6) {
             scrollCycle = 0;
-            sleepingContainer.style.display = 'inline-grid';
+            sleepingContainer.style.display = 'block';
             sleepingText.innerHTML = 'Sleeping 10 secs to prevent getting temp blocked...';
             await sleep(10000);
         }
@@ -276,8 +270,8 @@ window.unfollow = async () => {
     if (csrftoken === undefined) {
         throw new Error('csrftoken cookie is undefined');
     }
-    let sleepingContainer = getElementByClass('.sleeping');
-    let sleepingInfo = getElementByClass('.sleeping-text');
+    const sleepingContainer = getElementByClass('.sleeping');
+    const sleepingInfo = getElementByClass('.sleeping-text');
     getElementByClass('.iu_toggle-all-checkbox').disabled = true;
     const elResultsContainer = getElementByClass('.iu_results-container');
     elResultsContainer.innerHTML = '';
