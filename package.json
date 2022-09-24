@@ -1,8 +1,9 @@
 {
   "dependencies": {
-    "minify": "9.1.0"
+    "minify": "9.1.0",
+    "prettier": "^2.7.1"
   },
   "scripts": {
-    "build": "npx minify src/main.js > min/min.js"
+    "build": "npx prettier -w src/*.js && npx minify src/main.js > min/min.js"
   }
 }
