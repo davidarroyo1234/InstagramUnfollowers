@@ -104,8 +104,6 @@ window.toggleAllUsers = (status = false) => {
     onToggleUser();
 };
 
-// Mind to put \ in the end of each line in a multi-line template string so that
-// the minified file doesn't become a bloated, multi-line mess.
 function renderResults(resultsList) {
     // Shallow-copy to avoid altering original.
     const sortedList = [...resultsList].sort((a, b) => (a.username > b.username ? 1 : -1));
@@ -119,29 +117,29 @@ function renderResults(resultsList) {
             currentChar = firstChar;
             elResultsContainer.innerHTML += `<div style='margin:1rem;padding:1rem;font-size:2em;border-bottom: 1px solid #333;'>${currentChar}</div>`;
         }
-        elResultsContainer.innerHTML += `<label style='display:flex;align-items:center;padding:1rem;border-radius:3px;cursor:pointer;'>\
-            <div style='display:flex;align-items:center;flex:1;'>\
-                <img src=${user.profile_pic_url} width='75px' style='border-radius:50%;' />&nbsp;&nbsp;&nbsp;&nbsp;\
-                <div style='display:flex;flex-direction:column;'>\
-                    <span style='font-size:1.7em;'>${user.username}</span>\
-                    <span style='font-size:0.8em;'>${user.full_name}</span>\
-                </div>\
+        elResultsContainer.innerHTML += `<label style='display:flex;align-items:center;padding:1rem;border-radius:3px;cursor:pointer;'>
+            <div style='display:flex;align-items:center;flex:1;'>
+                <img src=${user.profile_pic_url} width='75px' style='border-radius:50%;' />&nbsp;&nbsp;&nbsp;&nbsp;
+                <div style='display:flex;flex-direction:column;'>
+                    <span style='font-size:1.7em;'>${user.username}</span>
+                    <span style='font-size:0.8em;'>${user.full_name}</span>
+                </div>
                 ${
                     user.is_verified
                         ? `&nbsp;&nbsp;&nbsp;<div style='background-color:#49adf4;border-radius:50%;padding:0.2rem 0.3rem;font-size:0.35em;height:fit-content;'>✔</div>`
                         : ''
-                }\
+                }
                 ${
                     user.is_private
-                        ? `<div style="display:flex;width:100%;justify-content:space-around;">\
-                            <span style="border: 2px solid #51bb42;border-radius:25px;padding:0.5rem;color:#51bb42;font-weight:500;">Private</span>\
+                        ? `<div style="display:flex;width:100%;justify-content:space-around;">
+                            <span style="border: 2px solid #51bb42;border-radius:25px;padding:0.5rem;color:#51bb42;font-weight:500;">Private</span>
                           </div>`
                         : ''
-                }\
-            </div>\
+                }
+            </div>
             <input class='account-checkbox' type='checkbox' style='height:1.1rem;width:1.1rem;' onchange='toggleUser(${
                 user.id
-            })' />\
+            })' />
         </label>`;
     });
 }
@@ -159,19 +157,19 @@ function renderOverlay() {
     const el = document.createElement('div');
     el.setAttribute('class', 'iu_overlay');
     el.setAttribute('style', ['background-color:#222', 'color:#fff', 'height:100%', 'font-family:system-ui'].join(';'));
-    el.innerHTML = `<header style='position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:1rem;height:2.5rem;background-color:#333;z-index:1;'>\
-        <div style='font-family:monospace;font-size:1.5em;cursor:pointer;' onclick='location.reload()'>InstagramUnfollowers</div>\
-        <button class='copyListToClipboardButton' style='background:none;color:white;border: 1px solid white;border-radius:15px;padding:0.5em;cursor:pointer' onclick='copyListToClipboard()' disabled>Copy List to Clipboard</button>\
-        <label style='display:flex;cursor:pointer;'><input type='checkbox' class='iu_include-verified-checkbox' />&nbsp;Include verified</label>\
+    el.innerHTML = `<header style='position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:1rem;height:2.5rem;background-color:#333;z-index:1;'>
+        <div style='font-family:monospace;font-size:1.5em;cursor:pointer;' onclick='location.reload()'>InstagramUnfollowers</div>
+        <button class='copyListToClipboardButton' style='background:none;color:white;border: 1px solid white;border-radius:15px;padding:0.5em;cursor:pointer' onclick='copyListToClipboard()' disabled>Copy List to Clipboard</button>
+        <label style='display:flex;cursor:pointer;'><input type='checkbox' class='iu_include-verified-checkbox' />&nbsp;Include verified</label>
         <div class="progress-bar" style="display:none; width: 120px;height: 30px;border-radius: 5px;margin: 20px 10px;border: 1px solid #7b7777;overflow: hidden;position: relative;">
             <span class="loading-percentage" style="width: 0;height: 100%;display: block;color: white;line-height: 30px;position: absolute;text-align: end;padding-right: 5px;background-color: #7b7777;">0%</span>
         </div>
-        <div>Non-followers: <span class='iu_nonfollower-count' /></div>\
-        <div style='font-size:1.2em;text-decoration:underline;color:red;cursor:pointer;' onclick='unfollow()'>Unfollow Selected <span class='iu_selected-count'>[0]</span></div>\
-        <input type='checkbox' class='iu_toggle-all-checkbox' style='height:1.1rem;width:1.1rem;' onclick='toggleAllUsers(this.checked)' disabled />\
-    </header>\
+        <div>Non-followers: <span class='iu_nonfollower-count' /></div>
+        <div style='font-size:1.2em;text-decoration:underline;color:red;cursor:pointer;' onclick='unfollow()'>Unfollow Selected <span class='iu_selected-count'>[0]</span></div>
+        <input type='checkbox' class='iu_toggle-all-checkbox' style='height:1.1rem;width:1.1rem;' onclick='toggleAllUsers(this.checked)' disabled />
+    </header>
     <div class="sleeping" style="position: fixed; bottom: 0; left: 0px; right: 0px; display: none; padding: 1rem; background-color: #000000; z-index: 1;color: #ffffff;"></div>
-    <button class='iu_main-btn' style='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:2em;cursor:pointer;height:160px;width:160px;border-radius:50%;background:transparent;color:currentColor;border:1px solid currentColor;'>RUN</button>\
+    <button class='iu_main-btn' style='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:2em;cursor:pointer;height:160px;width:160px;border-radius:50%;background:transparent;color:currentColor;border:1px solid currentColor;'>RUN</button>
     <div class='iu_results-container' style='transform:translateY(75px)'></div>`;
     document.body.replaceChildren(el);
 
@@ -292,11 +290,11 @@ window.unfollow = async () => {
                 mode: 'cors',
                 credentials: 'include',
             });
-            elResultsContainer.innerHTML += `<div style='padding:1rem;'>Unfollowed\
+            elResultsContainer.innerHTML += `<div style='padding:1rem;'>Unfollowed
                 <a style='color:inherit' target='_blank' href='${INSTAGRAM_HOSTNAME}/${user.username}/'> ${
                 user.username
-            }</a>\
-                <span style='color:#00ffff'> [${counter + 1}/${userIdsToUnfollow.length}]</span>\
+            }</a>
+                <span style='color:#00ffff'> [${counter + 1}/${userIdsToUnfollow.length}]</span>
             </div>`;
         } catch (e) {
             console.error(e);
