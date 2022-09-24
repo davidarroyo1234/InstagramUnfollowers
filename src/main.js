@@ -62,6 +62,23 @@ function getUserById(userId) {
     return user;
 }
 
+function copyListToClipboard() {
+    const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
+
+    let output = '';
+    sortedList.forEach(user => {
+        output += user.username + '\n';
+    });
+
+    copyToClipboard(output);
+}
+
+function copyToClipboard(text) {
+    await navigator.clipboard.writeText(text);
+
+    alert('List copied to clipboard!');
+}
+
 function onToggleUser() {
     getElementByClass('.iu_selected-count').innerHTML = `[${userIdsToUnfollow.length}]`;
 }
@@ -132,10 +149,10 @@ function renderResults(resultsList) {
 }
 
 async function run(shouldIncludeVerifiedAccounts) {
-    const elShouldIncludeVerified = getElementByClass('.iu_include-verified-checkbox');
-    elShouldIncludeVerified.disabled = true;
+    getElementByClass('.iu_include-verified-checkbox').disabled = true;
     nonFollowersList = await getNonFollowersList(shouldIncludeVerifiedAccounts);
     renderResults(nonFollowersList);
+    getElementByClass('.copyListToClipboardButton').disabled = false;
 }
 
 function renderOverlay() {
@@ -146,6 +163,7 @@ function renderOverlay() {
     el.setAttribute('style', ['background-color:#222', 'color:#fff', 'height:100%', 'font-family:system-ui'].join(';'));
     el.innerHTML = `<header style='position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:1rem;height:2.5rem;background-color:#333;z-index:1;'>\
         <div style='font-family:monospace;font-size:1.5em;cursor:pointer;' onclick='location.reload()'>InstagramUnfollowers</div>\
+        <button class='copyListToClipboardButton' style='background:none;color:white;border: 1px solid white;border-radius:15px;padding:0.5em;cursor:pointer' onclick='copyListToClipboard()' disabled>Copy List to Clipboard</button>\
         <label style='display:flex;cursor:pointer;'><input type='checkbox' class='iu_include-verified-checkbox' />&nbsp;Include verified</label>\
         <div>Non-followers: <span class='iu_nonfollower-count' /></div>\
         <div style='font-size:1.2em;text-decoration:underline;color:red;cursor:pointer;' onclick='unfollow()'>Unfollow Selected <span class='iu_selected-count'>[0]</span></div>\
