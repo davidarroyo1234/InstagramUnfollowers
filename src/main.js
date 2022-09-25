@@ -231,7 +231,7 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
             }
         });
 
-        const percentage = `${Math.round((currentFollowedUsersCount / totalFollowedUsersCount) * 100)}%`;
+        const percentage = `${Math.ceil((currentFollowedUsersCount / totalFollowedUsersCount) * 100)}%`;
         elProgressbarText.innerHTML = percentage;
         elProgressbarBar.style.width = percentage;
         elNonFollowerCount.innerHTML = list.length.toString();
