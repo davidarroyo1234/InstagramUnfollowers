@@ -266,7 +266,7 @@ window.unfollow = async () => {
     if (csrftoken === undefined) {
         throw new Error('csrftoken cookie is undefined');
     }
-    const sleepingContainer = getElementByClass('.iu_sleeping-container');
+    const elSleepingContainer = getElementByClass('.iu_sleeping-container');
     getElementByClass('.iu_toggle-all-checkbox').disabled = true;
     const elResultsContainer = getElementByClass('.iu_results-container');
     elResultsContainer.innerHTML = '';
@@ -308,12 +308,12 @@ window.unfollow = async () => {
             break;
         }
         if (counter % 5 === 0) {
-            sleepingContainer.style.display = 'block';
-            sleepingInfo.innerHTML = 'Sleeping 5 minutes to prevent getting temp blocked...';
+            elSleepingContainer.style.display = 'block';
+            elSleepingContainer.innerHTML = 'Sleeping 5 minutes to prevent getting temp blocked...';
             scrollToBottom();
             await sleep(300000);
         }
-        sleepingContainer.style.display = 'none';
+        elSleepingContainer.style.display = 'none';
     }
 
     isActiveProcess = false;
