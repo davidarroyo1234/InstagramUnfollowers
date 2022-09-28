@@ -262,6 +262,10 @@ window.unfollow = async () => {
     if (isActiveProcess) {
         return;
     }
+    if (userIdsToUnfollow.length === 0) {
+        alert('Must select at least a single user to unfollow');
+        return;
+    }
     if (!confirm('Are you sure?')) {
         return;
     }
