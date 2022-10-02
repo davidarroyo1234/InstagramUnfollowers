@@ -112,6 +112,7 @@ function renderResults(resultsList) {
     elResultsContainer.innerHTML = '';
     let currentChar = '';
     sortedList.forEach(user => {
+        const isUserSelected = userIdsToUnfollow.indexOf(parseInt(user.id, 10)) !== -1;
         const firstChar = user.username.substring(0, 1).toUpperCase();
         if (currentChar !== firstChar) {
             currentChar = firstChar;
@@ -137,9 +138,12 @@ function renderResults(resultsList) {
                         : ''
                 }
             </div>
-            <input class='iu_account-checkbox' type='checkbox' style='height:1.1rem;width:1.1rem;' onchange='toggleUser(${
-                user.id
-            })' />
+            <input
+                class='iu_account-checkbox'
+                type='checkbox'
+                style='height:1.1rem;width:1.1rem;'
+                onchange='toggleUser(${user.id})'
+                ${isUserSelected ? 'checked' : ''} />
         </label>`;
     });
 }
@@ -256,6 +260,10 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
 
 window.unfollow = async () => {
     if (isActiveProcess) {
+        return;
+    }
+    if (userIdsToUnfollow.length === 0) {
+        alert('Must select at least a single user to unfollow');
         return;
     }
     if (!confirm('Are you sure?')) {
