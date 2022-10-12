@@ -170,6 +170,8 @@ function renderOverlay() {
             <label class='iu_progressbar-text' style='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);'>0%</label>
         </div>
         <div>Non-followers: <span class='iu_nonfollower-count' /></div>
+        <label for="fname">numOfRequests:</label>
+        <input type='text' class='ui-num-users-unfollow'/>
         <div style='font-size:1.2em;text-decoration:underline;color:red;cursor:pointer;' onclick='unfollow()'>Unfollow Selected <span class='iu_selected-count'>[0]</span></div>
         <input type='checkbox' class='iu_toggle-all-checkbox' style='height:1.1rem;width:1.1rem;' onclick='toggleAllUsers(this.checked)' disabled />
     </header>
@@ -201,6 +203,10 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
     isActiveProcess = true;
 
     const ds_user_id = getCookie('ds_user_id');
+    let numOfRequests = getElementByClass('.ui-num-users-unfollow').value
+    if (numOfRequests === ""){
+        numOfRequests = 1000 // All
+    }
     let url = `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24"}`;
 
     getElementByClass('.iu_progressbar-container').style.display = 'block';
@@ -209,10 +215,12 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
     const elNonFollowerCount = getElementByClass('.iu_nonfollower-count');
     const elSleepingContainer = getElementByClass('.iu_sleeping-container');
 
-    while (hasNext) {
+    let counter = 0
+    while (hasNext && counter < numOfRequests) {
         let receivedData;
         try {
             receivedData = await fetch(url).then(res => res.json());
+            counter += 1
         } catch (e) {
             console.error(e);
             continue;
@@ -325,7 +333,9 @@ window.unfollow = async () => {
     }
 
     isActiveProcess = false;
-    elResultsContainer.innerHTML += `<hr /><div style='padding:1rem;font-size:1.25em;color:#56d756;'>All DONE!</div><hr />`;
+    elResultsContainer.innerHTML += `<hr /><div style='padding:1rem;font-size:1.25em;color:#56d756;'>All DONE!</div><hr />
+    <button class='iu_main-btn' style='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:2em;cursor:pointer;height:160px;width:160px;border-radius:50%;background:transparent;color:currentColor;border:1px solid currentColor;'>RERUN</button>`;
+    getElementByClass('.iu_main-btn').addEventListener('click', () => run(true));
     scrollToBottom();
 };
 
