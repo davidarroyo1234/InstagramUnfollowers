@@ -5,6 +5,7 @@ const INSTAGRAM_HOSTNAME = 'www.instagram.com';
 let nonFollowersList = [];
 let userIdsToUnfollow = [];
 let isActiveProcess = false;
+let requestLimit = 0;
 
 // Prompt user if he tries to leave while in the middle of a process (searching / unfollowing / etc..)
 // This is especially good for avoiding accidental tab closing which would result in a frustrating experience.
@@ -155,6 +156,12 @@ async function run(shouldIncludeVerifiedAccounts) {
     getElementByClass('.ui_copy-list-btn').disabled = false;
 }
 
+window.onChangeRequestLimit = inputElement => {
+    requestLimit = inputElement.value ?? 0;
+    // Avoid assigning `string` values.
+    requestLimit = parseInt(requestLimit, 10);
+ }
+
 function renderOverlay() {
     let shouldIncludeVerifiedAccounts = true;
     document.documentElement.style.backgroundColor = '#222';
@@ -170,8 +177,7 @@ function renderOverlay() {
             <label class='iu_progressbar-text' style='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);'>0%</label>
         </div>
         <div>Non-followers: <span class='iu_nonfollower-count' /></div>
-        <label for="fname">numOfRequests:</label>
-        <input type='text' class='ui-num-users-unfollow'/>
+        <input type='number' min='0' placeholder='Limit requests' onchange='onChangeRequestLimit(this)' style='border: none;max-width: 100px;padding: 0.4em;border-radius: 4px;' />
         <div style='font-size:1.2em;text-decoration:underline;color:red;cursor:pointer;' onclick='unfollow()'>Unfollow Selected <span class='iu_selected-count'>[0]</span></div>
         <input type='checkbox' class='iu_toggle-all-checkbox' style='height:1.1rem;width:1.1rem;' onclick='toggleAllUsers(this.checked)' disabled />
     </header>
@@ -203,10 +209,6 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
     isActiveProcess = true;
 
     const ds_user_id = getCookie('ds_user_id');
-    let numOfRequests = getElementByClass('.ui-num-users-unfollow').value
-    if (numOfRequests === ""){
-        numOfRequests = 1000 // All
-    }
     let url = `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24"}`;
 
     getElementByClass('.iu_progressbar-container').style.display = 'block';
@@ -216,7 +218,11 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
     const elSleepingContainer = getElementByClass('.iu_sleeping-container');
 
     let counter = 0
-    while (hasNext && counter < numOfRequests) {
+    while (hasNext) {
+        if (requestLimit !== 0 && counter > requestLimit) {
+            console.info('Reached request limit. Stopping!');
+            break;
+         }
         let receivedData;
         try {
             receivedData = await fetch(url).then(res => res.json());
@@ -333,9 +339,8 @@ window.unfollow = async () => {
     }
 
     isActiveProcess = false;
-    elResultsContainer.innerHTML += `<hr /><div style='padding:1rem;font-size:1.25em;color:#56d756;'>All DONE!</div><hr />
-    <button class='iu_main-btn' style='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:2em;cursor:pointer;height:160px;width:160px;border-radius:50%;background:transparent;color:currentColor;border:1px solid currentColor;'>RERUN</button>`;
-    getElementByClass('.iu_main-btn').addEventListener('click', () => run(true));
+    elResultsContainer.innerHTML += `<hr /><button class='ui-return-btn'style='padding:1rem;font-size:1.25em;color:#56d756;background:transparent;color:currentColor;'>All DONE! click here to return</button><hr />`;
+    getElementByClass('.ui-return-btn').addEventListener('click', () => init());
     scrollToBottom();
 };
 
