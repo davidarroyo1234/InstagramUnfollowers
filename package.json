@@ -1,9 +1,13 @@
 {
   "dependencies": {
     "minify": "9.1.0",
+    "node-sass": "^8.0.0",
     "prettier": "^2.7.1"
   },
   "scripts": {
-    "build": "npx prettier -w src/*.js && npx minify src/main.js > min/min.js"
+    "processcss": "node-sass --include-path scss src/styles.scss dist/dist.styles.css",
+    "compilecss": "node scripts/compile-css src/main.js dist/dist.styles.css dist/dist.js",
+    "minify": "npx minify dist/dist.js > dist/dist.min.js",
+    "build": "npx prettier -w src/* && npm run processcss && npm run compilecss && npm run minify"
   }
 }
