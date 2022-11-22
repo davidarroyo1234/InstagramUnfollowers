@@ -6,8 +6,9 @@
   },
   "scripts": {
     "processcss": "node-sass --include-path scss src/styles.scss dist/dist.styles.css",
-    "compilecss": "node scripts/compile-css src/main.js dist/dist.styles.css dist/dist.js",
+    "compilecss": "node scripts/compile-css.js src/main.js dist/dist.styles.css dist/dist.js",
+    "insert-on-readme": "node scripts/insert-script-in-readme.js README.md dist/dist.min.js",
     "minify": "npx minify dist/dist.js > dist/dist.min.js",
-    "build": "npx prettier -w src/* && npm run processcss && npm run compilecss && npm run minify"
+    "build": "npx prettier -w src/* && npm run processcss && npm run compilecss && npm run minify && npm run insert-on-readme"
   }
 }
