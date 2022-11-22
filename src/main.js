@@ -275,12 +275,16 @@ window.unfollow = async () => {
         throw new Error('csrftoken cookie is undefined');
     }
     const elSleepingText = getElementByClass('.sleeping-text');
+    const elProgressbarBar = getElementByClass('.progressbar-bar');
+    const elProgressbarText = getElementByClass('.progressbar-text');
     getElementByClass('.toggle-all-checkbox').disabled = true;
     const elResultsContainer = getElementByClass('.results-container');
     elResultsContainer.innerHTML = '';
 
     const scrollToBottom = () => window.scrollTo(0, elResultsContainer.scrollHeight);
 
+    elProgressbarText.innerHTML = '0%';
+    elProgressbarBar.style.width = '0%';
     isActiveProcess = true;
     let counter = 0;
     for (const id of userIdsToUnfollow) {
@@ -306,6 +310,9 @@ window.unfollow = async () => {
             }/${userIdsToUnfollow.length}]</div>`;
         }
         counter += 1;
+        const percentage = `${Math.ceil((counter / userIdsToUnfollow.length) * 100)}%`;
+        elProgressbarText.innerHTML = percentage;
+        elProgressbarBar.style.width = percentage;
         scrollToBottom();
         // If unfollowing the last user in the list, no reason to wait.
         if (id === userIdsToUnfollow[userIdsToUnfollow.length - 1]) {
@@ -321,6 +328,8 @@ window.unfollow = async () => {
         }
         elSleepingText.style.display = 'none';
     }
+    elProgressbarBar.style.backgroundColor = '#59A942';
+    elProgressbarText.innerHTML = 'DONE';
 
     isActiveProcess = false;
     elResultsContainer.innerHTML += `<hr /><div class='fs-large p-medium clr-green'>All DONE!</div><hr />`;
