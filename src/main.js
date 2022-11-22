@@ -82,19 +82,16 @@ function onToggleUser() {
     getElementByClass('.selected-user-count').innerHTML = `[${userIdsToUnfollow.length}]`;
 }
 
-// Some functions needed to be placed on the window.
-// This is due to the way the are used in the inlined template here.
-// Placing them on the window was the only way to make them work for some reason.
-window.toggleUser = userId => {
+function toggleUser(userId) {
     if (userIdsToUnfollow.indexOf(userId) === -1) {
         userIdsToUnfollow = [...userIdsToUnfollow, userId];
     } else {
         userIdsToUnfollow = userIdsToUnfollow.filter(id => id !== userId);
     }
     onToggleUser();
-};
+}
 
-window.toggleAllUsers = (status = false) => {
+function toggleAllUsers(status = false) {
     document.querySelectorAll('.account-checkbox').forEach(e => (e.checked = status));
     if (!status) {
         userIdsToUnfollow = [];
@@ -102,7 +99,7 @@ window.toggleAllUsers = (status = false) => {
         userIdsToUnfollow = nonFollowersList.map(user => user.id);
     }
     onToggleUser();
-};
+}
 
 function renderResults(resultsList) {
     // Shallow-copy to avoid altering original.
@@ -158,7 +155,9 @@ function renderOverlay() {
                 <header class='top-bar'>
                     <div class='logo' onclick='location.reload()'>InstagramUnfollowers</div>
                     <label class='flex align-center'>
-                        <input type='checkbox' class='include-verified-checkbox' /> Include verified
+                        <input type='checkbox' class='include-verified-checkbox' ${
+                            shouldIncludeVerifiedAccounts ? 'checked' : ''
+                        } /> Include verified
                     </label>
                     <button class='copy-list' onclick='copyListToClipboard()' disabled>COPY LIST</button>
                     <button class='fs-large clr-red' onclick='unfollow()'>UNFOLLOW <span class='selected-user-count'>[0]</span></button>
@@ -178,12 +177,8 @@ function renderOverlay() {
                 </footer>
             </div>
         </main>`;
-
-    // Assigned here separately instead of inline due to variables and functions not being recognized when used as bookmarklet.
     getElementByClass('.run-scan').addEventListener('click', () => run(shouldIncludeVerifiedAccounts));
-    const elShouldIncludeVerified = getElementByClass('.include-verified-checkbox');
-    elShouldIncludeVerified.checked = shouldIncludeVerifiedAccounts;
-    elShouldIncludeVerified.addEventListener(
+    getElementByClass('.include-verified-checkbox').addEventListener(
         'change',
         () => (shouldIncludeVerifiedAccounts = !shouldIncludeVerifiedAccounts),
     );
@@ -258,7 +253,7 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
     return list;
 }
 
-window.unfollow = async () => {
+async function unfollow() {
     if (isActiveProcess) {
         return;
     }
@@ -334,7 +329,7 @@ window.unfollow = async () => {
     isActiveProcess = false;
     elResultsContainer.innerHTML += `<hr /><div class='fs-large p-medium clr-green'>All DONE!</div><hr />`;
     scrollToBottom();
-};
+}
 
 function init() {
     if (location.hostname !== INSTAGRAM_HOSTNAME) {
