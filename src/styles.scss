@@ -2,6 +2,9 @@ html {
     background-color: #222 !important;
 
     .iu {
+        // Add bottom spacing due to bottom-bar covering other elements.
+        margin-bottom: 10rem;
+
         .overlay {
             background-color: #222;
             color: #fff;
