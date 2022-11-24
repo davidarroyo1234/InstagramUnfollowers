@@ -82,19 +82,16 @@ function onToggleUser() {
     getElementByClass('.selected-user-count').innerHTML = `[${userIdsToUnfollow.length}]`;
 }
 
-// Some functions needed to be placed on the window.
-// This is due to the way the are used in the inlined template here.
-// Placing them on the window was the only way to make them work for some reason.
-window.toggleUser = userId => {
+function toggleUser(userId) {
     if (userIdsToUnfollow.indexOf(userId) === -1) {
         userIdsToUnfollow = [...userIdsToUnfollow, userId];
     } else {
         userIdsToUnfollow = userIdsToUnfollow.filter(id => id !== userId);
     }
     onToggleUser();
-};
+}
 
-window.toggleAllUsers = (status = false) => {
+function toggleAllUsers(status = false) {
     document.querySelectorAll('.account-checkbox').forEach(e => (e.checked = status));
     if (!status) {
         userIdsToUnfollow = [];
@@ -102,7 +99,7 @@ window.toggleAllUsers = (status = false) => {
         userIdsToUnfollow = nonFollowersList.map(user => user.id);
     }
     onToggleUser();
-};
+}
 
 function renderResults(resultsList) {
     // Shallow-copy to avoid altering original.
@@ -158,7 +155,9 @@ function renderOverlay() {
                 <header class='top-bar'>
                     <div class='logo' onclick='location.reload()'>InstagramUnfollowers</div>
                     <label class='flex align-center'>
-                        <input type='checkbox' class='include-verified-checkbox' /> Include verified
+                        <input type='checkbox' class='include-verified-checkbox' ${
+                            shouldIncludeVerifiedAccounts ? 'checked' : ''
+                        } /> Include verified
                     </label>
                     <button class='copy-list' onclick='copyListToClipboard()' disabled>COPY LIST</button>
                     <button class='fs-large clr-red' onclick='unfollow()'>UNFOLLOW <span class='selected-user-count'>[0]</span></button>
@@ -178,12 +177,8 @@ function renderOverlay() {
                 </footer>
             </div>
         </main>`;
-
-    // Assigned here separately instead of inline due to variables and functions not being recognized when used as bookmarklet.
     getElementByClass('.run-scan').addEventListener('click', () => run(shouldIncludeVerifiedAccounts));
-    const elShouldIncludeVerified = getElementByClass('.include-verified-checkbox');
-    elShouldIncludeVerified.checked = shouldIncludeVerifiedAccounts;
-    elShouldIncludeVerified.addEventListener(
+    getElementByClass('.include-verified-checkbox').addEventListener(
         'change',
         () => (shouldIncludeVerifiedAccounts = !shouldIncludeVerifiedAccounts),
     );
@@ -258,7 +253,7 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
     return list;
 }
 
-window.unfollow = async () => {
+async function unfollow() {
     if (isActiveProcess) {
         return;
     }
@@ -274,13 +269,17 @@ window.unfollow = async () => {
     if (csrftoken === undefined) {
         throw new Error('csrftoken cookie is undefined');
     }
-    const elSleepingContainer = getElementByClass('.bottom-bar');
+    const elSleepingText = getElementByClass('.sleeping-text');
+    const elProgressbarBar = getElementByClass('.progressbar-bar');
+    const elProgressbarText = getElementByClass('.progressbar-text');
     getElementByClass('.toggle-all-checkbox').disabled = true;
     const elResultsContainer = getElementByClass('.results-container');
     elResultsContainer.innerHTML = '';
 
     const scrollToBottom = () => window.scrollTo(0, elResultsContainer.scrollHeight);
 
+    elProgressbarText.innerHTML = '0%';
+    elProgressbarBar.style.width = '0%';
     isActiveProcess = true;
     let counter = 0;
     for (const id of userIdsToUnfollow) {
@@ -305,27 +304,32 @@ window.unfollow = async () => {
                 counter + 1
             }/${userIdsToUnfollow.length}]</div>`;
         }
-        scrollToBottom();
-        await sleep(Math.floor(Math.random() * (6000 - 4000)) + 4000);
-
         counter += 1;
-        // If unfollowing the last user in the list, no reason to wait 5 minutes.
+        const percentage = `${Math.ceil((counter / userIdsToUnfollow.length) * 100)}%`;
+        elProgressbarText.innerHTML = percentage;
+        elProgressbarBar.style.width = percentage;
+        scrollToBottom();
+        // If unfollowing the last user in the list, no reason to wait.
         if (id === userIdsToUnfollow[userIdsToUnfollow.length - 1]) {
             break;
         }
+        await sleep(Math.floor(Math.random() * (6000 - 4000)) + 4000);
+
         if (counter % 5 === 0) {
-            elSleepingContainer.style.display = 'block';
-            elSleepingContainer.innerHTML = 'Sleeping 5 minutes to prevent getting temp blocked...';
+            elSleepingText.style.display = 'block';
+            elSleepingText.innerHTML = 'Sleeping 5 minutes to prevent getting temp blocked...';
             scrollToBottom();
             await sleep(300000);
         }
-        elSleepingContainer.style.display = 'none';
+        elSleepingText.style.display = 'none';
     }
+    elProgressbarBar.style.backgroundColor = '#59A942';
+    elProgressbarText.innerHTML = 'DONE';
 
     isActiveProcess = false;
     elResultsContainer.innerHTML += `<hr /><div class='fs-large p-medium clr-green'>All DONE!</div><hr />`;
     scrollToBottom();
-};
+}
 
 function init() {
     if (location.hostname !== INSTAGRAM_HOSTNAME) {

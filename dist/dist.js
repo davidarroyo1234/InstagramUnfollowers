@@ -83,19 +83,16 @@ function onToggleUser() {
     getElementByClass('.selected-user-count').innerHTML = `[${userIdsToUnfollow.length}]`;
 }
 
-// Some functions needed to be placed on the window.
-// This is due to the way the are used in the inlined template here.
-// Placing them on the window was the only way to make them work for some reason.
-window.toggleUser = userId => {
+function toggleUser(userId) {
     if (userIdsToUnfollow.indexOf(userId) === -1) {
         userIdsToUnfollow = [...userIdsToUnfollow, userId];
     } else {
         userIdsToUnfollow = userIdsToUnfollow.filter(id => id !== userId);
     }
     onToggleUser();
-};
+}
 
-window.toggleAllUsers = (status = false) => {
+function toggleAllUsers(status = false) {
     document.querySelectorAll('.account-checkbox').forEach(e => (e.checked = status));
     if (!status) {
         userIdsToUnfollow = [];
@@ -103,7 +100,7 @@ window.toggleAllUsers = (status = false) => {
         userIdsToUnfollow = nonFollowersList.map(user => user.id);
     }
     onToggleUser();
-};
+}
 
 function renderResults(resultsList) {
     // Shallow-copy to avoid altering original.
@@ -159,7 +156,9 @@ function renderOverlay() {
                 <header class='top-bar'>
                     <div class='logo' onclick='location.reload()'>InstagramUnfollowers</div>
                     <label class='flex align-center'>
-                        <input type='checkbox' class='include-verified-checkbox' /> Include verified
+                        <input type='checkbox' class='include-verified-checkbox' ${
+                            shouldIncludeVerifiedAccounts ? 'checked' : ''
+                        } /> Include verified
                     </label>
                     <button class='copy-list' onclick='copyListToClipboard()' disabled>COPY LIST</button>
                     <button class='fs-large clr-red' onclick='unfollow()'>UNFOLLOW <span class='selected-user-count'>[0]</span></button>
@@ -179,12 +178,8 @@ function renderOverlay() {
                 </footer>
             </div>
         </main>`;
-
-    // Assigned here separately instead of inline due to variables and functions not being recognized when used as bookmarklet.
     getElementByClass('.run-scan').addEventListener('click', () => run(shouldIncludeVerifiedAccounts));
-    const elShouldIncludeVerified = getElementByClass('.include-verified-checkbox');
-    elShouldIncludeVerified.checked = shouldIncludeVerifiedAccounts;
-    elShouldIncludeVerified.addEventListener(
+    getElementByClass('.include-verified-checkbox').addEventListener(
         'change',
         () => (shouldIncludeVerifiedAccounts = !shouldIncludeVerifiedAccounts),
     );
@@ -259,7 +254,7 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
     return list;
 }
 
-window.unfollow = async () => {
+async function unfollow() {
     if (isActiveProcess) {
         return;
     }
@@ -275,13 +270,17 @@ window.unfollow = async () => {
     if (csrftoken === undefined) {
         throw new Error('csrftoken cookie is undefined');
     }
-    const elSleepingContainer = getElementByClass('.bottom-bar');
+    const elSleepingText = getElementByClass('.sleeping-text');
+    const elProgressbarBar = getElementByClass('.progressbar-bar');
+    const elProgressbarText = getElementByClass('.progressbar-text');
     getElementByClass('.toggle-all-checkbox').disabled = true;
     const elResultsContainer = getElementByClass('.results-container');
     elResultsContainer.innerHTML = '';
 
     const scrollToBottom = () => window.scrollTo(0, elResultsContainer.scrollHeight);
 
+    elProgressbarText.innerHTML = '0%';
+    elProgressbarBar.style.width = '0%';
     isActiveProcess = true;
     let counter = 0;
     for (const id of userIdsToUnfollow) {
@@ -306,27 +305,32 @@ window.unfollow = async () => {
                 counter + 1
             }/${userIdsToUnfollow.length}]</div>`;
         }
-        scrollToBottom();
-        await sleep(Math.floor(Math.random() * (6000 - 4000)) + 4000);
-
         counter += 1;
-        // If unfollowing the last user in the list, no reason to wait 5 minutes.
+        const percentage = `${Math.ceil((counter / userIdsToUnfollow.length) * 100)}%`;
+        elProgressbarText.innerHTML = percentage;
+        elProgressbarBar.style.width = percentage;
+        scrollToBottom();
+        // If unfollowing the last user in the list, no reason to wait.
         if (id === userIdsToUnfollow[userIdsToUnfollow.length - 1]) {
             break;
         }
+        await sleep(Math.floor(Math.random() * (6000 - 4000)) + 4000);
+
         if (counter % 5 === 0) {
-            elSleepingContainer.style.display = 'block';
-            elSleepingContainer.innerHTML = 'Sleeping 5 minutes to prevent getting temp blocked...';
+            elSleepingText.style.display = 'block';
+            elSleepingText.innerHTML = 'Sleeping 5 minutes to prevent getting temp blocked...';
             scrollToBottom();
             await sleep(300000);
         }
-        elSleepingContainer.style.display = 'none';
+        elSleepingText.style.display = 'none';
     }
+    elProgressbarBar.style.backgroundColor = '#59A942';
+    elProgressbarText.innerHTML = 'DONE';
 
     isActiveProcess = false;
     elResultsContainer.innerHTML += `<hr /><div class='fs-large p-medium clr-green'>All DONE!</div><hr />`;
     scrollToBottom();
-};
+}
 
 function init() {
     if (location.hostname !== INSTAGRAM_HOSTNAME) {
@@ -341,115 +345,117 @@ init();
 
     const styleMarkup = `html {
   background-color: #222 !important; }
-  html .iu .overlay {
-    background-color: #222;
-    color: #fff;
-    height: 100%;
-    font-family: system-ui; }
-  html .iu header.top-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem;
-    height: 2.5rem;
-    background-color: #333;
-    z-index: 1; }
-  html .iu header .logo {
-    font-family: monospace;
-    font-size: 1.5em;
-    cursor: pointer; }
-  html .iu footer.bottom-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0px;
-    right: 0px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem;
-    background-color: #000;
-    font-weight: bold;
-    z-index: 1; }
-  html .iu label {
-    cursor: pointer; }
-  html .iu input[type='checkbox'] {
-    height: 1.1rem;
-    width: 1.1rem; }
-  html .iu a {
-    color: inherit;
-    text-decoration-color: transparent;
-    transition: text-decoration-color 0.1s; }
-    html .iu a:hover {
-      text-decoration-color: inherit; }
-  html .iu button {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer; }
-    html .iu button.copy-list {
-      color: white;
-      font-size: 1rem; }
-    html .iu button.run-scan {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 2em;
-      color: white;
-      border: 1px solid white;
-      height: 160px;
-      width: 160px;
-      border-radius: 50%; }
-  html .iu .progressbar-container {
-    width: 175px;
-    height: 30px;
-    border-radius: 5px;
-    position: relative;
-    border: 1px solid #7b7777; }
-  html .iu .progressbar-bar {
-    width: 0;
-    height: 100%;
-    background-color: #7b7777; }
-  html .iu .progressbar-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%); }
-  html .iu .sleeping-text {
-    color: yellow; }
-  html .iu .results-container {
-    transform: translateY(75px); }
-    html .iu .results-container .alphabet-character {
-      margin: 1rem;
-      padding: 1rem;
-      font-size: 2em;
-      border-bottom: 1px solid #333; }
-    html .iu .results-container .result-item {
+  html .iu {
+    margin-bottom: 10rem; }
+    html .iu .overlay {
+      background-color: #222;
+      color: #fff;
+      height: 100%;
+      font-family: system-ui; }
+    html .iu header.top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       padding: 1rem;
-      border-radius: 3px;
+      height: 2.5rem;
+      background-color: #333;
+      z-index: 1; }
+    html .iu header .logo {
+      font-family: monospace;
+      font-size: 1.5em;
       cursor: pointer; }
-      html .iu .results-container .result-item .avatar {
-        width: 75px;
+    html .iu footer.bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0px;
+      right: 0px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      background-color: #000;
+      font-weight: bold;
+      z-index: 1; }
+    html .iu label {
+      cursor: pointer; }
+    html .iu input[type='checkbox'] {
+      height: 1.1rem;
+      width: 1.1rem; }
+    html .iu a {
+      color: inherit;
+      text-decoration-color: transparent;
+      transition: text-decoration-color 0.1s; }
+      html .iu a:hover {
+        text-decoration-color: inherit; }
+    html .iu button {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer; }
+      html .iu button.copy-list {
+        color: white;
+        font-size: 1rem; }
+      html .iu button.run-scan {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2em;
+        color: white;
+        border: 1px solid white;
+        height: 160px;
+        width: 160px;
         border-radius: 50%; }
-      html .iu .results-container .result-item .verified-badge {
-        background-color: #49adf4;
-        border-radius: 50%;
-        padding: 0.2rem 0.3rem;
-        font-size: 0.45em;
-        height: fit-content;
-        transform: translateY(-15px); }
-      html .iu .results-container .result-item .private-indicator {
-        border: 2px solid #51bb42;
-        border-radius: 25px;
-        padding: 0.5rem;
-        color: #51bb42;
-        font-weight: 500; }
+    html .iu .progressbar-container {
+      width: 175px;
+      height: 30px;
+      border-radius: 5px;
+      position: relative;
+      border: 1px solid #7b7777; }
+    html .iu .progressbar-bar {
+      width: 0;
+      height: 100%;
+      background-color: #7b7777; }
+    html .iu .progressbar-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%); }
+    html .iu .sleeping-text {
+      color: yellow; }
+    html .iu .results-container {
+      transform: translateY(75px); }
+      html .iu .results-container .alphabet-character {
+        margin: 1rem;
+        padding: 1rem;
+        font-size: 2em;
+        border-bottom: 1px solid #333; }
+      html .iu .results-container .result-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 3px;
+        cursor: pointer; }
+        html .iu .results-container .result-item .avatar {
+          width: 75px;
+          border-radius: 50%; }
+        html .iu .results-container .result-item .verified-badge {
+          background-color: #49adf4;
+          border-radius: 50%;
+          padding: 0.2rem 0.3rem;
+          font-size: 0.45em;
+          height: fit-content;
+          transform: translateY(-15px); }
+        html .iu .results-container .result-item .private-indicator {
+          border: 2px solid #51bb42;
+          border-radius: 25px;
+          padding: 0.5rem;
+          color: #51bb42;
+          font-weight: 500; }
 
 /** HELPERS */
 .flex {
