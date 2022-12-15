@@ -120,7 +120,7 @@ function renderResults(resultsList) {
             <div class='flex grow align-center'>
                 <img class='avatar' src=${user.profile_pic_url} />&nbsp;&nbsp;&nbsp;&nbsp;
                 <div class='flex column'>
-                    <a class='fs-xlarge' target='_blank' href='${user.username}'>${user.username}</a>
+                    <a class='fs-xlarge' target='_blank' href='../${user.username}'>${user.username}</a>
                     <span class='fs-medium'>${user.full_name}</span>
                 </div>
                 ${user.is_verified ? `&nbsp;&nbsp;&nbsp;<div class='verified-badge'>✔</div>` : ''}
