@@ -2,12 +2,12 @@
     'use strict';
 
 const INSTAGRAM_HOSTNAME = 'www.instagram.com';
-const UNFOLLOWERS_PER_PAGE = 6;
+const UNFOLLOWERS_PER_PAGE = 75;
 
 let nonFollowersList = [];
 let userIdsToUnfollow = [];
 let isActiveProcess = false;
-let currentPage = 75;
+let currentPage = 1;
 
 // Prompt user if he tries to leave while in the middle of a process (searching / unfollowing / etc..)
 // This is especially good for avoiding accidental tab closing which would result in a frustrating experience.
