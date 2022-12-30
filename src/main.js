@@ -111,12 +111,12 @@ function refreshPagination() {
 function renderResults() {
     refreshPagination();
     // Shallow-copy to avoid altering original.
-    const sortedList = getCurrentPageUnfollowers();
     getElementByClass('.toggle-all-checkbox').disabled = false;
     const elResultsContainer = getElementByClass('.results-container');
     elResultsContainer.innerHTML = '';
     let currentChar = '';
-    sortedList.forEach(user => {
+
+    getCurrentPageUnfollowers().forEach(user => {
         const isUserSelected = userIdsToUnfollow.indexOf(parseInt(user.id, 10)) !== -1;
         const firstChar = user.username.substring(0, 1).toUpperCase();
         if (currentChar !== firstChar) {
@@ -125,7 +125,7 @@ function renderResults() {
         }
         elResultsContainer.innerHTML += `<label class='result-item'>
             <div class='flex grow align-center'>
-                <img class='avatar' src=${user.profile_pic_url} />&nbsp;&nbsp;&nbsp;&nbsp;
+                <img class='avatar' alt="" src=${user.profile_pic_url} />&nbsp;&nbsp;&nbsp;&nbsp;
                 <div class='flex column'>
                     <a class='fs-xlarge' target='_blank' href='../${user.username}'>${user.username}</a>
                     <span class='fs-medium'>${user.full_name}</span>
@@ -355,7 +355,7 @@ function init() {
 }
 
 function getMaxPage() {
-    let pageCalc = Math.ceil(nonFollowersList.length / UNFOLLOWERS_PER_PAGE);
+    const pageCalc = Math.ceil(nonFollowersList.length / UNFOLLOWERS_PER_PAGE);
     return pageCalc < 1 ? 1 : pageCalc;
 }
 
@@ -367,8 +367,8 @@ function nextPage() {
 }
 
 function getCurrentPageUnfollowers() {
-    let clonedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
-    return clonedList.splice(UNFOLLOWERS_PER_PAGE * (currentPage - 1), UNFOLLOWERS_PER_PAGE);
+    const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
+    return sortedList.splice(UNFOLLOWERS_PER_PAGE * (currentPage - 1), UNFOLLOWERS_PER_PAGE);
 }
 
 function previousPage() {

@@ -38,8 +38,8 @@ html {
             &.bottom-bar {
                 position: fixed;
                 bottom: 0;
-                left: 0px;
-                right: 0px;
+                left: 0;
+                right: 0;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
@@ -161,6 +161,19 @@ html {
                 }
             }
         }
+        .pagination {
+            display: inline-block;
+
+            a {
+                color: black;
+                float: left;
+                padding: 8px 16px;
+                text-decoration: none;
+                transition: background-color 0.3s;
+                border: 1px solid #ddd;
+                cursor: pointer;
+            }
+        }
     }
 }
 
@@ -248,17 +261,4 @@ html {
     &-cyan {
         color: #00ffff;
     }
-}
-.pagination {
-    display: inline-block;
-}
-
-.pagination a {
-    color: black;
-    float: left;
-    padding: 8px 16px;
-    text-decoration: none;
-    transition: background-color 0.3s;
-    border: 1px solid #ddd;
-    cursor: pointer;
 }
