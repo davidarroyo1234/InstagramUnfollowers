@@ -497,7 +497,6 @@ init();
     html .iu .pagination {
       display: inline-block; }
       html .iu .pagination a {
-        color: black;
         float: left;
         padding: 8px 16px;
         text-decoration: none;
