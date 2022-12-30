@@ -26,8 +26,8 @@ html {
     html .iu footer.bottom-bar {
       position: fixed;
       bottom: 0;
-      left: 0px;
-      right: 0px;
+      left: 0;
+      right: 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -111,6 +111,15 @@ html {
           padding: 0.5rem;
           color: #51bb42;
           font-weight: 500; }
+    html .iu .pagination {
+      display: inline-block; }
+      html .iu .pagination a {
+        float: left;
+        padding: 8px 16px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+        border: 1px solid #ddd;
+        cursor: pointer; }
 
 /** HELPERS */
 .flex {

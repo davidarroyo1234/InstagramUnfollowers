@@ -2,10 +2,12 @@
     'use strict';
 
 const INSTAGRAM_HOSTNAME = 'www.instagram.com';
+const UNFOLLOWERS_PER_PAGE = 75;
 
 let nonFollowersList = [];
 let userIdsToUnfollow = [];
 let isActiveProcess = false;
+let currentPage = 1;
 
 // Prompt user if he tries to leave while in the middle of a process (searching / unfollowing / etc..)
 // This is especially good for avoiding accidental tab closing which would result in a frustrating experience.
@@ -102,14 +104,20 @@ function toggleAllUsers(status = false) {
     onToggleUser();
 }
 
-function renderResults(resultsList) {
+function refreshPagination() {
+    const paginationCount = document.getElementById('current-page');
+    paginationCount.innerHTML = `${currentPage}/${getMaxPage()}`;
+}
+
+function renderResults() {
+    refreshPagination();
     // Shallow-copy to avoid altering original.
-    const sortedList = [...resultsList].sort((a, b) => (a.username > b.username ? 1 : -1));
     getElementByClass('.toggle-all-checkbox').disabled = false;
     const elResultsContainer = getElementByClass('.results-container');
     elResultsContainer.innerHTML = '';
     let currentChar = '';
-    sortedList.forEach(user => {
+
+    getCurrentPageUnfollowers().forEach(user => {
         const isUserSelected = userIdsToUnfollow.indexOf(parseInt(user.id, 10)) !== -1;
         const firstChar = user.username.substring(0, 1).toUpperCase();
         if (currentChar !== firstChar) {
@@ -118,7 +126,7 @@ function renderResults(resultsList) {
         }
         elResultsContainer.innerHTML += `<label class='result-item'>
             <div class='flex grow align-center'>
-                <img class='avatar' src=${user.profile_pic_url} />&nbsp;&nbsp;&nbsp;&nbsp;
+                <img class='avatar' alt="" src=${user.profile_pic_url} />&nbsp;&nbsp;&nbsp;&nbsp;
                 <div class='flex column'>
                     <a class='fs-xlarge' target='_blank' href='../${user.username}'>${user.username}</a>
                     <span class='fs-medium'>${user.full_name}</span>
@@ -144,7 +152,7 @@ function renderResults(resultsList) {
 async function run(shouldIncludeVerifiedAccounts) {
     getElementByClass('.run-scan').remove();
     getElementByClass('.include-verified-checkbox').disabled = true;
-    nonFollowersList = await getNonFollowersList(shouldIncludeVerifiedAccounts);
+    await getNonFollowersList(shouldIncludeVerifiedAccounts);
     getElementByClass('.copy-list').disabled = false;
 }
 
@@ -171,6 +179,11 @@ function renderOverlay() {
                 <footer class='bottom-bar'>
                     <div>Non-followers: <span class='nonfollower-count' /></div>
                     <div class='sleeping-text'></div>
+                    <div class="pagination">
+                        <a onclick="previousPage()">❮</a>
+                        <a id="current-page">1/1</a>
+                        <a onclick="nextPage()">❯</a>
+                    </div>
                     <div class='progressbar-container'>
                         <div class='progressbar-bar'></div>
                         <span class='progressbar-text'>0%</span>
@@ -235,7 +248,8 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
         elProgressbarText.innerHTML = percentage;
         elProgressbarBar.style.width = percentage;
         elNonFollowerCount.innerHTML = list.length.toString();
-        renderResults(list);
+        nonFollowersList = list;
+        renderResults();
 
         await sleep(Math.floor(Math.random() * (1000 - 600)) + 1000);
         scrollCycle++;
@@ -341,6 +355,30 @@ function init() {
     renderOverlay();
 }
 
+function getMaxPage() {
+    const pageCalc = Math.ceil(nonFollowersList.length / UNFOLLOWERS_PER_PAGE);
+    return pageCalc < 1 ? 1 : pageCalc;
+}
+
+function nextPage() {
+    if (currentPage < getMaxPage()) {
+        currentPage++;
+        renderResults();
+    }
+}
+
+function getCurrentPageUnfollowers() {
+    const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
+    return sortedList.splice(UNFOLLOWERS_PER_PAGE * (currentPage - 1), UNFOLLOWERS_PER_PAGE);
+}
+
+function previousPage() {
+    if (currentPage - 1 > 0) {
+        currentPage--;
+        renderResults();
+    }
+}
+
 init();
 
     const styleMarkup = `html {
@@ -371,8 +409,8 @@ init();
     html .iu footer.bottom-bar {
       position: fixed;
       bottom: 0;
-      left: 0px;
-      right: 0px;
+      left: 0;
+      right: 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -456,6 +494,15 @@ init();
           padding: 0.5rem;
           color: #51bb42;
           font-weight: 500; }
+    html .iu .pagination {
+      display: inline-block; }
+      html .iu .pagination a {
+        float: left;
+        padding: 8px 16px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+        border: 1px solid #ddd;
+        cursor: pointer; }
 
 /** HELPERS */
 .flex {
