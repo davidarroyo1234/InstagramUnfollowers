@@ -177,7 +177,6 @@ function renderOverlay() {
 
                 <footer class='bottom-bar'>
                     <div>Non-followers: <span class='nonfollower-count' /></div>
-                    <div class='sleeping-text'></div>
                     <div>
                         <a onclick='previousPage()' class='p-medium'>❮</a>
                         <span id='current-page'>1</span>&nbsp;/&nbsp;<span id='last-page'>1</span>
@@ -189,6 +188,7 @@ function renderOverlay() {
                     </div>
                 </footer>
             </div>
+            <div class='toast d-none'></div>
         </main>`;
     getElementByClass('.run-scan').addEventListener('click', () => run(shouldIncludeVerifiedAccounts));
     getElementByClass('.include-verified-checkbox').addEventListener(
@@ -215,7 +215,7 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
     const elProgressbarBar = getElementByClass('.progressbar-bar');
     const elProgressbarText = getElementByClass('.progressbar-text');
     const elNonFollowerCount = getElementByClass('.nonfollower-count');
-    const elSleepingText = getElementByClass('.sleeping-text');
+    const elToast = getElementByClass('.toast');
 
     while (hasNext) {
         let receivedData;
@@ -254,11 +254,11 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
         scrollCycle++;
         if (scrollCycle > 6) {
             scrollCycle = 0;
-            elSleepingText.style.display = 'block';
-            elSleepingText.innerHTML = 'Sleeping 10 secs to prevent getting temp blocked...';
+            elToast.classList.remove('d-none');
+            elToast.innerHTML = 'Sleeping 10 secs to prevent getting temp blocked...';
             await sleep(10000);
         }
-        elSleepingText.style.display = 'none';
+        elToast.classList.add('d-none');
     }
     elProgressbarBar.style.backgroundColor = '#59A942';
     elProgressbarText.innerHTML = 'DONE';
@@ -283,7 +283,7 @@ async function unfollow() {
     if (csrftoken === undefined) {
         throw new Error('csrftoken cookie is undefined');
     }
-    const elSleepingText = getElementByClass('.sleeping-text');
+    const elToast = getElementByClass('.toast');
     const elProgressbarBar = getElementByClass('.progressbar-bar');
     const elProgressbarText = getElementByClass('.progressbar-text');
     getElementByClass('.toggle-all-checkbox').disabled = true;
@@ -330,12 +330,12 @@ async function unfollow() {
         await sleep(Math.floor(Math.random() * (6000 - 4000)) + 4000);
 
         if (counter % 5 === 0) {
-            elSleepingText.style.display = 'block';
-            elSleepingText.innerHTML = 'Sleeping 5 minutes to prevent getting temp blocked...';
+            elToast.classList.remove('d-none');
+            elToast.innerHTML = 'Sleeping 5 minutes to prevent getting temp blocked...';
             scrollToBottom();
             await sleep(300000);
         }
-        elSleepingText.style.display = 'none';
+        elToast.classList.add('d-none');
     }
     elProgressbarBar.style.backgroundColor = '#59A942';
     elProgressbarText.innerHTML = 'DONE';
