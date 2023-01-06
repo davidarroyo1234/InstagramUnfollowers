@@ -63,6 +63,7 @@ html {
             color: inherit;
             text-decoration-color: transparent;
             transition: text-decoration-color 0.1s;
+            cursor: pointer;
 
             &:hover {
                 text-decoration-color: inherit;
@@ -159,18 +160,6 @@ html {
                     color: #51bb42;
                     font-weight: 500;
                 }
-            }
-        }
-        .pagination {
-            display: inline-block;
-
-            a {
-                float: left;
-                padding: 8px 16px;
-                text-decoration: none;
-                transition: background-color 0.3s;
-                border: 1px solid #ddd;
-                cursor: pointer;
             }
         }
     }

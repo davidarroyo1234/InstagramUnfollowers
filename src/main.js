@@ -104,8 +104,8 @@ function toggleAllUsers(status = false) {
 }
 
 function refreshPagination() {
-    const paginationCount = document.getElementById('current-page');
-    paginationCount.innerHTML = `${currentPage}/${getMaxPage()}`;
+    document.getElementById('current-page').innerHTML = currentPage;
+    document.getElementById('last-page').innerHTML = getMaxPage();
 }
 
 function renderResults() {
@@ -178,10 +178,10 @@ function renderOverlay() {
                 <footer class='bottom-bar'>
                     <div>Non-followers: <span class='nonfollower-count' /></div>
                     <div class='sleeping-text'></div>
-                    <div class="pagination">
-                        <a onclick="previousPage()">❮</a>
-                        <a id="current-page">1/1</a>
-                        <a onclick="nextPage()">❯</a>
+                    <div>
+                        <a onclick='previousPage()' class='p-medium'>❮</a>
+                        <span id='current-page'>1</span>&nbsp;/&nbsp;<span id='last-page'>1</span>
+                        <a onclick='nextPage()' class='p-medium'>❯</a>
                     </div>
                     <div class='progressbar-container'>
                         <div class='progressbar-bar'></div>
