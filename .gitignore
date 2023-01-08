@@ -2,3 +2,4 @@
 *.iml
 node_modules/
 .vscode/
+build/

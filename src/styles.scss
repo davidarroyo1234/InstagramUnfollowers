@@ -4,12 +4,12 @@ html {
     .iu {
         // Add bottom spacing due to bottom-bar covering other elements.
         margin-bottom: 10rem;
+        font-family: system-ui;
 
         .overlay {
             background-color: #222;
             color: #fff;
             height: 100%;
-            font-family: system-ui;
         }
 
         header {
@@ -63,6 +63,7 @@ html {
             color: inherit;
             text-decoration-color: transparent;
             transition: text-decoration-color 0.1s;
+            cursor: pointer;
 
             &:hover {
                 text-decoration-color: inherit;
@@ -117,10 +118,6 @@ html {
             }
         }
 
-        .sleeping-text {
-            color: yellow;
-        }
-
         .results-container {
             transform: translateY(75px);
 
@@ -161,18 +158,17 @@ html {
                 }
             }
         }
-        .pagination {
-            display: inline-block;
+    }
 
-            a {
-                float: left;
-                padding: 8px 16px;
-                text-decoration: none;
-                transition: background-color 0.3s;
-                border: 1px solid #ddd;
-                cursor: pointer;
-            }
-        }
+    .toast {
+        position: fixed;
+        bottom: 5rem;
+        color: black;
+        background-color: #fff;
+        border-radius: 6px;
+        font-size: 1.25em;
+        padding: 2rem;
+        z-index: 2;
     }
 }
 
@@ -259,5 +255,12 @@ html {
 
     &-cyan {
         color: #00ffff;
+    }
+}
+
+// display
+.d {
+    &-none {
+        display: none;
     }
 }
