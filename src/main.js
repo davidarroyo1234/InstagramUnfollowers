@@ -188,7 +188,7 @@ function renderOverlay() {
                     </div>
                 </footer>
             </div>
-            <div class='toast d-none'></div>
+            <div class='toast toast-hidden'></div>
         </main>`;
     getElementByClass('.run-scan').addEventListener('click', () => run(shouldIncludeVerifiedAccounts));
     getElementByClass('.include-verified-checkbox').addEventListener(
@@ -254,11 +254,11 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true) {
         scrollCycle++;
         if (scrollCycle > 6) {
             scrollCycle = 0;
-            elToast.classList.remove('d-none');
+            elToast.classList.remove('toast-hidden');
             elToast.innerHTML = 'Sleeping 10 secs to prevent getting temp blocked...';
             await sleep(10000);
         }
-        elToast.classList.add('d-none');
+        elToast.classList.add('toast-hidden');
     }
     elProgressbarBar.style.backgroundColor = '#59A942';
     elProgressbarText.innerHTML = 'DONE';
@@ -330,12 +330,12 @@ async function unfollow() {
         await sleep(Math.floor(Math.random() * (6000 - 4000)) + 4000);
 
         if (counter % 5 === 0) {
-            elToast.classList.remove('d-none');
+            elToast.classList.remove('toast-hidden');
             elToast.innerHTML = 'Sleeping 5 minutes to prevent getting temp blocked...';
             scrollToBottom();
             await sleep(300000);
         }
-        elToast.classList.add('d-none');
+        elToast.classList.add('toast-hidden');
     }
     elProgressbarBar.style.backgroundColor = '#59A942';
     elProgressbarText.innerHTML = 'DONE';
