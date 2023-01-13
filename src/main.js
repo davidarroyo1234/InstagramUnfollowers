@@ -309,7 +309,7 @@ async function unfollow() {
                 credentials: 'include',
             });
             elResultsContainer.innerHTML += `<div class='p-medium'>Unfollowed
-                <a class='clr-inherit' target='_blank' href='${user.username}'> ${user.username}</a>
+                <a class='clr-inherit' target='_blank' href='../${user.username}'> ${user.username}</a>
                 <span class='clr-cyan'> [${counter + 1}/${userIdsToUnfollow.length}]</span>
             </div>`;
         } catch (e) {
