@@ -1,7 +1,7 @@
 'use strict';
 
 const INSTAGRAM_HOSTNAME = 'www.instagram.com';
-const UNFOLLOWERS_PER_PAGE = 75;
+const UNFOLLOWERS_PER_PAGE = 3;
 
 let nonFollowersList = [];
 let userIdsToUnfollow = [];
@@ -98,7 +98,7 @@ function toggleAllUsers(status = false) {
     if (!status) {
         userIdsToUnfollow = [];
     } else {
-        userIdsToUnfollow = nonFollowersList.map(user => user.id);
+        userIdsToUnfollow = nonFollowersList.map(user => parseInt(user.id, 10));
     }
     onToggleUser();
 }
