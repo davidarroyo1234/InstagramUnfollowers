@@ -1,14 +1,16 @@
 {
   "dependencies": {
+    "typescript": "4.9.4",
     "minify": "9.1.0",
     "node-sass": "^8.0.0",
     "prettier": "^2.7.1"
   },
   "scripts": {
+    "compile-ts": "tsc --build",
     "processcss": "node-sass --include-path scss src/styles.scss build/styles.css",
-    "compilecss": "node scripts/compile-css.js src/main.js build/styles.css build/build.js",
+    "compilecss": "node scripts/compile-css.js dist/main.js build/styles.css build/build.js",
     "update-readme": "node scripts/update-readme.js README.md dist/dist.js",
     "minify": "npx minify build/build.js > dist/dist.js",
-    "build": "npx prettier -w src/* && npm run processcss && npm run compilecss && npm run minify && npm run update-readme"
+    "build": "npm run compile-ts && npx prettier -w dist/main.js && npm run processcss && npm run compilecss && npm run minify && npm run update-readme"
   }
 }

@@ -55,6 +55,7 @@ function getElementByClass(className) {
 }
 
 function getUserById(userId) {
+    // @ts-ignore
     const user = nonFollowersList.find(user => {
         return user.id.toString() === userId.toString();
     });
@@ -94,6 +95,7 @@ function toggleUser(userId) {
 }
 
 function toggleAllUsers(status = false) {
+    // @ts-ignore
     document.querySelectorAll('.account-checkbox').forEach(e => (e.checked = status));
     if (!status) {
         userIdsToUnfollow = [];
@@ -104,7 +106,9 @@ function toggleAllUsers(status = false) {
 }
 
 function refreshPagination() {
+    // @ts-ignore
     document.getElementById('current-page').innerHTML = currentPage;
+    // @ts-ignore
     document.getElementById('last-page').innerHTML = getMaxPage();
 }
 
