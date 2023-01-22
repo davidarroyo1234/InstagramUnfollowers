@@ -1,7 +1,7 @@
 'use strict';
 
 const INSTAGRAM_HOSTNAME = 'www.instagram.com';
-const UNFOLLOWERS_PER_PAGE = 50;
+const UNFOLLOWERS_PER_PAGE = 3;
 
 let nonFollowersList = [];
 let userIdsToUnfollow = [];
