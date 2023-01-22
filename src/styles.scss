@@ -168,7 +168,12 @@ html {
         border-radius: 6px;
         font-size: 1.25em;
         padding: 2rem;
+        transition: transform 0.2s;
         z-index: 2;
+
+        &-hidden {
+            transform: translateX(-999rem);
+        }
     }
 }
 
