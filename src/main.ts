@@ -1,6 +1,7 @@
 "use strict";
 
 import { Node, User } from "./model/user";
+import "./styles.scss";
 
 const INSTAGRAM_HOSTNAME: string = "www.instagram.com";
 const UNFOLLOWERS_PER_PAGE: number = 50;

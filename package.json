@@ -1,16 +1,21 @@
 {
-  "dependencies": {
-    "typescript": "4.9.4",
-    "minify": "9.1.0",
-    "node-sass": "^8.0.0",
-    "prettier": "^2.7.1"
-  },
+  "dependencies": {},
   "scripts": {
-    "compile-ts": "tsc --build",
-    "processcss": "node-sass --include-path scss src/styles.scss build/styles.css",
-    "compilecss": "node scripts/compile-css.js dist/main.js build/styles.css build/build.js",
+    "webpack-build": "webpack --mode production",
     "update-readme": "node scripts/update-readme.js README.md dist/dist.js",
-    "minify": "npx minify build/build.js > dist/dist.js",
-    "build": "npm run compile-ts && npx prettier -w dist/main.js && npm run processcss && npm run compilecss && npm run minify && npm run update-readme"
+    "build": "npm run webpack-build && npm run update-readme"
+  },
+  "devDependencies": {
+    "css-loader": "^6.7.3",
+    "sass": "^1.57.1",
+    "sass-loader": "^13.2.0",
+    "style-loader": "^3.3.1",
+    "ts-loader": "^9.4.2",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1",
+    "webpack-dev-server": "^4.11.1",
+    "node-sass": "^8.0.0",
+    "typescript": "4.9.4",
+    "typings-for-css-modules-loader": "^1.7.0"
   }
 }
