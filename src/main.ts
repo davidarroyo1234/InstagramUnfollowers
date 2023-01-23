@@ -27,7 +27,7 @@ window.addEventListener("beforeunload", e => {
   return "Changes you made may not be saved.";
 });
 
-function sleep(ms: number) {
+function sleep(ms: number): Promise<any> {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
   });
@@ -39,12 +39,12 @@ function getCookie(name: string): string {
   if (parts.length === 2) return parts.pop().split(";").shift();
 }
 
-function afterUrlGenerator(nextCode: string) {
+function afterUrlGenerator(nextCode: string): string {
   const ds_user_id = getCookie("ds_user_id");
   return `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24","after":"${nextCode}"}`;
 }
 
-function unfollowUserUrlGenerator(idToUnfollow: number) {
+function unfollowUserUrlGenerator(idToUnfollow: number): string {
   return `https://www.instagram.com/web/friendships/${idToUnfollow}/unfollow/`;
 }
 
@@ -56,7 +56,7 @@ function getElementByClass(className: string): HTMLElement {
   return el;
 }
 
-function getUserById(userId: number) {
+function getUserById(userId: number): Node {
 
   const user = nonFollowersList.find(user => {
     return user.id.toString() === userId.toString();
@@ -78,16 +78,16 @@ async function copyListToClipboard(): Promise<void> {
   await copyToClipboard(output);
 }
 
-async function copyToClipboard(text: string) {
+async function copyToClipboard(text: string): Promise<void> {
   await navigator.clipboard.writeText(text);
   alert("List copied to clipboard!");
 }
 
-function onToggleUser() {
+function onToggleUser(): void {
   getElementByClass(".selected-user-count").innerHTML = `[${userIdsToUnfollow.length}]`;
 }
 
-function toggleUser(userId: number) {
+function toggleUser(userId: number): void {
   if (userIdsToUnfollow.indexOf(userId) === -1) {
     userIdsToUnfollow = [...userIdsToUnfollow, userId];
   } else {
@@ -96,7 +96,7 @@ function toggleUser(userId: number) {
   onToggleUser();
 }
 
-function toggleAllUsers(status = false) {
+function toggleAllUsers(status = false): void {
   (document.querySelectorAll(".account-checkbox") as NodeListOf<HTMLInputElement>).forEach(e => (e.checked = status));
   if (!status) {
     userIdsToUnfollow = [];
@@ -106,12 +106,12 @@ function toggleAllUsers(status = false) {
   onToggleUser();
 }
 
-function refreshPagination() {
+function refreshPagination(): void {
   document.getElementById("current-page").innerHTML = String(currentPage);
   document.getElementById("last-page").innerHTML = String(getMaxPage());
 }
 
-function renderResults() {
+function renderResults(): void {
   refreshPagination();
   // Shallow-copy to avoid altering original.
   (getElementByClass(".toggle-all-checkbox") as HTMLInputElement).disabled = false;
@@ -270,7 +270,7 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true): Promis
   isActiveProcess = false;
 }
 
-async function unfollow() {
+async function unfollow(): Promise<void> {
   if (isActiveProcess) {
     return;
   }
@@ -348,7 +348,7 @@ async function unfollow() {
   scrollToBottom();
 }
 
-function init() {
+function init(): void {
   if (location.hostname !== INSTAGRAM_HOSTNAME) {
     alert("Can be used only on Instagram routes");
     return;
@@ -357,24 +357,24 @@ function init() {
   renderOverlay();
 }
 
-function getMaxPage() {
+function getMaxPage(): number {
   const pageCalc = Math.ceil(nonFollowersList.length / UNFOLLOWERS_PER_PAGE);
   return pageCalc < 1 ? 1 : pageCalc;
 }
 
-function nextPage() {
+function nextPage(): void {
   if (currentPage < getMaxPage()) {
     currentPage++;
     renderResults();
   }
 }
 
-function getCurrentPageUnfollowers() {
+function getCurrentPageUnfollowers(): Node[] {
   const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
   return sortedList.splice(UNFOLLOWERS_PER_PAGE * (currentPage - 1), UNFOLLOWERS_PER_PAGE);
 }
 
-function previousPage() {
+function previousPage(): void {
   if (currentPage - 1 > 0) {
     currentPage--;
     renderResults();
