@@ -2,4 +2,5 @@
 *.iml
 node_modules/
 .vscode/
+.DS_Store
 build/
