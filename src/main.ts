@@ -39,9 +39,16 @@ function getCookie(name: string): string {
   if (parts.length === 2) return parts.pop().split(";").shift();
 }
 
-function afterUrlGenerator(nextCode: string): string {
-  const ds_user_id = getCookie("ds_user_id");
-  return `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24","after":"${nextCode}"}`;
+const ds_user_id = getCookie("ds_user_id");
+function afterUrlGenerator(nextCode: string, downloadAllFollowersList: boolean = false): string {
+  //const ds_user_id = getCookie("ds_user_id");
+  if(!downloadAllFollowersList) {
+    return `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24","after":"${nextCode}"}`;
+  }
+  else {
+    return `https://www.instagram.com/graphql/query/?query_hash=c76146de99bb02f6415203be841dd25a&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24","after":"${nextCode}"}`;
+  }
+  
 }
 
 function unfollowUserUrlGenerator(idToUnfollow: number): string {
@@ -156,11 +163,11 @@ function renderResults(): void {
   });
 }
 
-async function run(shouldIncludeVerifiedAccounts: boolean): Promise<void> {
-  getElementByClass(".run-scan").remove();
+async function run(shouldIncludeVerifiedAccounts: boolean, downloadAllFollowersList: boolean = false): Promise<void> {
+  getElementByClass(".run-scan").remove(); getElementByClass(".run-download-followers").remove();
   (getElementByClass(".include-verified-checkbox") as HTMLButtonElement).disabled = true;
-  await getNonFollowersList(shouldIncludeVerifiedAccounts);
-  (getElementByClass(".copy-list") as HTMLButtonElement).disabled = false;
+  await getNonFollowersList(shouldIncludeVerifiedAccounts, downloadAllFollowersList);
+  (getElementByClass(".copy-list") as HTMLButtonElement).disabled = downloadAllFollowersList ? true : false;
 }
 
 function renderOverlay(): void {
@@ -180,11 +187,12 @@ function renderOverlay(): void {
                     <input type="checkbox" class="toggle-all-checkbox" onclick="toggleAllUsers(this.checked)" disabled />
                 </header>
 
-                <button class="run-scan">RUN</button>
+                <button class="run-scan">SHOW UNFOLLOWERS</button>
+                <button class="run-download-followers">DOWNLOAD ALL FOLLOWERS LIST</button>
                 <div class="results-container"></div>
 
                 <footer class="bottom-bar">
-                    <div>Non-followers: <span class="nonfollower-count" /></div>
+                    <div><span id="nonfollower-info-title">Non-followers:</span> <span class="nonfollower-count" /></div>
                     <div>
                         <a onclick="previousPage()" class="p-medium">❮</a>
                         <span id="current-page">1</span>&nbsp;/&nbsp;<span id="last-page">1</span>
@@ -199,65 +207,87 @@ function renderOverlay(): void {
             <div class="toast toast-hidden"></div>
         </main>`;
   getElementByClass(".run-scan").addEventListener("click", () => run(shouldIncludeVerifiedAccounts));
+  getElementByClass(".run-download-followers").addEventListener("click", () => {document.getElementById("nonfollower-info-title").innerText = "Followers:"; run(shouldIncludeVerifiedAccounts, true)});
   getElementByClass(".include-verified-checkbox").addEventListener(
     "change",
     () => (shouldIncludeVerifiedAccounts = !shouldIncludeVerifiedAccounts)
   );
 }
 
-async function getNonFollowersList(shouldIncludeVerifiedAccounts = true): Promise<void> {
+
+async function getNonFollowersList(shouldIncludeVerifiedAccounts = true, downloadAllFollowersList: boolean = false): Promise<void> {
   if (isActiveProcess) {
     return;
   }
 
   let list: Node[] = [];
+  let downloadusernameslist: string[] = [];
   let hasNext = true;
   let scrollCycle = 0;
   let currentFollowedUsersCount = 0;
   let totalFollowedUsersCount = -1;
   isActiveProcess = true;
 
-  const ds_user_id = getCookie("ds_user_id");
-  let url = `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24"}`;
+  let url = null;
+  if (!downloadAllFollowersList) {
+    url = `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24"}`;
+  }
+  else {
+    url = `https://www.instagram.com/graphql/query/?query_hash=c76146de99bb02f6415203be841dd25a&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24"}`;
+  }
 
   const elProgressbarBar = getElementByClass(".progressbar-bar");
   const elProgressbarText = getElementByClass(".progressbar-text");
   const elNonFollowerCount = getElementByClass(".nonfollower-count");
   const elToast = getElementByClass(".toast");
 
+
   while (hasNext) {
     let receivedData: User;
     try {
-      receivedData = (await fetch(url).then(res => res.json())).data.user.edge_follow;
+      receivedData = (await fetch(url).then(res => res.json())).data.user[downloadAllFollowersList ? "edge_followed_by" : "edge_follow"];
     } catch (e) {
+      console.log("Unfortunately an error occurred:");
       console.error(e);
       continue;
     }
-
 
     if (totalFollowedUsersCount === -1) {
       totalFollowedUsersCount = receivedData.count;
     }
 
     hasNext = receivedData.page_info.has_next_page;
-    url = afterUrlGenerator(receivedData.page_info.end_cursor);
+    url = afterUrlGenerator(receivedData.page_info.end_cursor, downloadAllFollowersList);
     currentFollowedUsersCount += receivedData.edges.length;
 
+
     receivedData.edges.forEach(x => {
-      if (!shouldIncludeVerifiedAccounts && x.node.is_verified) {
-        return;
+      if (!downloadAllFollowersList) {
+        if (!shouldIncludeVerifiedAccounts && x.node.is_verified) {
+          return;
+        }
+        if (!x.node.follows_viewer) {
+          list.push(x.node);
+        }
+
       }
-      if (!x.node.follows_viewer) {
-        list.push(x.node);
+      else {
+        downloadusernameslist.push(x.node.username);
       }
+
     });
+
+    
 
     const percentage = `${Math.ceil((currentFollowedUsersCount / totalFollowedUsersCount) * 100)}%`;
     elProgressbarText.innerHTML = percentage;
     elProgressbarBar.style.width = percentage;
-    elNonFollowerCount.innerHTML = list.length.toString();
+    elNonFollowerCount.innerHTML = downloadAllFollowersList ? downloadusernameslist.length.toString() : list.length.toString();
     nonFollowersList = list;
-    renderResults();
+    if (!downloadAllFollowersList) {
+      renderResults();
+    }
+    
 
     await sleep(Math.floor(Math.random() * (1000 - 600)) + 1000);
     scrollCycle++;
@@ -271,6 +301,11 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true): Promis
   }
   elProgressbarBar.style.backgroundColor = "#59A942";
   elProgressbarText.innerHTML = "DONE";
+
+  if (downloadAllFollowersList) {
+    downloadTextFile(JSON.stringify(downloadusernameslist), 'followers.txt');
+  }
+  
 
   isActiveProcess = false;
 }
@@ -388,5 +423,16 @@ global.previousPage = function previousPage(): void {
     renderResults();
   }
 }
+
+//Download a text file
+function downloadTextFile(text: string, name: string) {
+  let a = document.createElement('a');
+  let type = name.split(".").pop();
+  a.href = URL.createObjectURL( new Blob([text], { type:`text/${type === "txt" ? "plain" : type}` }) );
+  a.download = name;
+  a.click();
+}
+
+
 
 init();
