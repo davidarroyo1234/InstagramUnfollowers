@@ -83,16 +83,44 @@ html {
 
             &.run-scan {
                 position: absolute;
-                left: 50%;
+                left: 25%;
                 top: 50%;
                 transform: translate(-50%, -50%);
                 font-size: 2em;
                 color: white;
                 border: 1px solid white;
                 height: 160px;
-                width: 160px;
-                border-radius: 50%;
+                width: 38vw;
+                padding: 2vw;
+                border-radius: 100vw;
             }
+
+            &.run-download-followers {
+                position: absolute;
+                left: 75%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 2em;
+                color: white;
+                border: 1px solid white;
+                height: 160px;
+                width: 38vw;
+                padding: 2vw;
+                border-radius: 100vw;
+            }
+
+            &.run-scan:hover, &.run-download-followers:hover {
+                color: black;
+                background-color: rgb(244, 244, 244);
+            }
+
+            &.run-scan:active, &.run-download-followers:active {
+                color: black;
+                background-color: rgb(244, 244, 244);
+                opacity: 0.7;
+            }
+
+            
         }
 
         .progressbar {
