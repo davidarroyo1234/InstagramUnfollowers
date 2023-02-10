@@ -43,6 +43,8 @@ If you prefer to use the older version please use this [commit](https://github.c
 
 **_This script has been tested only on Chromium-based browsers_**
 
+**_"Download All Followers List" option is not tested for 5000+ followers. It should do fine until you reach a memory limit._**
+
 ## DEV
 
 When introducing new changes to `main.js`, make sure to run the "build" command in-order to automatically format, compress, and convert your code.
