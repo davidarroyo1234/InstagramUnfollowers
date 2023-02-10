@@ -6,9 +6,12 @@ import "./styles.scss";
 const INSTAGRAM_HOSTNAME: string = "www.instagram.com";
 const UNFOLLOWERS_PER_PAGE: number = 50;
 let nonFollowersList: Node[] = [];
+let FollowersList: string[] = [];
 let userIdsToUnfollow: number[] = [];
 let isActiveProcess: boolean = false;
 let currentPage: number = 1;
+let downloadOptionSelected = false;
+let prepareWithNewLine = false;
 
 // Prompt user if he tries to leave while in the middle of a process (searching / unfollowing / etc..)
 // This is especially good for avoiding accidental tab closing which would result in a frustrating experience.
@@ -77,12 +80,27 @@ function getUserById(userId: number): Node {
 //TODO MOVE TO EVENT LISTENER
 // @ts-ignore
 global.copyListToClipboard = async function copyListToClipboard(): Promise<void> {
-  const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
-
   let output = "";
-  sortedList.forEach(user => {
-    output += user.username + "\n";
-  });
+  if (!downloadOptionSelected) {
+    const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
+
+    sortedList.forEach(user => {
+      output += user.username + "\n";
+    });
+  }
+  else {
+    if (prepareWithNewLine) {
+      FollowersList.forEach(str => {
+        output += str + "\n";
+      });
+    }
+    else {
+      output = JSON.stringify(FollowersList);
+    }
+    
+  }
+
+  
 
   await copyToClipboard(output);
 };
@@ -164,10 +182,15 @@ function renderResults(): void {
 }
 
 async function run(shouldIncludeVerifiedAccounts: boolean, downloadAllFollowersList: boolean = false): Promise<void> {
-  getElementByClass(".run-scan").remove(); getElementByClass(".run-download-followers").remove();
+  if (!downloadAllFollowersList) {
+    document.getElementById("run-scan").remove(); document.getElementById("run-download-followers").remove();
+  }
+
+  document.getElementById("prepare-as-array-txt").remove(); document.getElementById("prepare-with-new-line").remove();
   (getElementByClass(".include-verified-checkbox") as HTMLButtonElement).disabled = true;
+  downloadOptionSelected = downloadAllFollowersList;
   await getNonFollowersList(shouldIncludeVerifiedAccounts, downloadAllFollowersList);
-  (getElementByClass(".copy-list") as HTMLButtonElement).disabled = downloadAllFollowersList ? true : false;
+  (getElementByClass(".copy-list") as HTMLButtonElement).disabled = false;
 }
 
 function renderOverlay(): void {
@@ -183,13 +206,15 @@ function renderOverlay(): void {
   } /> Include verified
                     </label>
                     <button class="copy-list" onclick="copyListToClipboard()" disabled>COPY LIST</button>
-                    <button class="fs-large clr-red" onclick="unfollow()">UNFOLLOW <span class="selected-user-count">[0]</span></button>
+                    <button class="fs-large clr-red unfollow-button" onclick="unfollow()">UNFOLLOW <span class="selected-user-count">[0]</span></button>
                     <input type="checkbox" class="toggle-all-checkbox" onclick="toggleAllUsers(this.checked)" disabled />
                 </header>
 
-                <button class="run-scan">SHOW UNFOLLOWERS</button>
-                <button class="run-download-followers">DOWNLOAD ALL FOLLOWERS LIST</button>
-                <p id="please-wait-for-download">Please wait for download to start.</p>
+                <button class="left-big-button" id="run-scan">SHOW UNFOLLOWERS</button>
+                <button class="right-big-button" id="run-download-followers">DOWNLOAD ALL FOLLOWERS LIST</button>
+                <button class="left-big-button d-none" id="prepare-as-array-txt">AS ARRAY</button>
+                <button class="right-big-button d-none" id="prepare-with-new-line">EVERY USER NEW LINE</button>
+                <p id="please-wait-for-download">Fetching followers...</p>
                 <div class="results-container"></div>
 
                 <footer class="bottom-bar">
@@ -207,8 +232,10 @@ function renderOverlay(): void {
             </div>
             <div class="toast toast-hidden"></div>
         </main>`;
-  getElementByClass(".run-scan").addEventListener("click", () => run(shouldIncludeVerifiedAccounts));
-  getElementByClass(".run-download-followers").addEventListener("click", () => {document.getElementById("nonfollower-info-title").innerText = "Followers:"; run(shouldIncludeVerifiedAccounts, true)});
+  document.getElementById("run-scan").addEventListener("click", () => run(shouldIncludeVerifiedAccounts));
+  document.getElementById("run-download-followers").addEventListener("click", () => {document.getElementById("nonfollower-info-title").innerText = "Followers:"; document.getElementById("run-scan").remove(); document.getElementById("run-download-followers").remove(); document.getElementById("prepare-as-array-txt").classList.remove("d-none"); document.getElementById("prepare-with-new-line").classList.remove("d-none");});
+  document.getElementById("prepare-as-array-txt").addEventListener("click", () => run(shouldIncludeVerifiedAccounts, true));
+  document.getElementById("prepare-with-new-line").addEventListener("click", () => {prepareWithNewLine = true; run(shouldIncludeVerifiedAccounts, true);});
   getElementByClass(".include-verified-checkbox").addEventListener(
     "change",
     () => (shouldIncludeVerifiedAccounts = !shouldIncludeVerifiedAccounts)
@@ -234,6 +261,7 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true, downloa
     url = `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24"}`;
   }
   else {
+    document.getElementById("please-wait-for-download").style.opacity = "1"; 
     url = `https://www.instagram.com/graphql/query/?query_hash=c76146de99bb02f6415203be841dd25a&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24"}`;
   }
 
@@ -284,8 +312,9 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true, downloa
     elProgressbarText.innerHTML = percentage;
     elProgressbarBar.style.width = percentage;
     elNonFollowerCount.innerHTML = downloadAllFollowersList ? downloadusernameslist.length.toString() : list.length.toString();
-    nonFollowersList = list;
+    
     if (!downloadAllFollowersList) {
+      nonFollowersList = list;
       renderResults();
     }
     
@@ -304,8 +333,21 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true, downloa
   elProgressbarText.innerHTML = "DONE";
 
   if (downloadAllFollowersList) {
-    document.getElementById("please-wait-for-download").style.opacity = "1";
-    downloadTextFile(JSON.stringify(downloadusernameslist), 'followers.txt');
+    FollowersList = downloadusernameslist;
+    document.getElementById("please-wait-for-download").innerText = "Please wait for download to start.";
+
+    if (prepareWithNewLine) {
+      let downloadthis = "";
+      downloadusernameslist.forEach(str => {
+        downloadthis += str + "\n";
+      });
+      downloadTextFile(downloadthis, 'followers.txt');
+    }
+    else {
+      downloadTextFile(JSON.stringify(downloadusernameslist), 'followers.txt');
+    }
+
+
   }
   
 
