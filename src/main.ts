@@ -189,6 +189,7 @@ function renderOverlay(): void {
 
                 <button class="run-scan">SHOW UNFOLLOWERS</button>
                 <button class="run-download-followers">DOWNLOAD ALL FOLLOWERS LIST</button>
+                <p id="please-wait-for-download">Please wait for download to start.</p>
                 <div class="results-container"></div>
 
                 <footer class="bottom-bar">
@@ -303,6 +304,7 @@ async function getNonFollowersList(shouldIncludeVerifiedAccounts = true, downloa
   elProgressbarText.innerHTML = "DONE";
 
   if (downloadAllFollowersList) {
+    document.getElementById("please-wait-for-download").style.opacity = "1";
     downloadTextFile(JSON.stringify(downloadusernameslist), 'followers.txt');
   }
   
