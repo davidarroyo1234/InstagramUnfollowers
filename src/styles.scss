@@ -70,18 +70,38 @@ html {
             }
         }
 
+        .unfollow-button {
+            padding: 1rem;
+            margin: 0;
+            border-radius: 10rem;
+        }
+        .unfollow-button:hover {
+            background-color: rgb(244, 244, 244);
+            box-shadow: 0px 0px 5px 5px rgba(255, 29, 29, 0.4);
+        }
+        .unfollow-button:active {
+            background-color: rgb(244, 244, 244);
+            box-shadow: 0px 0px 5px 5px rgba(0, 0, 0, 0.4);
+            opacity: 0.7;
+        }
+        
+
         button {
             background: none;
             border: none;
             padding: 0;
             cursor: pointer;
+            user-select: none;
 
             &.copy-list {
                 color: white;
                 font-size: 1rem;
+                margin: 0;
+                padding: 1rem;
+                border-radius: 10rem;
             }
 
-            &.run-scan {
+            &.left-big-button {
                 position: absolute;
                 left: 25%;
                 top: 50%;
@@ -95,7 +115,7 @@ html {
                 border-radius: 100vw;
             }
 
-            &.run-download-followers {
+            &.right-big-button {
                 position: absolute;
                 left: 75%;
                 top: 50%;
@@ -109,12 +129,12 @@ html {
                 border-radius: 100vw;
             }
 
-            &.run-scan:hover, &.run-download-followers:hover {
+            &.left-big-button:hover, &.right-big-button:hover, &.copy-list:hover {
                 color: black;
                 background-color: rgb(244, 244, 244);
             }
 
-            &.run-scan:active, &.run-download-followers:active {
+            &.left-big-button:active, &.right-big-button:active, &.copy-list:active {
                 color: black;
                 background-color: rgb(244, 244, 244);
                 opacity: 0.7;
@@ -122,6 +142,7 @@ html {
 
             
         }
+
 
         .progressbar {
             &-container {
@@ -310,6 +331,7 @@ html {
 // display
 .d {
     &-none {
+        user-select: none;
         display: none;
     }
 }
