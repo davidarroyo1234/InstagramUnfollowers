@@ -108,6 +108,10 @@ html {
                 width: 0;
                 height: 100%;
                 background-color: #7b7777;
+                &-finished {
+                    height: 100%;
+                    background-color: #59a942;
+                }
             }
 
             &-text {
@@ -158,6 +162,10 @@ html {
                 }
             }
         }
+
+        .unfollow-log-container {
+            transform: translateY(75px);
+        }
     }
 
     .toast {
@@ -168,12 +176,7 @@ html {
         border-radius: 6px;
         font-size: 1.25em;
         padding: 2rem;
-        transition: transform 0.2s;
         z-index: 2;
-
-        &-hidden {
-            transform: translateX(-999rem);
-        }
     }
 }
 
