@@ -1,4 +1,4 @@
-import React, { StateUpdater, useEffect, useState } from 'preact/compat';
+import React, { useEffect, useState } from 'preact/compat';
 import { render } from 'preact';
 import './styles.scss';
 
