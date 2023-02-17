@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'preact/compat';
+import React, { useEffect, useState, ChangeEvent } from 'preact/compat';
 import { render } from 'preact';
 import './styles.scss';
 
@@ -30,34 +30,80 @@ function getCurrentPageUnfollowers(nonFollowersList: readonly Node[], currentPag
     return sortedList.splice(UNFOLLOWERS_PER_PAGE * (currentPage - 1), UNFOLLOWERS_PER_PAGE);
 }
 
+function getUsersForDisplay(results: readonly Node[], filter: ScanningFilter): readonly Node[] {
+    const users: Node[] = [];
+    for (const user of results) {
+        if (!filter.showPrivate && user.is_private) {
+            continue;
+        }
+        if (!filter.showVerified && user.is_verified) {
+            continue;
+        }
+        if (!filter.showFollowers && user.follows_viewer) {
+            continue;
+        }
+        if (!filter.showNonFollowers && !user.follows_viewer) {
+            continue;
+        }
+        users.push(user);
+    }
+    return users;
+}
+
+function getUnfollowLogForDisplay(log: readonly UnfollowLogEntry[], filter: UnfollowFilter) {
+    const entries: UnfollowLogEntry[] = [];
+    for (const entry of log) {
+        if (!filter.showSucceeded && entry.unfollowedSuccessfully) {
+            continue;
+        }
+        if (!filter.showFailed && !entry.unfollowedSuccessfully) {
+            continue;
+        }
+        entries.push(entry);
+    }
+    return entries;
+}
+
+interface ScanningFilter {
+    readonly showNonFollowers: boolean;
+    readonly showFollowers: boolean;
+    readonly showVerified: boolean;
+    readonly showPrivate: boolean;
+}
+
+interface UnfollowFilter {
+    readonly showSucceeded: boolean;
+    readonly showFailed: boolean;
+}
+
+interface UnfollowLogEntry {
+    readonly user: Node;
+    readonly unfollowedSuccessfully: boolean;
+}
+
 type State =
     | {
           readonly status: 'initial';
-          readonly shouldIncludeVerifiedAccounts: boolean;
       }
     | {
           readonly status: 'scanning';
           readonly page: number;
           readonly percentage: number;
-          readonly nonFollowers: readonly Node[];
-          readonly selectedUsers: readonly Node[];
-          readonly shouldIncludeVerifiedAccounts: boolean;
+          readonly results: readonly Node[];
+          readonly selectedResults: readonly Node[];
+          readonly filter: ScanningFilter;
       }
     | {
           readonly status: 'unfollowing';
           readonly percentage: number;
-          readonly nonFollowers: readonly Node[];
-          readonly selectedUsers: readonly Node[];
-          readonly unfollowLog: ReadonlyArray<{
-              readonly user: Node;
-              readonly unfollowedSuccessfully: boolean;
-          }>;
+          readonly selectedResults: readonly Node[];
+          readonly unfollowLog: readonly UnfollowLogEntry[];
+          readonly filter: UnfollowFilter;
       };
 
 function App() {
     const [state, setState] = useState<State>({
         status: 'initial',
-        shouldIncludeVerifiedAccounts: true,
     });
     const [toast, setToast] = useState<{ readonly show: false } | { readonly show: true; readonly text: string }>({
         show: false,
@@ -71,10 +117,87 @@ function App() {
             status: 'scanning',
             page: 1,
             percentage: 0,
-            nonFollowers: [],
-            selectedUsers: [],
-            shouldIncludeVerifiedAccounts: state.shouldIncludeVerifiedAccounts,
+            results: [],
+            selectedResults: [],
+            filter: {
+                showNonFollowers: true,
+                showFollowers: false,
+                showVerified: true,
+                showPrivate: true,
+            },
         });
+    };
+
+    const handleScanFilter = (e: ChangeEvent<HTMLInputElement>) => {
+        if (state.status !== 'scanning') {
+            return;
+        }
+        if (state.selectedResults.length > 0) {
+            if (!confirm('Changing filter options will clear selected users')) {
+                // Force re-render. Bit of a hack but had an issue where the checkbox state was still
+                // changing in the UI even even when not confirming. So updating the state fixes this
+                // by synchronizing the checkboxes with the filter statuses in the state.
+                setState({ ...state });
+                return;
+            }
+        }
+        setState({
+            ...state,
+            // Make sure to clear selected results when changing filter options. This is to avoid having
+            // users selected in the unfollow queue but not visible in the UI, which would be confusing.
+            selectedResults: [],
+            filter: {
+                ...state.filter,
+                [e.currentTarget.name]: e.currentTarget.checked,
+            },
+        });
+    };
+
+    const handleUnfollowFilter = (e: ChangeEvent<HTMLInputElement>) => {
+        if (state.status !== 'unfollowing') {
+            return;
+        }
+        setState({
+            ...state,
+            filter: {
+                ...state.filter,
+                [e.currentTarget.name]: e.currentTarget.checked,
+            },
+        });
+    };
+
+    const toggleUser = (newStatus: boolean, user: Node) => {
+        if (state.status !== 'scanning') {
+            return;
+        }
+        if (newStatus) {
+            setState({
+                ...state,
+                selectedResults: [...state.selectedResults, user],
+            });
+        } else {
+            setState({
+                ...state,
+                selectedResults: state.selectedResults.filter(result => result.id !== user.id),
+            });
+        }
+    };
+
+    const toggleAllUsers = (e: ChangeEvent<HTMLInputElement>) => {
+        if (state.status !== 'scanning') {
+            return;
+        }
+        if (e.currentTarget.checked) {
+            setState({
+                ...state,
+                selectedResults: getUsersForDisplay(state.results, state.filter),
+            });
+        } else {
+            setState({
+                ...state,
+                selectedResults: [],
+            });
+        }
     };
 
     useEffect(() => {
@@ -114,7 +237,7 @@ function App() {
             if (state.status !== 'scanning') {
                 return;
             }
-            let nonFollowers: readonly Node[] = state.nonFollowers;
+            const results = [...state.results];
             let scrollCycle = 0;
             let url = urlGenerator();
             let hasNext = true;
@@ -137,15 +260,7 @@ function App() {
                 hasNext = receivedData.page_info.has_next_page;
                 url = urlGenerator(receivedData.page_info.end_cursor);
                 currentFollowedUsersCount += receivedData.edges.length;
-
-                receivedData.edges.forEach(x => {
-                    if (!state.shouldIncludeVerifiedAccounts && x.node.is_verified) {
-                        return;
-                    }
-                    if (!x.node.follows_viewer) {
-                        nonFollowers = [...nonFollowers, x.node];
-                    }
-                });
+                receivedData.edges.forEach(x => results.push(x.node));
 
                 setState(prevState => {
                     if (prevState.status !== 'scanning') {
@@ -154,7 +269,7 @@ function App() {
                     const state: State = {
                         ...prevState,
                         percentage: Math.ceil((currentFollowedUsersCount / totalFollowedUsersCount) * 100),
-                        nonFollowers,
+                        results,
                     };
                     return state;
                 });
@@ -177,13 +292,6 @@ function App() {
             if (state.status !== 'unfollowing') {
                 return;
             }
-            if (state.selectedUsers.length === 0) {
-                alert('Must select at least a single user to unfollow');
-                return;
-            }
-            if (!confirm('Are you sure?')) {
-                return;
-            }
 
             let csrftoken = getCookie('csrftoken');
             if (csrftoken === undefined) {
@@ -191,9 +299,9 @@ function App() {
             }
 
             let counter = 0;
-            for (const user of state.selectedUsers) {
+            for (const user of state.selectedResults) {
                 counter += 1;
-                const percentage = Math.ceil((counter / state.selectedUsers.length) * 100);
+                const percentage = Math.ceil((counter / state.selectedResults.length) * 100);
                 try {
                     await fetch(unfollowUserUrlGenerator(user.id), {
                         headers: {
@@ -240,7 +348,7 @@ function App() {
                     });
                 }
                 // If unfollowing the last user in the list, no reason to wait.
-                if (user === state.selectedUsers[state.selectedUsers.length - 1]) {
+                if (user === state.selectedResults[state.selectedResults.length - 1]) {
                     break;
                 }
                 await sleep(Math.floor(Math.random() * (6000 - 4000)) + 4000);
@@ -272,91 +380,150 @@ function App() {
                 return <div class='alphabet-character'>{currentLetter}</div>;
             };
             markup = (
-                <div className='results-container'>
-                    {getCurrentPageUnfollowers(state.nonFollowers, state.page).map(user => {
-                        const firstLetter = user.username.substring(0, 1).toUpperCase();
-                        return (
-                            <>
-                                {firstLetter !== currentLetter && onNewLetter(firstLetter)}
-                                <label className='result-item'>
-                                    <div className='flex grow align-center'>
-                                        <img className='avatar' alt={user.username} src={user.profile_pic_url} />
-                                        &nbsp;&nbsp;&nbsp;&nbsp;
-                                        <div className='flex column'>
-                                            <a className='fs-xlarge' target='_blank' href={`../${user.username}`}>
-                                                {user.username}
-                                            </a>
-                                            <span className='fs-medium'>{user.full_name}</span>
-                                        </div>
-                                        {user.is_verified && (
-                                            <>
-                                                &nbsp;&nbsp;&nbsp;
-                                                <div className='verified-badge'>✔</div>
-                                            </>
-                                        )}
-                                        {user.is_private && (
-                                            <div className='flex justify-center w-100'>
-                                                <span className='private-indicator'>Private</span>
+                <section className='flex'>
+                    <aside className='side-bar'>
+                        <p>Filter</p>
+                        <menu className='flex column'>
+                            <label className='badge'>
+                                <input
+                                    type='checkbox'
+                                    name='showNonFollowers'
+                                    checked={state.filter.showNonFollowers}
+                                    onChange={handleScanFilter}
+                                />
+                                &nbsp;Non-Followers
+                            </label>
+                            <label className='badge'>
+                                <input
+                                    type='checkbox'
+                                    name='showFollowers'
+                                    checked={state.filter.showFollowers}
+                                    onChange={handleScanFilter}
+                                />
+                                &nbsp;Followers
+                            </label>
+                            <label className='badge'>
+                                <input
+                                    type='checkbox'
+                                    name='showVerified'
+                                    checked={state.filter.showVerified}
+                                    onChange={handleScanFilter}
+                                />
+                                &nbsp;Verified
+                            </label>
+                            <label className='badge'>
+                                <input
+                                    type='checkbox'
+                                    name='showPrivate'
+                                    checked={state.filter.showPrivate}
+                                    onChange={handleScanFilter}
+                                />
+                                &nbsp;Private
+                            </label>
+                        </menu>
+                    </aside>
+                    <article className='results-container'>
+                        {getCurrentPageUnfollowers(getUsersForDisplay(state.results, state.filter), state.page).map(
+                            user => {
+                                const firstLetter = user.username.substring(0, 1).toUpperCase();
+                                return (
+                                    <>
+                                        {firstLetter !== currentLetter && onNewLetter(firstLetter)}
+                                        <label className='result-item'>
+                                            <div className='flex grow align-center'>
+                                                <img
+                                                    className='avatar'
+                                                    alt={user.username}
+                                                    src={user.profile_pic_url}
+                                                />
+                                                <div className='flex column m-medium'>
+                                                    <a
+                                                        className='fs-xlarge'
+                                                        target='_blank'
+                                                        href={`../${user.username}`}
+                                                    >
+                                                        {user.username}
+                                                    </a>
+                                                    <span className='fs-medium'>{user.full_name}</span>
+                                                </div>
+                                                {user.is_verified && <div className='verified-badge'>✔</div>}
+                                                {user.is_private && (
+                                                    <div className='flex justify-center w-100'>
+                                                        <span className='private-indicator'>Private</span>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                    <input
-                                        className='account-checkbox'
-                                        type='checkbox'
-                                        checked={state.selectedUsers.indexOf(user) !== -1}
-                                        onChange={e => {
-                                            if (e.currentTarget.checked) {
-                                                setState({
-                                                    ...state,
-                                                    selectedUsers: [...state.selectedUsers, user],
-                                                });
-                                            } else {
-                                                setState({
-                                                    ...state,
-                                                    selectedUsers: state.selectedUsers.filter(
-                                                        selectedUser => selectedUser !== user,
-                                                    ),
-                                                });
-                                            }
-                                        }}
-                                    />
-                                </label>
-                            </>
-                        );
-                    })}
-                </div>
+                                            <input
+                                                className='account-checkbox'
+                                                type='checkbox'
+                                                checked={state.selectedResults.indexOf(user) !== -1}
+                                                onChange={e => toggleUser(e.currentTarget.checked, user)}
+                                            />
+                                        </label>
+                                    </>
+                                );
+                            },
+                        )}
+                    </article>
+                </section>
             );
             break;
         }
 
         case 'unfollowing':
             markup = (
-                <div className='unfollow-log-container'>
-                    {state.unfollowLog.length === state.selectedUsers.length && (
-                        <>
-                            <hr />
-                            <div class='fs-large p-medium clr-green'>All DONE!</div>
-                            <hr />
-                        </>
-                    )}
-                    {state.unfollowLog.map((entry, index) =>
-                        entry.unfollowedSuccessfully ? (
-                            <div class='p-medium'>
-                                Unfollowed
-                                <a class='clr-inherit' target='_blank' href={`../${entry.user.username}`}>
-                                    &nbsp;{entry.user.username}
-                                </a>
-                                <span class='clr-cyan'>
-                                    &nbsp; [{index + 1}/{state.selectedUsers.length}]
-                                </span>
-                            </div>
-                        ) : (
-                            <div class='p-medium clr-red'>
-                                Failed to unfollow {entry.user.username} [{index + 1}/{state.selectedUsers.length}]
-                            </div>
-                        ),
-                    )}
-                </div>
+                <section className='flex'>
+                    <aside className='side-bar'>
+                        <p>Filter</p>
+                        <menu className='flex column'>
+                            <label className='badge'>
+                                <input
+                                    type='checkbox'
+                                    name='showSucceeded'
+                                    checked={state.filter.showSucceeded}
+                                    onChange={handleUnfollowFilter}
+                                />
+                                &nbsp;Succeeded
+                            </label>
+                            <label className='badge'>
+                                <input
+                                    type='checkbox'
+                                    name='showFailed'
+                                    checked={state.filter.showFailed}
+                                    onChange={handleUnfollowFilter}
+                                />
+                                &nbsp;Failed
+                            </label>
+                        </menu>
+                    </aside>
+                    <article className='unfollow-log-container'>
+                        {state.unfollowLog.length === state.selectedResults.length && (
+                            <>
+                                <hr />
+                                <div class='fs-large p-medium clr-green'>All DONE!</div>
+                                <hr />
+                            </>
+                        )}
+                        {getUnfollowLogForDisplay(state.unfollowLog, state.filter).map((entry, index) =>
+                            entry.unfollowedSuccessfully ? (
+                                <div class='p-medium'>
+                                    Unfollowed
+                                    <a class='clr-inherit' target='_blank' href={`../${entry.user.username}`}>
+                                        &nbsp;{entry.user.username}
+                                    </a>
+                                    <span class='clr-cyan'>
+                                        &nbsp; [{index + 1}/{state.selectedResults.length}]
+                                    </span>
+                                </div>
+                            ) : (
+                                <div class='p-medium clr-red'>
+                                    Failed to unfollow {entry.user.username} [{index + 1}/{state.selectedResults.length}
+                                    ]
+                                </div>
+                            ),
+                        )}
+                    </article>
+                </section>
             );
             break;
 
@@ -386,35 +553,18 @@ function App() {
                                     }
                                     setState({
                                         status: 'initial',
-                                        shouldIncludeVerifiedAccounts: true,
                                     });
                             }
                         }}
                     >
                         InstagramUnfollowers
                     </div>
-                    {state.status === 'initial' && (
-                        <label className='flex align-center'>
-                            <input
-                                type='checkbox'
-                                className='include-verified-checkbox'
-                                checked={state.shouldIncludeVerifiedAccounts}
-                                onChange={() =>
-                                    setState({
-                                        ...state,
-                                        shouldIncludeVerifiedAccounts: !state.shouldIncludeVerifiedAccounts,
-                                    })
-                                }
-                            />
-                            Include verified
-                        </label>
-                    )}
                     <button
                         className='copy-list'
                         onClick={() => {
                             switch (state.status) {
                                 case 'scanning':
-                                    return copyListToClipboard(state.nonFollowers);
+                                    return copyListToClipboard(getUsersForDisplay(state.results, state.filter));
                                 case 'initial':
                                 case 'unfollowing':
                                     return;
@@ -428,9 +578,16 @@ function App() {
                     </button>
                     <button
                         className='fs-large clr-red'
-                        onClick={() =>
+                        onClick={() => {
+                            if (!confirm('Are you sure?')) {
+                                return;
+                            }
                             setState(prevState => {
                                 if (prevState.status !== 'scanning') {
+                                    return;
+                                }
+                                if (prevState.selectedResults.length === 0) {
+                                    alert('Must select at least a single user to unfollow');
                                     return;
                                 }
                                 const state: State = {
@@ -438,16 +595,20 @@ function App() {
                                     status: 'unfollowing',
                                     percentage: 0,
                                     unfollowLog: [],
+                                    filter: {
+                                        showSucceeded: true,
+                                        showFailed: true,
+                                    },
                                 };
                                 return state;
-                            })
-                        }
+                            });
+                        }}
                     >
                         {state.status === 'initial' ? (
                             // Spacer to avoid layout shift in parent flex container.
                             <div />
                         ) : (
-                            <>UNFOLLOW [{state.selectedUsers.length}]</>
+                            <>UNFOLLOW [{state.selectedResults.length}]</>
                         )}
                     </button>
                     {state.status === 'scanning' && (
@@ -457,19 +618,7 @@ function App() {
                             // regarding what exactly is selected while scanning in progress.
                             disabled={state.percentage !== 100}
                             className='toggle-all-checkbox'
-                            onClick={e => {
-                                if (e.currentTarget.checked) {
-                                    setState({
-                                        ...state,
-                                        selectedUsers: state.nonFollowers,
-                                    });
-                                } else {
-                                    setState({
-                                        ...state,
-                                        selectedUsers: [],
-                                    });
-                                }
-                            }}
+                            onClick={toggleAllUsers}
                         />
                     )}
                 </header>
@@ -477,7 +626,12 @@ function App() {
                 {markup}
 
                 <footer className='bottom-bar'>
-                    <div>Non-followers: {state.status !== 'initial' && state.nonFollowers.length}</div>
+                    {state.status !== 'scanning' ? (
+                        // Spacer to avoid layout shift in parent flex container.
+                        <div />
+                    ) : (
+                        <div>Displayed: {getUsersForDisplay(state.results, state.filter).length}</div>
+                    )}
                     {state.status === 'scanning' && (
                         <div>
                             <a
@@ -494,11 +648,11 @@ function App() {
                                 ❮
                             </a>
                             <span>
-                                {state.page} / {getMaxPage(state.nonFollowers)}
+                                {state.page} / {getMaxPage(getUsersForDisplay(state.results, state.filter))}
                             </span>
                             <a
                                 onClick={() => {
-                                    if (state.page < getMaxPage(state.nonFollowers)) {
+                                    if (state.page < getMaxPage(getUsersForDisplay(state.results, state.filter))) {
                                         setState({
                                             ...state,
                                             page: state.page + 1,

@@ -1,9 +1,17 @@
+* {
+    box-sizing: border-box;
+}
+
 html {
     background-color: #222 !important;
 
+    body {
+        margin: 0;
+    }
+
     .iu {
         // Add bottom spacing due to bottom-bar covering other elements.
-        margin-bottom: 10rem;
+        margin-bottom: 3.75rem;
         font-family: system-ui;
 
         .overlay {
@@ -14,15 +22,13 @@ html {
 
         header {
             &.top-bar {
-                position: fixed;
+                position: sticky;
                 top: 0;
-                left: 0;
-                right: 0;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 padding: 1rem;
-                height: 2.5rem;
+                height: 4rem;
                 background-color: #333;
                 z-index: 1;
             }
@@ -31,6 +37,18 @@ html {
                 font-family: monospace;
                 font-size: 1.5em;
                 cursor: pointer;
+            }
+        }
+
+        aside {
+            &.side-bar {
+                position: sticky;
+                top: 0;
+                height: 100vh;
+                background-color: #111;
+                border-inline-end: 1px solid gray;
+                font-size: 1.5em;
+                @extend .p-large;
             }
         }
 
@@ -48,6 +66,10 @@ html {
                 font-weight: bold;
                 z-index: 1;
             }
+        }
+
+        menu {
+            padding: 0;
         }
 
         label {
@@ -122,9 +144,12 @@ html {
             }
         }
 
-        .results-container {
-            transform: translateY(75px);
+        .results-container,
+        .unfollow-log-container {
+            flex: 1;
+        }
 
+        .results-container {
             .alphabet-character {
                 margin: 1rem;
                 padding: 1rem;
@@ -164,19 +189,27 @@ html {
         }
 
         .unfollow-log-container {
-            transform: translateY(75px);
+            padding: 1rem;
         }
     }
 
     .toast {
         position: fixed;
         bottom: 5rem;
+        left: 1rem;
         color: black;
         background-color: #fff;
         border-radius: 6px;
         font-size: 1.25em;
         padding: 2rem;
         z-index: 2;
+    }
+
+    .badge {
+        background: #333;
+        border-radius: 15px;
+        @extend .p-medium;
+        @extend .m-small;
     }
 }
 
@@ -225,6 +258,25 @@ html {
 
     &-xlarge {
         padding: 2rem;
+    }
+}
+
+// margin
+.m {
+    &-small {
+        margin: 0.5rem;
+    }
+
+    &-medium {
+        margin: 1rem;
+    }
+
+    &-large {
+        margin: 1.5rem;
+    }
+
+    &-xlarge {
+        margin: 2rem;
     }
 }
 
