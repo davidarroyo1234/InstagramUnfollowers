@@ -320,7 +320,7 @@ function App() {
                             ...prevState,
                             percentage,
                             unfollowLog: [
-                                ...state.unfollowLog,
+                                ...prevState.unfollowLog,
                                 {
                                     user,
                                     unfollowedSuccessfully: true,
@@ -338,7 +338,7 @@ function App() {
                             ...prevState,
                             percentage,
                             unfollowLog: [
-                                ...state.unfollowLog,
+                                ...prevState.unfollowLog,
                                 {
                                     user,
                                     unfollowedSuccessfully: false,
