@@ -209,7 +209,7 @@ function App() {
                     return;
                 case 'scanning':
                 case 'unfollowing':
-                    if (state.percentage === 100) {
+                    if (state.percentage >= 100) {
                         // When process is complete, no reason to prevent user from leaving.
                         return;
                     }
@@ -268,7 +268,7 @@ function App() {
                     }
                     const state: State = {
                         ...prevState,
-                        percentage: Math.ceil((currentFollowedUsersCount / totalFollowedUsersCount) * 100),
+                        percentage: Math.floor((currentFollowedUsersCount / totalFollowedUsersCount) * 100),
                         results,
                     };
                     return state;
@@ -301,7 +301,7 @@ function App() {
             let counter = 0;
             for (const user of state.selectedResults) {
                 counter += 1;
-                const percentage = Math.ceil((counter / state.selectedResults.length) * 100);
+                const percentage = Math.floor((counter / state.selectedResults.length) * 100);
                 try {
                     await fetch(unfollowUserUrlGenerator(user.id), {
                         headers: {
@@ -547,7 +547,7 @@ function App() {
 
                                 case 'scanning':
                                 case 'unfollowing':
-                                    if (state.percentage !== 100) {
+                                    if (state.percentage < 100) {
                                         // Avoid resetting state while active process.
                                         return;
                                     }
@@ -616,7 +616,7 @@ function App() {
                             type='checkbox'
                             // Avoid allowing to select all before scan completed to avoid confusion
                             // regarding what exactly is selected while scanning in progress.
-                            disabled={state.percentage !== 100}
+                            disabled={state.percentage < 100}
                             className='toggle-all-checkbox'
                             onClick={toggleAllUsers}
                         />
