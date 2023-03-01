@@ -1,5 +1,4 @@
-import React, { useEffect, useState, ChangeEvent } from 'preact/compat';
-import { render } from 'preact';
+import React, { useEffect, useState, ChangeEvent, render } from 'react';
 import './styles.scss';
 
 import { Node, User } from './model/user';
