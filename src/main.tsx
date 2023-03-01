@@ -64,6 +64,18 @@ function getUnfollowLogForDisplay(log: readonly UnfollowLogEntry[], filter: Unfo
     return entries;
 }
 
+function ProgressBar({ percentage }: { readonly percentage: number }) {
+    return (
+        <div className='progressbar-container'>
+            <div
+                className={percentage < 100 ? 'progressbar-bar' : 'progressbar-bar-finished'}
+                style={{ width: `${percentage}%` }}
+            />
+            <span className='progressbar-text'>{percentage}%</span>
+        </div>
+    );
+}
+
 interface ScanningFilter {
     readonly showNonFollowers: boolean;
     readonly showFollowers: boolean;
@@ -381,10 +393,10 @@ function App() {
             };
             markup = (
                 <section className='flex'>
-                    <aside className='side-bar'>
-                        <p>Filter</p>
-                        <menu className='flex column'>
-                            <label className='badge'>
+                    <aside className='app-sidebar'>
+                        <menu className='flex column m-clear p-clear'>
+                            <p>Filter</p>
+                            <label className='badge m-small'>
                                 <input
                                     type='checkbox'
                                     name='showNonFollowers'
@@ -393,7 +405,7 @@ function App() {
                                 />
                                 &nbsp;Non-Followers
                             </label>
-                            <label className='badge'>
+                            <label className='badge m-small'>
                                 <input
                                     type='checkbox'
                                     name='showFollowers'
@@ -402,7 +414,7 @@ function App() {
                                 />
                                 &nbsp;Followers
                             </label>
-                            <label className='badge'>
+                            <label className='badge m-small'>
                                 <input
                                     type='checkbox'
                                     name='showVerified'
@@ -411,7 +423,7 @@ function App() {
                                 />
                                 &nbsp;Verified
                             </label>
-                            <label className='badge'>
+                            <label className='badge m-small'>
                                 <input
                                     type='checkbox'
                                     name='showPrivate'
@@ -421,6 +433,73 @@ function App() {
                                 &nbsp;Private
                             </label>
                         </menu>
+                        <div className='grow'>
+                            <p>Displayed: {getUsersForDisplay(state.results, state.filter).length}</p>
+                            <p>Total: {state.results.length}</p>
+                        </div>
+                        <div className='grow t-center'>
+                            <p>Pages</p>
+                            <a
+                                onClick={() => {
+                                    if (state.page - 1 > 0) {
+                                        setState({
+                                            ...state,
+                                            page: state.page - 1,
+                                        });
+                                    }
+                                }}
+                                className='p-medium'
+                            >
+                                ❮
+                            </a>
+                            <span>
+                                {state.page} / {getMaxPage(getUsersForDisplay(state.results, state.filter))}
+                            </span>
+                            <a
+                                onClick={() => {
+                                    if (state.page < getMaxPage(getUsersForDisplay(state.results, state.filter))) {
+                                        setState({
+                                            ...state,
+                                            page: state.page + 1,
+                                        });
+                                    }
+                                }}
+                                className='p-medium'
+                            >
+                                ❯
+                            </a>
+                        </div>
+                        <button
+                            className='unfollow'
+                            onClick={() => {
+                                if (!confirm('Are you sure?')) {
+                                    return;
+                                }
+                                setState(prevState => {
+                                    if (prevState.status !== 'scanning') {
+                                        return;
+                                    }
+                                    if (prevState.selectedResults.length === 0) {
+                                        alert('Must select at least a single user to unfollow');
+                                        return;
+                                    }
+                                    const state: State = {
+                                        ...prevState,
+                                        status: 'unfollowing',
+                                        percentage: 0,
+                                        unfollowLog: [],
+                                        filter: {
+                                            showSucceeded: true,
+                                            showFailed: true,
+                                        },
+                                    };
+                                    return state;
+                                });
+                            }}
+                        >
+                            UNFOLLOW ({state.selectedResults.length})
+                        </button>
+                        <ProgressBar percentage={state.percentage} />
                     </aside>
                     <article className='results-container'>
                         {getCurrentPageUnfollowers(getUsersForDisplay(state.results, state.filter), state.page).map(
@@ -473,10 +552,10 @@ function App() {
         case 'unfollowing':
             markup = (
                 <section className='flex'>
-                    <aside className='side-bar'>
-                        <p>Filter</p>
-                        <menu className='flex column'>
-                            <label className='badge'>
+                    <aside className='app-sidebar'>
+                        <menu className='flex column grow m-clear p-clear'>
+                            <p>Filter</p>
+                            <label className='badge m-small'>
                                 <input
                                     type='checkbox'
                                     name='showSucceeded'
@@ -485,7 +564,7 @@ function App() {
                                 />
                                 &nbsp;Succeeded
                             </label>
-                            <label className='badge'>
+                            <label className='badge m-small'>
                                 <input
                                     type='checkbox'
                                     name='showFailed'
@@ -495,6 +574,7 @@ function App() {
                                 &nbsp;Failed
                             </label>
                         </menu>
+                        <ProgressBar percentage={state.percentage} />
                     </aside>
                     <article className='unfollow-log-container'>
                         {state.unfollowLog.length === state.selectedResults.length && (
@@ -534,7 +614,7 @@ function App() {
     return (
         <main id='main' role='main' className='iu'>
             <section className='overlay'>
-                <header className='top-bar'>
+                <header className='app-header'>
                     <div
                         className='logo'
                         onClick={() => {
@@ -576,41 +656,6 @@ function App() {
                     >
                         COPY LIST
                     </button>
-                    <button
-                        className='fs-large clr-red'
-                        onClick={() => {
-                            if (!confirm('Are you sure?')) {
-                                return;
-                            }
-                            setState(prevState => {
-                                if (prevState.status !== 'scanning') {
-                                    return;
-                                }
-                                if (prevState.selectedResults.length === 0) {
-                                    alert('Must select at least a single user to unfollow');
-                                    return;
-                                }
-                                const state: State = {
-                                    ...prevState,
-                                    status: 'unfollowing',
-                                    percentage: 0,
-                                    unfollowLog: [],
-                                    filter: {
-                                        showSucceeded: true,
-                                        showFailed: true,
-                                    },
-                                };
-                                return state;
-                            });
-                        }}
-                    >
-                        {state.status === 'initial' ? (
-                            // Spacer to avoid layout shift in parent flex container.
-                            <div />
-                        ) : (
-                            <>UNFOLLOW [{state.selectedResults.length}]</>
-                        )}
-                    </button>
                     {state.status === 'scanning' && (
                         <input
                             type='checkbox'
@@ -624,57 +669,6 @@ function App() {
                 </header>
 
                 {markup}
-
-                <footer className='bottom-bar'>
-                    {state.status !== 'scanning' ? (
-                        // Spacer to avoid layout shift in parent flex container.
-                        <div />
-                    ) : (
-                        <div>Displayed: {getUsersForDisplay(state.results, state.filter).length}</div>
-                    )}
-                    {state.status === 'scanning' && (
-                        <div>
-                            <a
-                                onClick={() => {
-                                    if (state.page - 1 > 0) {
-                                        setState({
-                                            ...state,
-                                            page: state.page - 1,
-                                        });
-                                    }
-                                }}
-                                className='p-medium'
-                            >
-                                ❮
-                            </a>
-                            <span>
-                                {state.page} / {getMaxPage(getUsersForDisplay(state.results, state.filter))}
-                            </span>
-                            <a
-                                onClick={() => {
-                                    if (state.page < getMaxPage(getUsersForDisplay(state.results, state.filter))) {
-                                        setState({
-                                            ...state,
-                                            page: state.page + 1,
-                                        });
-                                    }
-                                }}
-                                className='p-medium'
-                            >
-                                ❯
-                            </a>
-                        </div>
-                    )}
-                    {(state.status === 'scanning' || state.status === 'unfollowing') && (
-                        <div className='progressbar-container'>
-                            <div
-                                className={state.percentage < 100 ? 'progressbar-bar' : 'progressbar-bar-finished'}
-                                style={{ width: `${state.percentage}%` }}
-                            />
-                            <span className='progressbar-text'>{state.percentage}%</span>
-                        </div>
-                    )}
-                </footer>
 
                 {toast.show && <div className='toast'>{toast.text}</div>}
             </section>

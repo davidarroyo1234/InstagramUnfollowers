@@ -1,3 +1,13 @@
+/** VARIABLES */
+$clr-red: #ac2626;
+$clr-green: #56d756;
+$clr-cyan: #00ffff;
+
+$size-small: 0.5rem;
+$size-medium: 1rem;
+$size-large: 1.5rem;
+$size-xlarge: 2rem;
+
 * {
     box-sizing: border-box;
 }
@@ -10,8 +20,6 @@ html {
     }
 
     .iu {
-        // Add bottom spacing due to bottom-bar covering other elements.
-        margin-bottom: 3.75rem;
         font-family: system-ui;
 
         .overlay {
@@ -21,55 +29,40 @@ html {
         }
 
         header {
-            &.top-bar {
-                position: sticky;
+            &.app-header {
+                position: fixed;
                 top: 0;
-                display: flex;
-                align-items: center;
+                left: 0;
+                right: 0;
                 justify-content: space-between;
-                padding: 1rem;
                 height: 4rem;
                 background-color: #333;
                 z-index: 1;
+                @extend .flex;
+                @extend .align-center;
+                @extend .p-medium;
             }
 
             .logo {
                 font-family: monospace;
-                font-size: 1.5em;
                 cursor: pointer;
+                @extend .fs-large;
             }
         }
 
         aside {
-            &.side-bar {
+            &.app-sidebar {
                 position: sticky;
                 top: 0;
                 height: 100vh;
                 background-color: #111;
                 border-inline-end: 1px solid gray;
-                font-size: 1.5em;
+                @extend .flex;
+                @extend .column;
                 @extend .p-large;
+                @extend .fs-large;
+                @extend .with-app-header;
             }
-        }
-
-        footer {
-            &.bottom-bar {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 1rem;
-                background-color: #000;
-                font-weight: bold;
-                z-index: 1;
-            }
-        }
-
-        menu {
-            padding: 0;
         }
 
         label {
@@ -95,12 +88,12 @@ html {
         button {
             background: none;
             border: none;
-            padding: 0;
             cursor: pointer;
+            @extend .p-clear;
 
             &.copy-list {
                 color: white;
-                font-size: 1rem;
+                @extend .fs-medium;
             }
 
             &.run-scan {
@@ -115,13 +108,20 @@ html {
                 width: 160px;
                 border-radius: 50%;
             }
+
+            &.unfollow {
+                margin-bottom: $size-large;
+                background-color: $clr-red !important;
+                @extend .badge;
+                @extend .fs-large;
+                @extend .clr-inherit;
+            }
         }
 
         .progressbar {
             &-container {
-                width: 175px;
-                height: 30px;
-                border-radius: 5px;
+                height: 40px;
+                border-radius: 8px;
                 position: relative;
                 border: 1px solid #7b7777;
             }
@@ -129,9 +129,11 @@ html {
             &-bar {
                 width: 0;
                 height: 100%;
+                border-radius: inherit;
                 background-color: #7b7777;
                 &-finished {
                     height: 100%;
+                    border-radius: inherit;
                     background-color: #59a942;
                 }
             }
@@ -146,23 +148,24 @@ html {
 
         .results-container,
         .unfollow-log-container {
-            flex: 1;
+            @extend .grow;
+            @extend .with-app-header;
         }
 
         .results-container {
             .alphabet-character {
-                margin: 1rem;
-                padding: 1rem;
-                font-size: 2em;
                 border-bottom: 1px solid #333;
+                @extend .m-medium;
+                @extend .p-medium;
+                @extend .fs-xlarge;
             }
 
             .result-item {
-                display: flex;
-                align-items: center;
-                padding: 1rem;
                 border-radius: 3px;
                 cursor: pointer;
+                @extend .flex;
+                @extend .align-center;
+                @extend .p-medium;
 
                 .avatar {
                     width: 75px;
@@ -181,39 +184,43 @@ html {
                 .private-indicator {
                     border: 2px solid #51bb42;
                     border-radius: 25px;
-                    padding: 0.5rem;
                     color: #51bb42;
                     font-weight: 500;
+                    @extend .p-small;
                 }
             }
         }
 
         .unfollow-log-container {
-            padding: 1rem;
+            @extend .p-medium;
         }
-    }
 
-    .toast {
-        position: fixed;
-        bottom: 5rem;
-        left: 1rem;
-        color: black;
-        background-color: #fff;
-        border-radius: 6px;
-        font-size: 1.25em;
-        padding: 2rem;
-        z-index: 2;
-    }
+        .toast {
+            position: fixed;
+            bottom: $size-medium;
+            left: $size-medium;
+            color: black;
+            background-color: #fff;
+            border-radius: 6px;
+            font-size: 1.25em;
+            z-index: 2;
+            @extend .p-xlarge;
+        }
 
-    .badge {
-        background: #333;
-        border-radius: 15px;
-        @extend .p-medium;
-        @extend .m-small;
+        .badge {
+            background: #333;
+            border-radius: 15px;
+            @extend .p-medium;
+        }
     }
 }
 
 /** HELPERS */
+// layout
+.with-app-header {
+    padding-top: 4rem !important;
+}
+
 // flex
 .flex {
     display: flex;
@@ -245,57 +252,65 @@ html {
 // padding
 .p {
     &-small {
-        padding: 0.5rem;
+        padding: $size-small;
     }
 
     &-medium {
-        padding: 1rem;
+        padding: $size-medium;
     }
 
     &-large {
-        padding: 1.5rem;
+        padding: $size-large;
     }
 
     &-xlarge {
-        padding: 2rem;
+        padding: $size-xlarge;
+    }
+
+    &-clear {
+        padding: 0;
     }
 }
 
 // margin
 .m {
     &-small {
-        margin: 0.5rem;
+        margin: $size-small;
     }
 
     &-medium {
-        margin: 1rem;
+        margin: $size-medium;
     }
 
     &-large {
-        margin: 1.5rem;
+        margin: $size-large;
     }
 
     &-xlarge {
-        margin: 2rem;
+        margin: $size-xlarge;
+    }
+
+    &-clear {
+        margin: 0;
     }
 }
 
 // font-size
 .fs {
     &-small {
-        font-size: 0.5rem;
+        font-size: $size-small;
     }
 
     &-medium {
-        font-size: 1rem;
+        font-size: $size-medium;
     }
 
     &-large {
-        font-size: 1.5rem;
+        font-size: $size-large;
     }
 
     &-xlarge {
-        font-size: 2rem;
+        font-size: $size-xlarge;
     }
 }
 
@@ -306,15 +321,15 @@ html {
     }
 
     &-red {
-        color: #bd2121;
+        color: $clr-red;
     }
 
     &-green {
-        color: #56d756;
+        color: $clr-green;
     }
 
     &-cyan {
-        color: #00ffff;
+        color: $clr-cyan;
     }
 }
 
@@ -322,5 +337,12 @@ html {
 .d {
     &-none {
         display: none;
+    }
+}
+
+// text
+.t {
+    &-center {
+        text-align: center;
     }
 }
