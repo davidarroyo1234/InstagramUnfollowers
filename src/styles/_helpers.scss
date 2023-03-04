@@ -1,4 +1,10 @@
 // Layout
+.main-layout {
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
 .with-app-header {
     padding-top: 4rem !important;
 }

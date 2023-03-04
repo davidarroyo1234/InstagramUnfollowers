@@ -3,7 +3,7 @@
 }
 
 html {
-    background-color: #222 !important;
+    background-color: #111 !important;
 
     body {
         margin: 0;
@@ -11,26 +11,28 @@ html {
 
     .iu {
         font-family: system-ui;
+        @extend .main-layout;
 
         .overlay {
-            background-color: #222;
             color: #fff;
-            height: 100%;
         }
 
-        header {
-            &.app-header {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
+        .app-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4rem;
+            background-color: #222;
+            z-index: 1;
+            @extend .flex;
+
+            &-content {
+                padding: 0 $size-medium;
                 justify-content: space-between;
-                height: 4rem;
-                background-color: #333;
-                z-index: 1;
+                @extend .main-layout;
                 @extend .flex;
                 @extend .align-center;
-                @extend .p-medium;
             }
 
             .logo {
@@ -40,19 +42,17 @@ html {
             }
         }
 
-        aside {
-            &.app-sidebar {
-                position: sticky;
-                top: 0;
-                height: 100vh;
-                background-color: #111;
-                border-inline-end: 1px solid gray;
-                @extend .flex;
-                @extend .column;
-                @extend .p-large;
-                @extend .fs-large;
-                @extend .with-app-header;
-            }
+        .app-sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            min-width: 300px;
+            border-inline-end: 1px solid #333;
+            @extend .flex;
+            @extend .column;
+            @extend .p-medium;
+            @extend .fs-large;
+            @extend .with-app-header;
         }
 
         label {
@@ -144,7 +144,7 @@ html {
 
         .results-container {
             .alphabet-character {
-                border-bottom: 1px solid #333;
+                border-bottom: 1px solid #222;
                 @extend .m-medium;
                 @extend .p-medium;
                 @extend .fs-xlarge;
@@ -198,7 +198,7 @@ html {
         }
 
         .badge {
-            background: #333;
+            background: #222;
             border-radius: 15px;
             @extend .p-medium;
         }

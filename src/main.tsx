@@ -629,57 +629,59 @@ function App() {
         <main id='main' role='main' className='iu'>
             <section className='overlay'>
                 <header className='app-header'>
-                    <div
-                        className='logo'
-                        onClick={() => {
-                            switch (state.status) {
-                                case 'initial':
-                                    if (confirm('Go back to Instagram?')) {
-                                        location.reload();
-                                    }
-                                    break;
+                    <div className='app-header-content'>
+                        <div
+                            className='logo'
+                            onClick={() => {
+                                switch (state.status) {
+                                    case 'initial':
+                                        if (confirm('Go back to Instagram?')) {
+                                            location.reload();
+                                        }
+                                        break;
 
-                                case 'scanning':
-                                case 'unfollowing':
-                                    if (state.percentage < 100) {
-                                        // Avoid resetting state while active process.
+                                    case 'scanning':
+                                    case 'unfollowing':
+                                        if (state.percentage < 100) {
+                                            // Avoid resetting state while active process.
+                                            return;
+                                        }
+                                        setState({
+                                            status: 'initial',
+                                        });
+                                }
+                            }}
+                        >
+                            InstagramUnfollowers
+                        </div>
+                        <button
+                            className='copy-list'
+                            onClick={() => {
+                                switch (state.status) {
+                                    case 'scanning':
+                                        return copyListToClipboard(getUsersForDisplay(state.results, state.filter));
+                                    case 'initial':
+                                    case 'unfollowing':
                                         return;
-                                    }
-                                    setState({
-                                        status: 'initial',
-                                    });
-                            }
-                        }}
-                    >
-                        InstagramUnfollowers
+                                    default:
+                                        assertUnreachable(state);
+                                }
+                            }}
+                            disabled={state.status === 'initial'}
+                        >
+                            COPY LIST
+                        </button>
+                        {state.status === 'scanning' && (
+                            <input
+                                type='checkbox'
+                                // Avoid allowing to select all before scan completed to avoid confusion
+                                // regarding what exactly is selected while scanning in progress.
+                                disabled={state.percentage < 100}
+                                className='toggle-all-checkbox'
+                                onClick={toggleAllUsers}
+                            />
+                        )}
                     </div>
-                    <button
-                        className='copy-list'
-                        onClick={() => {
-                            switch (state.status) {
-                                case 'scanning':
-                                    return copyListToClipboard(getUsersForDisplay(state.results, state.filter));
-                                case 'initial':
-                                case 'unfollowing':
-                                    return;
-                                default:
-                                    assertUnreachable(state);
-                            }
-                        }}
-                        disabled={state.status === 'initial'}
-                    >
-                        COPY LIST
-                    </button>
-                    {state.status === 'scanning' && (
-                        <input
-                            type='checkbox'
-                            // Avoid allowing to select all before scan completed to avoid confusion
-                            // regarding what exactly is selected while scanning in progress.
-                            disabled={state.percentage < 100}
-                            className='toggle-all-checkbox'
-                            onClick={toggleAllUsers}
-                        />
-                    )}
                 </header>
 
                 {markup}
