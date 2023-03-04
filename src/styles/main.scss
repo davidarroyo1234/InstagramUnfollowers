@@ -40,6 +40,16 @@ html {
                 cursor: pointer;
                 @extend .fs-large;
             }
+
+            .search-bar {
+                color: white;
+                border-radius: 8px;
+                padding: $size-small;
+                font-weight: bold;
+                font-family: inherit;
+                background-color: transparent;
+                border: 1px solid #444;
+            }
         }
 
         .app-sidebar {
