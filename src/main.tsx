@@ -1,11 +1,12 @@
-import React, { useEffect, useState, ChangeEvent, render } from 'react';
+import React, { useEffect, useState, ChangeEvent } from 'react';
+import { render } from 'react-dom';
 import './styles.scss';
 
 import { Node, User } from './model/user';
 import { urlGenerator, assertUnreachable, getCookie, sleep, unfollowUserUrlGenerator } from './utils';
 
-const INSTAGRAM_HOSTNAME: string = 'www.instagram.com';
-const UNFOLLOWERS_PER_PAGE: number = 50;
+const INSTAGRAM_HOSTNAME = 'www.instagram.com';
+const UNFOLLOWERS_PER_PAGE = 50;
 
 async function copyListToClipboard(nonFollowersList: readonly Node[]): Promise<void> {
     const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
@@ -229,9 +230,13 @@ function App() {
                     assertUnreachable(state);
             }
 
+            // `e` Might be undefined in older browsers, so silence linter for this one.
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             e = e || window.event;
 
+            // `e` Might be undefined in older browsers, so silence linter for this one.
             // For IE and Firefox prior to version 4
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             if (e) {
                 e.returnValue = 'Changes you made may not be saved.';
             }
@@ -277,12 +282,12 @@ function App() {
                     if (prevState.status !== 'scanning') {
                         return prevState;
                     }
-                    const state: State = {
+                    const newState: State = {
                         ...prevState,
                         percentage: Math.floor((currentFollowedUsersCount / totalFollowedUsersCount) * 100),
                         results,
                     };
-                    return state;
+                    return newState;
                 });
 
                 await sleep(Math.floor(Math.random() * (1000 - 600)) + 1000);
@@ -296,6 +301,8 @@ function App() {
             }
         };
         scan();
+        // Dependency array not entirely legit, but works this way. TODO: Find a way to fix.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.status]);
 
     useEffect(() => {
@@ -304,7 +311,7 @@ function App() {
                 return;
             }
 
-            let csrftoken = getCookie('csrftoken');
+            const csrftoken = getCookie('csrftoken');
             if (csrftoken === null) {
                 throw new Error('csrftoken cookie is null');
             }
@@ -372,6 +379,8 @@ function App() {
             }
         };
         unfollow();
+        // Dependency array not entirely legit, but works this way. TODO: Find a way to fix.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.status]);
 
     let markup: React.JSX.Element;
@@ -388,7 +397,7 @@ function App() {
             let currentLetter = '';
             const onNewLetter = (firstLetter: string) => {
                 currentLetter = firstLetter;
-                return <div class='alphabet-character'>{currentLetter}</div>;
+                return <div className='alphabet-character'>{currentLetter}</div>;
             };
             markup = (
                 <section className='flex'>
@@ -482,7 +491,7 @@ function App() {
                                         alert('Must select at least a single user to unfollow');
                                         return prevState;
                                     }
-                                    const state: State = {
+                                    const newState: State = {
                                         ...prevState,
                                         status: 'unfollowing',
                                         percentage: 0,
@@ -492,7 +501,7 @@ function App() {
                                             showFailed: true,
                                         },
                                     };
-                                    return state;
+                                    return newState;
                                 });
                             }}
                         >
@@ -519,6 +528,7 @@ function App() {
                                                         className='fs-xlarge'
                                                         target='_blank'
                                                         href={`../${user.username}`}
+                                                        rel='noreferrer'
                                                     >
                                                         {user.username}
                                                     </a>
@@ -579,23 +589,28 @@ function App() {
                         {state.unfollowLog.length === state.selectedResults.length && (
                             <>
                                 <hr />
-                                <div class='fs-large p-medium clr-green'>All DONE!</div>
+                                <div className='fs-large p-medium clr-green'>All DONE!</div>
                                 <hr />
                             </>
                         )}
                         {getUnfollowLogForDisplay(state.unfollowLog, state.filter).map((entry, index) =>
                             entry.unfollowedSuccessfully ? (
-                                <div class='p-medium'>
+                                <div className='p-medium' key={entry.user.id}>
                                     Unfollowed
-                                    <a class='clr-inherit' target='_blank' href={`../${entry.user.username}`}>
+                                    <a
+                                        className='clr-inherit'
+                                        target='_blank'
+                                        href={`../${entry.user.username}`}
+                                        rel='noreferrer'
+                                    >
                                         &nbsp;{entry.user.username}
                                     </a>
-                                    <span class='clr-cyan'>
+                                    <span className='clr-cyan'>
                                         &nbsp; [{index + 1}/{state.selectedResults.length}]
                                     </span>
                                 </div>
                             ) : (
-                                <div class='p-medium clr-red'>
+                                <div className='p-medium clr-red' key={entry.user.id}>
                                     Failed to unfollow {entry.user.username} [{index + 1}/{state.selectedResults.length}
                                     ]
                                 </div>
