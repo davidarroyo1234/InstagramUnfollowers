@@ -275,7 +275,7 @@ function App() {
 
                 setState(prevState => {
                     if (prevState.status !== 'scanning') {
-                        return;
+                        return prevState;
                     }
                     const state: State = {
                         ...prevState,
@@ -305,8 +305,8 @@ function App() {
             }
 
             let csrftoken = getCookie('csrftoken');
-            if (csrftoken === undefined) {
-                throw new Error('csrftoken cookie is undefined');
+            if (csrftoken === null) {
+                throw new Error('csrftoken cookie is null');
             }
 
             let counter = 0;
@@ -325,7 +325,7 @@ function App() {
                     });
                     setState(prevState => {
                         if (prevState.status !== 'unfollowing') {
-                            return;
+                            return prevState;
                         }
                         return {
                             ...prevState,
@@ -343,7 +343,7 @@ function App() {
                     console.error(e);
                     setState(prevState => {
                         if (prevState.status !== 'unfollowing') {
-                            return;
+                            return prevState;
                         }
                         return {
                             ...prevState,
@@ -476,11 +476,11 @@ function App() {
                                 }
                                 setState(prevState => {
                                     if (prevState.status !== 'scanning') {
-                                        return;
+                                        return prevState;
                                     }
                                     if (prevState.selectedResults.length === 0) {
                                         alert('Must select at least a single user to unfollow');
-                                        return;
+                                        return prevState;
                                     }
                                     const state: State = {
                                         ...prevState,

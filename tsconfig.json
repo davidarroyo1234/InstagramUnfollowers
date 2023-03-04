@@ -1,8 +1,14 @@
 {
     "compilerOptions": {
         "jsx": "react",
+        "strict": true,
         "noImplicitAny": true,
         "noEmitOnError": true,
+        "noUnusedParameters": true,
+        "noUnusedLocals": true,
+        "noImplicitReturns": true,
+        "allowUnreachableCode": false,
+        "forceConsistentCasingInFileNames": true,
         "removeComments": false,
         "esModuleInterop": true,
         "sourceMap": false,
