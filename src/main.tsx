@@ -74,18 +74,6 @@ function getUnfollowLogForDisplay(log: readonly UnfollowLogEntry[], searchTerm: 
     return entries;
 }
 
-function ProgressBar({ percentage }: { readonly percentage: number }) {
-    return (
-        <div className='progressbar-container'>
-            <div
-                className={percentage < 100 ? 'progressbar-bar' : 'progressbar-bar-finished'}
-                style={{ width: `${percentage}%` }}
-            />
-            <span className='progressbar-text'>{percentage}%</span>
-        </div>
-    );
-}
-
 interface ScanningFilter {
     readonly showNonFollowers: boolean;
     readonly showFollowers: boolean;
@@ -132,6 +120,19 @@ function App() {
     const [toast, setToast] = useState<{ readonly show: false } | { readonly show: true; readonly text: string }>({
         show: false,
     });
+
+    let isActiveProcess: boolean;
+    switch (state.status) {
+        case 'initial':
+            isActiveProcess = false;
+            break;
+        case 'scanning':
+        case 'unfollowing':
+            isActiveProcess = state.percentage < 100;
+            break;
+        default:
+            assertUnreachable(state);
+    }
 
     const onScan = async () => {
         if (state.status !== 'initial') {
@@ -229,18 +230,8 @@ function App() {
         const onBeforeUnload = (e: BeforeUnloadEvent) => {
             // Prompt user if he tries to leave while in the middle of a process (searching / unfollowing / etc..)
             // This is especially good for avoiding accidental tab closing which would result in a frustrating experience.
-            switch (state.status) {
-                case 'initial':
-                    return;
-                case 'scanning':
-                case 'unfollowing':
-                    if (state.percentage >= 100) {
-                        // When process is complete, no reason to prevent user from leaving.
-                        return;
-                    }
-                    break;
-                default:
-                    assertUnreachable(state);
+            if (!isActiveProcess) {
+                return;
             }
 
             // `e` Might be undefined in older browsers, so silence linter for this one.
@@ -259,7 +250,7 @@ function App() {
         };
         window.addEventListener('beforeunload', onBeforeUnload);
         return () => window.removeEventListener('beforeunload', onBeforeUnload);
-    }, [state]);
+    }, [isActiveProcess, state]);
 
     useEffect(() => {
         const scan = async () => {
@@ -525,7 +516,6 @@ function App() {
                         >
                             UNFOLLOW ({state.selectedResults.length})
                         </button>
-                        <ProgressBar percentage={state.percentage} />
                     </aside>
                     <article className='results-container'>
                         {getCurrentPageUnfollowers(
@@ -598,7 +588,6 @@ function App() {
                                 &nbsp;Failed
                             </label>
                         </menu>
-                        <ProgressBar percentage={state.percentage} />
                     </aside>
                     <article className='unfollow-log-container'>
                         {state.unfollowLog.length === state.selectedResults.length && (
@@ -645,10 +634,21 @@ function App() {
         <main id='main' role='main' className='iu'>
             <section className='overlay'>
                 <header className='app-header'>
+                    {isActiveProcess && (
+                        <progress
+                            className='progressbar'
+                            value={state.status !== 'initial' ? state.percentage : 0}
+                            max='100'
+                        />
+                    )}
                     <div className='app-header-content'>
                         <div
                             className='logo'
                             onClick={() => {
+                                if (isActiveProcess) {
+                                    // Avoid resetting state while active process.
+                                    return;
+                                }
                                 switch (state.status) {
                                     case 'initial':
                                         if (confirm('Go back to Instagram?')) {
@@ -658,10 +658,6 @@ function App() {
 
                                     case 'scanning':
                                     case 'unfollowing':
-                                        if (state.percentage < 100) {
-                                            // Avoid resetting state while active process.
-                                            return;
-                                        }
                                         setState({
                                             status: 'initial',
                                         });

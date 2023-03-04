@@ -119,31 +119,9 @@ html {
         }
 
         .progressbar {
-            &-container {
-                height: 40px;
-                border-radius: 8px;
-                position: relative;
-                border: 1px solid #7b7777;
-            }
-
-            &-bar {
-                width: 0;
-                height: 100%;
-                border-radius: inherit;
-                background-color: #7b7777;
-                &-finished {
-                    height: 100%;
-                    border-radius: inherit;
-                    background-color: #59a942;
-                }
-            }
-
-            &-text {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-            }
+            width: 100%;
+            height: 5px;
+            position: absolute;
         }
 
         .results-container,
