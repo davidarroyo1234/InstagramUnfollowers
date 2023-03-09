@@ -55,6 +55,7 @@ html {
         .app-sidebar {
             position: sticky;
             top: 0;
+            overflow: auto;
             height: 100vh;
             min-width: 300px;
             border-inline-end: 1px solid #333;
