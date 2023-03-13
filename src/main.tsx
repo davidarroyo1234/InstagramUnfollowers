@@ -1,12 +1,12 @@
-import React, { useEffect, useState, ChangeEvent } from 'preact/compat';
-import { render } from 'preact';
+import React, { useEffect, useState, ChangeEvent } from 'react';
+import { render } from 'react-dom';
 import './styles.scss';
 
 import { Node, User } from './model/user';
 import { urlGenerator, assertUnreachable, getCookie, sleep, unfollowUserUrlGenerator } from './utils';
 
-const INSTAGRAM_HOSTNAME: string = 'www.instagram.com';
-const UNFOLLOWERS_PER_PAGE: number = 50;
+const INSTAGRAM_HOSTNAME = 'www.instagram.com';
+const UNFOLLOWERS_PER_PAGE = 50;
 
 async function copyListToClipboard(nonFollowersList: readonly Node[]): Promise<void> {
     const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
@@ -30,7 +30,7 @@ function getCurrentPageUnfollowers(nonFollowersList: readonly Node[], currentPag
     return sortedList.splice(UNFOLLOWERS_PER_PAGE * (currentPage - 1), UNFOLLOWERS_PER_PAGE);
 }
 
-function getUsersForDisplay(results: readonly Node[], filter: ScanningFilter): readonly Node[] {
+function getUsersForDisplay(results: readonly Node[], searchTerm: string, filter: ScanningFilter): readonly Node[] {
     const users: Node[] = [];
     for (const user of results) {
         if (!filter.showPrivate && user.is_private) {
@@ -45,18 +45,28 @@ function getUsersForDisplay(results: readonly Node[], filter: ScanningFilter): r
         if (!filter.showNonFollowers && !user.follows_viewer) {
             continue;
         }
+        const userMatchesSearchTerm =
+            user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.full_name.toLowerCase().includes(searchTerm.toLowerCase());
+        if (searchTerm !== '' && !userMatchesSearchTerm) {
+            continue;
+        }
         users.push(user);
     }
     return users;
 }
 
-function getUnfollowLogForDisplay(log: readonly UnfollowLogEntry[], filter: UnfollowFilter) {
+function getUnfollowLogForDisplay(log: readonly UnfollowLogEntry[], searchTerm: string, filter: UnfollowFilter) {
     const entries: UnfollowLogEntry[] = [];
     for (const entry of log) {
         if (!filter.showSucceeded && entry.unfollowedSuccessfully) {
             continue;
         }
         if (!filter.showFailed && !entry.unfollowedSuccessfully) {
+            continue;
+        }
+        const userMatchesSearchTerm = entry.user.username.toLowerCase().includes(searchTerm.toLowerCase());
+        if (searchTerm !== '' && !userMatchesSearchTerm) {
             continue;
         }
         entries.push(entry);
@@ -88,6 +98,7 @@ type State =
     | {
           readonly status: 'scanning';
           readonly page: number;
+          readonly searchTerm: string;
           readonly percentage: number;
           readonly results: readonly Node[];
           readonly selectedResults: readonly Node[];
@@ -95,6 +106,7 @@ type State =
       }
     | {
           readonly status: 'unfollowing';
+          readonly searchTerm: string;
           readonly percentage: number;
           readonly selectedResults: readonly Node[];
           readonly unfollowLog: readonly UnfollowLogEntry[];
@@ -109,12 +121,26 @@ function App() {
         show: false,
     });
 
+    let isActiveProcess: boolean;
+    switch (state.status) {
+        case 'initial':
+            isActiveProcess = false;
+            break;
+        case 'scanning':
+        case 'unfollowing':
+            isActiveProcess = state.percentage < 100;
+            break;
+        default:
+            assertUnreachable(state);
+    }
+
     const onScan = async () => {
         if (state.status !== 'initial') {
             return;
         }
         setState({
             status: 'scanning',
+            searchTerm: '',
             page: 1,
             percentage: 0,
             results: [],
@@ -190,7 +216,7 @@ function App() {
         if (e.currentTarget.checked) {
             setState({
                 ...state,
-                selectedResults: getUsersForDisplay(state.results, state.filter),
+                selectedResults: getUsersForDisplay(state.results, state.searchTerm, state.filter),
             });
         } else {
             setState({
@@ -204,23 +230,17 @@ function App() {
         const onBeforeUnload = (e: BeforeUnloadEvent) => {
             // Prompt user if he tries to leave while in the middle of a process (searching / unfollowing / etc..)
             // This is especially good for avoiding accidental tab closing which would result in a frustrating experience.
-            switch (state.status) {
-                case 'initial':
-                    return;
-                case 'scanning':
-                case 'unfollowing':
-                    if (state.percentage >= 100) {
-                        // When process is complete, no reason to prevent user from leaving.
-                        return;
-                    }
-                    break;
-                default:
-                    assertUnreachable(state);
+            if (!isActiveProcess) {
+                return;
             }
 
+            // `e` Might be undefined in older browsers, so silence linter for this one.
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             e = e || window.event;
 
+            // `e` Might be undefined in older browsers, so silence linter for this one.
             // For IE and Firefox prior to version 4
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             if (e) {
                 e.returnValue = 'Changes you made may not be saved.';
             }
@@ -230,7 +250,7 @@ function App() {
         };
         window.addEventListener('beforeunload', onBeforeUnload);
         return () => window.removeEventListener('beforeunload', onBeforeUnload);
-    }, [state]);
+    }, [isActiveProcess, state]);
 
     useEffect(() => {
         const scan = async () => {
@@ -264,14 +284,14 @@ function App() {
 
                 setState(prevState => {
                     if (prevState.status !== 'scanning') {
-                        return;
+                        return prevState;
                     }
-                    const state: State = {
+                    const newState: State = {
                         ...prevState,
                         percentage: Math.floor((currentFollowedUsersCount / totalFollowedUsersCount) * 100),
                         results,
                     };
-                    return state;
+                    return newState;
                 });
 
                 await sleep(Math.floor(Math.random() * (1000 - 600)) + 1000);
@@ -285,6 +305,8 @@ function App() {
             }
         };
         scan();
+        // Dependency array not entirely legit, but works this way. TODO: Find a way to fix.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.status]);
 
     useEffect(() => {
@@ -293,9 +315,9 @@ function App() {
                 return;
             }
 
-            let csrftoken = getCookie('csrftoken');
-            if (csrftoken === undefined) {
-                throw new Error('csrftoken cookie is undefined');
+            const csrftoken = getCookie('csrftoken');
+            if (csrftoken === null) {
+                throw new Error('csrftoken cookie is null');
             }
 
             let counter = 0;
@@ -314,7 +336,7 @@ function App() {
                     });
                     setState(prevState => {
                         if (prevState.status !== 'unfollowing') {
-                            return;
+                            return prevState;
                         }
                         return {
                             ...prevState,
@@ -332,7 +354,7 @@ function App() {
                     console.error(e);
                     setState(prevState => {
                         if (prevState.status !== 'unfollowing') {
-                            return;
+                            return prevState;
                         }
                         return {
                             ...prevState,
@@ -361,6 +383,8 @@ function App() {
             }
         };
         unfollow();
+        // Dependency array not entirely legit, but works this way. TODO: Find a way to fix.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.status]);
 
     let markup: React.JSX.Element;
@@ -377,14 +401,14 @@ function App() {
             let currentLetter = '';
             const onNewLetter = (firstLetter: string) => {
                 currentLetter = firstLetter;
-                return <div class='alphabet-character'>{currentLetter}</div>;
+                return <div className='alphabet-character'>{currentLetter}</div>;
             };
             markup = (
                 <section className='flex'>
-                    <aside className='side-bar'>
-                        <p>Filter</p>
-                        <menu className='flex column'>
-                            <label className='badge'>
+                    <aside className='app-sidebar'>
+                        <menu className='flex column m-clear p-clear'>
+                            <p>Filter</p>
+                            <label className='badge m-small'>
                                 <input
                                     type='checkbox'
                                     name='showNonFollowers'
@@ -393,7 +417,7 @@ function App() {
                                 />
                                 &nbsp;Non-Followers
                             </label>
-                            <label className='badge'>
+                            <label className='badge m-small'>
                                 <input
                                     type='checkbox'
                                     name='showFollowers'
@@ -402,7 +426,7 @@ function App() {
                                 />
                                 &nbsp;Followers
                             </label>
-                            <label className='badge'>
+                            <label className='badge m-small'>
                                 <input
                                     type='checkbox'
                                     name='showVerified'
@@ -411,7 +435,7 @@ function App() {
                                 />
                                 &nbsp;Verified
                             </label>
-                            <label className='badge'>
+                            <label className='badge m-small'>
                                 <input
                                     type='checkbox'
                                     name='showPrivate'
@@ -421,219 +445,12 @@ function App() {
                                 &nbsp;Private
                             </label>
                         </menu>
-                    </aside>
-                    <article className='results-container'>
-                        {getCurrentPageUnfollowers(getUsersForDisplay(state.results, state.filter), state.page).map(
-                            user => {
-                                const firstLetter = user.username.substring(0, 1).toUpperCase();
-                                return (
-                                    <>
-                                        {firstLetter !== currentLetter && onNewLetter(firstLetter)}
-                                        <label className='result-item'>
-                                            <div className='flex grow align-center'>
-                                                <img
-                                                    className='avatar'
-                                                    alt={user.username}
-                                                    src={user.profile_pic_url}
-                                                />
-                                                <div className='flex column m-medium'>
-                                                    <a
-                                                        className='fs-xlarge'
-                                                        target='_blank'
-                                                        href={`../${user.username}`}
-                                                    >
-                                                        {user.username}
-                                                    </a>
-                                                    <span className='fs-medium'>{user.full_name}</span>
-                                                </div>
-                                                {user.is_verified && <div className='verified-badge'>✔</div>}
-                                                {user.is_private && (
-                                                    <div className='flex justify-center w-100'>
-                                                        <span className='private-indicator'>Private</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <input
-                                                className='account-checkbox'
-                                                type='checkbox'
-                                                checked={state.selectedResults.indexOf(user) !== -1}
-                                                onChange={e => toggleUser(e.currentTarget.checked, user)}
-                                            />
-                                        </label>
-                                    </>
-                                );
-                            },
-                        )}
-                    </article>
-                </section>
-            );
-            break;
-        }
-
-        case 'unfollowing':
-            markup = (
-                <section className='flex'>
-                    <aside className='side-bar'>
-                        <p>Filter</p>
-                        <menu className='flex column'>
-                            <label className='badge'>
-                                <input
-                                    type='checkbox'
-                                    name='showSucceeded'
-                                    checked={state.filter.showSucceeded}
-                                    onChange={handleUnfollowFilter}
-                                />
-                                &nbsp;Succeeded
-                            </label>
-                            <label className='badge'>
-                                <input
-                                    type='checkbox'
-                                    name='showFailed'
-                                    checked={state.filter.showFailed}
-                                    onChange={handleUnfollowFilter}
-                                />
-                                &nbsp;Failed
-                            </label>
-                        </menu>
-                    </aside>
-                    <article className='unfollow-log-container'>
-                        {state.unfollowLog.length === state.selectedResults.length && (
-                            <>
-                                <hr />
-                                <div class='fs-large p-medium clr-green'>All DONE!</div>
-                                <hr />
-                            </>
-                        )}
-                        {getUnfollowLogForDisplay(state.unfollowLog, state.filter).map((entry, index) =>
-                            entry.unfollowedSuccessfully ? (
-                                <div class='p-medium'>
-                                    Unfollowed
-                                    <a class='clr-inherit' target='_blank' href={`../${entry.user.username}`}>
-                                        &nbsp;{entry.user.username}
-                                    </a>
-                                    <span class='clr-cyan'>
-                                        &nbsp; [{index + 1}/{state.selectedResults.length}]
-                                    </span>
-                                </div>
-                            ) : (
-                                <div class='p-medium clr-red'>
-                                    Failed to unfollow {entry.user.username} [{index + 1}/{state.selectedResults.length}
-                                    ]
-                                </div>
-                            ),
-                        )}
-                    </article>
-                </section>
-            );
-            break;
-
-        default:
-            assertUnreachable(state);
-    }
-
-    return (
-        <main id='main' role='main' className='iu'>
-            <section className='overlay'>
-                <header className='top-bar'>
-                    <div
-                        className='logo'
-                        onClick={() => {
-                            switch (state.status) {
-                                case 'initial':
-                                    if (confirm('Go back to Instagram?')) {
-                                        location.reload();
-                                    }
-                                    break;
-
-                                case 'scanning':
-                                case 'unfollowing':
-                                    if (state.percentage < 100) {
-                                        // Avoid resetting state while active process.
-                                        return;
-                                    }
-                                    setState({
-                                        status: 'initial',
-                                    });
-                            }
-                        }}
-                    >
-                        InstagramUnfollowers
-                    </div>
-                    <button
-                        className='copy-list'
-                        onClick={() => {
-                            switch (state.status) {
-                                case 'scanning':
-                                    return copyListToClipboard(getUsersForDisplay(state.results, state.filter));
-                                case 'initial':
-                                case 'unfollowing':
-                                    return;
-                                default:
-                                    assertUnreachable(state);
-                            }
-                        }}
-                        disabled={state.status === 'initial'}
-                    >
-                        COPY LIST
-                    </button>
-                    <button
-                        className='fs-large clr-red'
-                        onClick={() => {
-                            if (!confirm('Are you sure?')) {
-                                return;
-                            }
-                            setState(prevState => {
-                                if (prevState.status !== 'scanning') {
-                                    return;
-                                }
-                                if (prevState.selectedResults.length === 0) {
-                                    alert('Must select at least a single user to unfollow');
-                                    return;
-                                }
-                                const state: State = {
-                                    ...prevState,
-                                    status: 'unfollowing',
-                                    percentage: 0,
-                                    unfollowLog: [],
-                                    filter: {
-                                        showSucceeded: true,
-                                        showFailed: true,
-                                    },
-                                };
-                                return state;
-                            });
-                        }}
-                    >
-                        {state.status === 'initial' ? (
-                            // Spacer to avoid layout shift in parent flex container.
-                            <div />
-                        ) : (
-                            <>UNFOLLOW [{state.selectedResults.length}]</>
-                        )}
-                    </button>
-                    {state.status === 'scanning' && (
-                        <input
-                            type='checkbox'
-                            // Avoid allowing to select all before scan completed to avoid confusion
-                            // regarding what exactly is selected while scanning in progress.
-                            disabled={state.percentage < 100}
-                            className='toggle-all-checkbox'
-                            onClick={toggleAllUsers}
-                        />
-                    )}
-                </header>
-
-                {markup}
-
-                <footer className='bottom-bar'>
-                    {state.status !== 'scanning' ? (
-                        // Spacer to avoid layout shift in parent flex container.
-                        <div />
-                    ) : (
-                        <div>Displayed: {getUsersForDisplay(state.results, state.filter).length}</div>
-                    )}
-                    {state.status === 'scanning' && (
-                        <div>
+                        <div className='grow'>
+                            <p>Displayed: {getUsersForDisplay(state.results, state.searchTerm, state.filter).length}</p>
+                            <p>Total: {state.results.length}</p>
+                        </div>
+                        <div className='grow t-center'>
+                            <p>Pages</p>
                             <a
                                 onClick={() => {
                                     if (state.page - 1 > 0) {
@@ -648,11 +465,16 @@ function App() {
                                 ❮
                             </a>
                             <span>
-                                {state.page} / {getMaxPage(getUsersForDisplay(state.results, state.filter))}
+                                {state.page}
+                                &nbsp;/&nbsp;
+                                {getMaxPage(getUsersForDisplay(state.results, state.searchTerm, state.filter))}
                             </span>
                             <a
                                 onClick={() => {
-                                    if (state.page < getMaxPage(getUsersForDisplay(state.results, state.filter))) {
+                                    if (
+                                        state.page <
+                                        getMaxPage(getUsersForDisplay(state.results, state.searchTerm, state.filter))
+                                    ) {
                                         setState({
                                             ...state,
                                             page: state.page + 1,
@@ -664,17 +486,244 @@ function App() {
                                 ❯
                             </a>
                         </div>
+                        <button
+                            className='unfollow'
+                            onClick={() => {
+                                if (!confirm('Are you sure?')) {
+                                    return;
+                                }
+                                setState(prevState => {
+                                    if (prevState.status !== 'scanning') {
+                                        return prevState;
+                                    }
+                                    if (prevState.selectedResults.length === 0) {
+                                        alert('Must select at least a single user to unfollow');
+                                        return prevState;
+                                    }
+                                    const newState: State = {
+                                        ...prevState,
+                                        status: 'unfollowing',
+                                        percentage: 0,
+                                        unfollowLog: [],
+                                        filter: {
+                                            showSucceeded: true,
+                                            showFailed: true,
+                                        },
+                                    };
+                                    return newState;
+                                });
+                            }}
+                        >
+                            UNFOLLOW ({state.selectedResults.length})
+                        </button>
+                    </aside>
+                    <article className='results-container'>
+                        {getCurrentPageUnfollowers(
+                            getUsersForDisplay(state.results, state.searchTerm, state.filter),
+                            state.page,
+                        ).map(user => {
+                            const firstLetter = user.username.substring(0, 1).toUpperCase();
+                            return (
+                                <>
+                                    {firstLetter !== currentLetter && onNewLetter(firstLetter)}
+                                    <label className='result-item'>
+                                        <div className='flex grow align-center'>
+                                            <img className='avatar' alt={user.username} src={user.profile_pic_url} />
+                                            <div className='flex column m-medium'>
+                                                <a
+                                                    className='fs-xlarge'
+                                                    target='_blank'
+                                                    href={`../${user.username}`}
+                                                    rel='noreferrer'
+                                                >
+                                                    {user.username}
+                                                </a>
+                                                <span className='fs-medium'>{user.full_name}</span>
+                                            </div>
+                                            {user.is_verified && <div className='verified-badge'>✔</div>}
+                                            {user.is_private && (
+                                                <div className='flex justify-center w-100'>
+                                                    <span className='private-indicator'>Private</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <input
+                                            className='account-checkbox'
+                                            type='checkbox'
+                                            checked={state.selectedResults.indexOf(user) !== -1}
+                                            onChange={e => toggleUser(e.currentTarget.checked, user)}
+                                        />
+                                    </label>
+                                </>
+                            );
+                        })}
+                    </article>
+                </section>
+            );
+            break;
+        }
+
+        case 'unfollowing':
+            markup = (
+                <section className='flex'>
+                    <aside className='app-sidebar'>
+                        <menu className='flex column grow m-clear p-clear'>
+                            <p>Filter</p>
+                            <label className='badge m-small'>
+                                <input
+                                    type='checkbox'
+                                    name='showSucceeded'
+                                    checked={state.filter.showSucceeded}
+                                    onChange={handleUnfollowFilter}
+                                />
+                                &nbsp;Succeeded
+                            </label>
+                            <label className='badge m-small'>
+                                <input
+                                    type='checkbox'
+                                    name='showFailed'
+                                    checked={state.filter.showFailed}
+                                    onChange={handleUnfollowFilter}
+                                />
+                                &nbsp;Failed
+                            </label>
+                        </menu>
+                    </aside>
+                    <article className='unfollow-log-container'>
+                        {state.unfollowLog.length === state.selectedResults.length && (
+                            <>
+                                <hr />
+                                <div className='fs-large p-medium clr-green'>All DONE!</div>
+                                <hr />
+                            </>
+                        )}
+                        {getUnfollowLogForDisplay(state.unfollowLog, state.searchTerm, state.filter).map(
+                            (entry, index) =>
+                                entry.unfollowedSuccessfully ? (
+                                    <div className='p-medium' key={entry.user.id}>
+                                        Unfollowed
+                                        <a
+                                            className='clr-inherit'
+                                            target='_blank'
+                                            href={`../${entry.user.username}`}
+                                            rel='noreferrer'
+                                        >
+                                            &nbsp;{entry.user.username}
+                                        </a>
+                                        <span className='clr-cyan'>
+                                            &nbsp; [{index + 1}/{state.selectedResults.length}]
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className='p-medium clr-red' key={entry.user.id}>
+                                        Failed to unfollow {entry.user.username} [{index + 1}/
+                                        {state.selectedResults.length}]
+                                    </div>
+                                ),
+                        )}
+                    </article>
+                </section>
+            );
+            break;
+
+        default:
+            assertUnreachable(state);
+    }
+
+    return (
+        <main id='main' role='main' className='iu'>
+            <section className='overlay'>
+                <header className='app-header'>
+                    {isActiveProcess && (
+                        <progress
+                            className='progressbar'
+                            value={state.status !== 'initial' ? state.percentage : 0}
+                            max='100'
+                        />
                     )}
-                    {(state.status === 'scanning' || state.status === 'unfollowing') && (
-                        <div className='progressbar-container'>
-                            <div
-                                className={state.percentage < 100 ? 'progressbar-bar' : 'progressbar-bar-finished'}
-                                style={{ width: `${state.percentage}%` }}
-                            />
-                            <span className='progressbar-text'>{state.percentage}%</span>
+                    <div className='app-header-content'>
+                        <div
+                            className='logo'
+                            onClick={() => {
+                                if (isActiveProcess) {
+                                    // Avoid resetting state while active process.
+                                    return;
+                                }
+                                switch (state.status) {
+                                    case 'initial':
+                                        if (confirm('Go back to Instagram?')) {
+                                            location.reload();
+                                        }
+                                        break;
+
+                                    case 'scanning':
+                                    case 'unfollowing':
+                                        setState({
+                                            status: 'initial',
+                                        });
+                                }
+                            }}
+                        >
+                            InstagramUnfollowers
                         </div>
-                    )}
-                </footer>
+                        <button
+                            className='copy-list'
+                            onClick={() => {
+                                switch (state.status) {
+                                    case 'scanning':
+                                        return copyListToClipboard(
+                                            getUsersForDisplay(state.results, state.searchTerm, state.filter),
+                                        );
+                                    case 'initial':
+                                    case 'unfollowing':
+                                        return;
+                                    default:
+                                        assertUnreachable(state);
+                                }
+                            }}
+                            disabled={state.status === 'initial'}
+                        >
+                            COPY LIST
+                        </button>
+                        <input
+                            type='text'
+                            className='search-bar'
+                            placeholder='Search...'
+                            disabled={state.status === 'initial'}
+                            value={state.status === 'initial' ? '' : state.searchTerm}
+                            onChange={e => {
+                                switch (state.status) {
+                                    case 'initial':
+                                        return;
+                                    case 'scanning':
+                                        return setState({
+                                            ...state,
+                                            searchTerm: e.currentTarget.value,
+                                        });
+                                    case 'unfollowing':
+                                        return setState({
+                                            ...state,
+                                            searchTerm: e.currentTarget.value,
+                                        });
+                                    default:
+                                        assertUnreachable(state);
+                                }
+                            }}
+                        />
+                        {state.status === 'scanning' && (
+                            <input
+                                type='checkbox'
+                                // Avoid allowing to select all before scan completed to avoid confusion
+                                // regarding what exactly is selected while scanning in progress.
+                                disabled={state.percentage < 100}
+                                className='toggle-all-checkbox'
+                                onClick={toggleAllUsers}
+                            />
+                        )}
+                    </div>
+                </header>
+
+                {markup}
 
                 {toast.show && <div className='toast'>{toast.text}</div>}
             </section>

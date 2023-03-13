@@ -1,47 +1,47 @@
 export interface User {
-    count?:     number;
-    page_info?: PageInfo;
-    edges?:     Edge[];
+    readonly count: number;
+    readonly page_info: PageInfo;
+    readonly edges: Edge[];
 }
 
 export interface Edge {
-    node?: Node;
+    readonly node: Node;
 }
 
 export interface Node {
-    id?:                  string;
-    username?:            string;
-    full_name?:           string;
-    profile_pic_url?:     string;
-    is_private?:          boolean;
-    is_verified?:         boolean;
-    followed_by_viewer?:  boolean;
-    follows_viewer?:      boolean;
-    requested_by_viewer?: boolean;
-    reel?:                Reel;
+    readonly id: string;
+    readonly username: string;
+    readonly full_name: string;
+    readonly profile_pic_url: string;
+    readonly is_private: boolean;
+    readonly is_verified: boolean;
+    readonly followed_by_viewer: boolean;
+    readonly follows_viewer: boolean;
+    readonly requested_by_viewer: boolean;
+    readonly reel: Reel;
 }
 
 export interface Reel {
-    id?:                string;
-    expiring_at?:       number;
-    has_pride_media?:   boolean;
-    latest_reel_media?: number;
-    seen?:              null;
-    owner?:             Owner;
+    readonly id: string;
+    readonly expiring_at: number;
+    readonly has_pride_media: boolean;
+    readonly latest_reel_media: number;
+    readonly seen: null;
+    readonly owner: Owner;
 }
 
 export interface Owner {
-    __typename?:      Typename;
-    id?:              string;
-    profile_pic_url?: string;
-    username?:        string;
+    readonly __typename: Typename;
+    readonly id: string;
+    readonly profile_pic_url: string;
+    readonly username: string;
 }
 
 export enum Typename {
-    GraphUser = "GraphUser",
+    GraphUser = 'GraphUser',
 }
 
 export interface PageInfo {
-    has_next_page?: boolean;
-    end_cursor?:    string;
+    readonly has_next_page: boolean;
+    readonly end_cursor: string;
 }

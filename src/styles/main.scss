@@ -1,0 +1,195 @@
+* {
+    box-sizing: border-box;
+}
+
+html {
+    background-color: #111 !important;
+
+    body {
+        margin: 0;
+    }
+
+    .iu {
+        font-family: system-ui;
+        @extend .main-layout;
+
+        .overlay {
+            color: #fff;
+        }
+
+        .app-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4rem;
+            background-color: #222;
+            z-index: 1;
+            @extend .flex;
+
+            &-content {
+                padding: 0 $size-medium;
+                justify-content: space-between;
+                @extend .main-layout;
+                @extend .flex;
+                @extend .align-center;
+            }
+
+            .logo {
+                font-family: monospace;
+                cursor: pointer;
+                @extend .fs-large;
+            }
+
+            .search-bar {
+                color: white;
+                border-radius: 8px;
+                padding: $size-small;
+                font-weight: bold;
+                font-family: inherit;
+                background-color: transparent;
+                border: 1px solid #444;
+            }
+        }
+
+        .app-sidebar {
+            position: sticky;
+            top: 0;
+            overflow: auto;
+            height: 100vh;
+            min-width: 300px;
+            border-inline-end: 1px solid #333;
+            @extend .flex;
+            @extend .column;
+            @extend .p-medium;
+            @extend .fs-large;
+            @extend .with-app-header;
+        }
+
+        label {
+            cursor: pointer;
+        }
+
+        input[type='checkbox'] {
+            height: 1.1rem;
+            width: 1.1rem;
+        }
+
+        a {
+            color: inherit;
+            text-decoration-color: transparent;
+            transition: text-decoration-color 0.1s;
+            cursor: pointer;
+
+            &:hover {
+                text-decoration-color: inherit;
+            }
+        }
+
+        button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            @extend .p-clear;
+
+            &.copy-list {
+                color: white;
+                @extend .fs-medium;
+            }
+
+            &.run-scan {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 2em;
+                color: white;
+                border: 1px solid white;
+                height: 160px;
+                width: 160px;
+                border-radius: 50%;
+            }
+
+            &.unfollow {
+                margin-bottom: $size-large;
+                background-color: $clr-red !important;
+                @extend .badge;
+                @extend .fs-large;
+                @extend .clr-inherit;
+            }
+        }
+
+        .progressbar {
+            width: 100%;
+            height: 5px;
+            position: absolute;
+        }
+
+        .results-container,
+        .unfollow-log-container {
+            @extend .grow;
+            @extend .with-app-header;
+        }
+
+        .results-container {
+            .alphabet-character {
+                border-bottom: 1px solid #222;
+                @extend .m-medium;
+                @extend .p-medium;
+                @extend .fs-xlarge;
+            }
+
+            .result-item {
+                border-radius: 3px;
+                cursor: pointer;
+                @extend .flex;
+                @extend .align-center;
+                @extend .p-medium;
+
+                .avatar {
+                    width: 75px;
+                    border-radius: 50%;
+                }
+
+                .verified-badge {
+                    background-color: #49adf4;
+                    border-radius: 50%;
+                    padding: 0.2rem 0.3rem;
+                    font-size: 0.45em;
+                    height: fit-content;
+                    transform: translateY(-15px);
+                }
+
+                .private-indicator {
+                    border: 2px solid #51bb42;
+                    border-radius: 25px;
+                    color: #51bb42;
+                    font-weight: 500;
+                    @extend .p-small;
+                }
+            }
+        }
+
+        .unfollow-log-container {
+            @extend .p-medium;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: $size-medium;
+            left: $size-medium;
+            color: black;
+            background-color: #fff;
+            border-radius: 6px;
+            font-size: 1.25em;
+            z-index: 2;
+            @extend .p-xlarge;
+        }
+
+        .badge {
+            background: #222;
+            border-radius: 15px;
+            @extend .p-medium;
+        }
+    }
+}
