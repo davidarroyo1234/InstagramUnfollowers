@@ -37,3 +37,20 @@ export function urlGenerator(nextCode?: string): string {
 export function unfollowUserUrlGenerator(idToUnfollow: string): string {
     return `https://www.instagram.com/web/friendships/${idToUnfollow}/unfollow/`;
 }
+
+/**
+ * @returns Array of unique members from multiple given arrays.
+ *
+ * Examples:
+ *  ```
+ *      uniqueMerge([1, 2, 3],  [2, 3, 4]) -> [1, 2, 3, 4]
+ *      uniqueMerge(['abc', 'def'],  ['ghi', 'abc', 'jkl']) -> ['abc', 'def', 'ghi', 'jkl']
+ *  ```
+ *
+ * https://en.wikipedia.org/wiki/Set_(abstract_data_type)
+ */
+export function uniqueMerge(...args: ReadonlyArray<readonly any[]>): readonly any[] {
+    const mergedArray: readonly any[] = args.flat();
+    const set: ReadonlySet<any> = new Set(mergedArray);
+    return [...set];
+}
