@@ -146,9 +146,27 @@ html {
                 @extend .align-center;
                 @extend .p-medium;
 
-                .avatar {
-                    width: 75px;
-                    border-radius: 50%;
+                .avatar-container {
+                    @extend .pos-relative;
+                    &:hover {
+                        & .avatar {
+                            filter: brightness(0.25) blur(3px);
+                        }
+                        & .avatar-icon-overlay-container {
+                            display: inline-block;
+                        }
+                    }
+                    .avatar {
+                        width: 75px;
+                        border-radius: 50%;
+                    }
+                    .avatar-icon-overlay-container {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        @extend .d-none;
+                    }
                 }
 
                 .verified-badge {
@@ -172,6 +190,25 @@ html {
 
         .unfollow-log-container {
             @extend .p-medium;
+        }
+
+        .tabs-container {
+            @extend .flex;
+            @extend .p-large;
+
+            .tab {
+                color: gray;
+                border-radius: 8px;
+                cursor: pointer;
+                @extend .grow;
+                @extend .fs-xlarge;
+                @extend .t-center;
+                @extend .p-small;
+                &-active {
+                    color: inherit;
+                    background-color: #222;
+                }
+            }
         }
 
         .toast {

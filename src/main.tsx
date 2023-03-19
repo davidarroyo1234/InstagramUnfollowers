@@ -4,9 +4,13 @@ import './styles.scss';
 
 import { Node, User } from './model/user';
 import { urlGenerator, assertUnreachable, getCookie, sleep, unfollowUserUrlGenerator } from './utils';
+import { Storage } from './services/storage';
+import { UserCheckIcon } from './components/icons/UserCheckIcon';
+import { UserUncheckIcon } from './components/icons/UserUncheckIcon';
 
 const INSTAGRAM_HOSTNAME = 'www.instagram.com';
 const UNFOLLOWERS_PER_PAGE = 50;
+const WHITELISTED_RESULTS_STORAGE_KEY = 'iu_whitelisted-results';
 
 async function copyListToClipboard(nonFollowersList: readonly Node[]): Promise<void> {
     const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
@@ -30,28 +34,49 @@ function getCurrentPageUnfollowers(nonFollowersList: readonly Node[], currentPag
     return sortedList.splice(UNFOLLOWERS_PER_PAGE * (currentPage - 1), UNFOLLOWERS_PER_PAGE);
 }
 
-function getUsersForDisplay(results: readonly Node[], searchTerm: string, filter: ScanningFilter): readonly Node[] {
+function getUsersForDisplay(
+    results: readonly Node[],
+    whitelistedResults: readonly Node[],
+    currentTab: ScanningTab,
+    searchTerm: string,
+    filter: ScanningFilter,
+): readonly Node[] {
     const users: Node[] = [];
-    for (const user of results) {
-        if (!filter.showPrivate && user.is_private) {
+    for (const result of results) {
+        const isWhitelisted = whitelistedResults.find(user => user.id === result.id) !== undefined;
+        switch (currentTab) {
+            case 'non_whitelisted':
+                if (isWhitelisted) {
+                    continue;
+                }
+                break;
+            case 'whitelisted':
+                if (!isWhitelisted) {
+                    continue;
+                }
+                break;
+            default:
+                assertUnreachable(currentTab);
+        }
+        if (!filter.showPrivate && result.is_private) {
             continue;
         }
-        if (!filter.showVerified && user.is_verified) {
+        if (!filter.showVerified && result.is_verified) {
             continue;
         }
-        if (!filter.showFollowers && user.follows_viewer) {
+        if (!filter.showFollowers && result.follows_viewer) {
             continue;
         }
-        if (!filter.showNonFollowers && !user.follows_viewer) {
+        if (!filter.showNonFollowers && !result.follows_viewer) {
             continue;
         }
         const userMatchesSearchTerm =
-            user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.full_name.toLowerCase().includes(searchTerm.toLowerCase());
+            result.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            result.full_name.toLowerCase().includes(searchTerm.toLowerCase());
         if (searchTerm !== '' && !userMatchesSearchTerm) {
             continue;
         }
-        users.push(user);
+        users.push(result);
     }
     return users;
 }
@@ -73,6 +98,8 @@ function getUnfollowLogForDisplay(log: readonly UnfollowLogEntry[], searchTerm: 
     }
     return entries;
 }
+
+type ScanningTab = 'non_whitelisted' | 'whitelisted';
 
 interface ScanningFilter {
     readonly showNonFollowers: boolean;
@@ -98,9 +125,11 @@ type State =
     | {
           readonly status: 'scanning';
           readonly page: number;
+          readonly currentTab: ScanningTab;
           readonly searchTerm: string;
           readonly percentage: number;
           readonly results: readonly Node[];
+          readonly whitelistedResults: readonly Node[];
           readonly selectedResults: readonly Node[];
           readonly filter: ScanningFilter;
       }
@@ -120,6 +149,7 @@ function App() {
     const [toast, setToast] = useState<{ readonly show: false } | { readonly show: true; readonly text: string }>({
         show: false,
     });
+    const localStorage = new Storage('local');
 
     let isActiveProcess: boolean;
     switch (state.status) {
@@ -138,13 +168,16 @@ function App() {
         if (state.status !== 'initial') {
             return;
         }
+        const whitelistedResultsFromStorage = localStorage.get<readonly Node[]>(WHITELISTED_RESULTS_STORAGE_KEY);
         setState({
             status: 'scanning',
-            searchTerm: '',
             page: 1,
+            searchTerm: '',
+            currentTab: 'non_whitelisted',
             percentage: 0,
             results: [],
             selectedResults: [],
+            whitelistedResults: whitelistedResultsFromStorage ?? [],
             filter: {
                 showNonFollowers: true,
                 showFollowers: false,
@@ -216,7 +249,13 @@ function App() {
         if (e.currentTarget.checked) {
             setState({
                 ...state,
-                selectedResults: getUsersForDisplay(state.results, state.searchTerm, state.filter),
+                selectedResults: getUsersForDisplay(
+                    state.results,
+                    state.whitelistedResults,
+                    state.currentTab,
+                    state.searchTerm,
+                    state.filter,
+                ),
             });
         } else {
             setState({
@@ -398,6 +437,13 @@ function App() {
             break;
 
         case 'scanning': {
+            const usersForDisplay = getUsersForDisplay(
+                state.results,
+                state.whitelistedResults,
+                state.currentTab,
+                state.searchTerm,
+                state.filter,
+            );
             let currentLetter = '';
             const onNewLetter = (firstLetter: string) => {
                 currentLetter = firstLetter;
@@ -446,7 +492,7 @@ function App() {
                             </label>
                         </menu>
                         <div className='grow'>
-                            <p>Displayed: {getUsersForDisplay(state.results, state.searchTerm, state.filter).length}</p>
+                            <p>Displayed: {usersForDisplay.length}</p>
                             <p>Total: {state.results.length}</p>
                         </div>
                         <div className='grow t-center'>
@@ -467,14 +513,11 @@ function App() {
                             <span>
                                 {state.page}
                                 &nbsp;/&nbsp;
-                                {getMaxPage(getUsersForDisplay(state.results, state.searchTerm, state.filter))}
+                                {getMaxPage(usersForDisplay)}
                             </span>
                             <a
                                 onClick={() => {
-                                    if (
-                                        state.page <
-                                        getMaxPage(getUsersForDisplay(state.results, state.searchTerm, state.filter))
-                                    ) {
+                                    if (state.page < getMaxPage(usersForDisplay)) {
                                         setState({
                                             ...state,
                                             page: state.page + 1,
@@ -518,17 +561,86 @@ function App() {
                         </button>
                     </aside>
                     <article className='results-container'>
-                        {getCurrentPageUnfollowers(
-                            getUsersForDisplay(state.results, state.searchTerm, state.filter),
-                            state.page,
-                        ).map(user => {
+                        <nav className='tabs-container'>
+                            <div
+                                className={`tab ${state.currentTab === 'non_whitelisted' ? 'tab-active' : ''}`}
+                                onClick={() => {
+                                    if (state.currentTab === 'non_whitelisted') {
+                                        return;
+                                    }
+                                    setState({
+                                        ...state,
+                                        currentTab: 'non_whitelisted',
+                                        selectedResults: [],
+                                    });
+                                }}
+                            >
+                                Non-Whitelisted
+                            </div>
+                            <div
+                                className={`tab ${state.currentTab === 'whitelisted' ? 'tab-active' : ''}`}
+                                onClick={() => {
+                                    if (state.currentTab === 'whitelisted') {
+                                        return;
+                                    }
+                                    setState({
+                                        ...state,
+                                        currentTab: 'whitelisted',
+                                        selectedResults: [],
+                                    });
+                                }}
+                            >
+                                Whitelisted
+                            </div>
+                        </nav>
+                        {getCurrentPageUnfollowers(usersForDisplay, state.page).map(user => {
                             const firstLetter = user.username.substring(0, 1).toUpperCase();
                             return (
                                 <>
                                     {firstLetter !== currentLetter && onNewLetter(firstLetter)}
                                     <label className='result-item'>
                                         <div className='flex grow align-center'>
-                                            <img className='avatar' alt={user.username} src={user.profile_pic_url} />
+                                            <div
+                                                className='avatar-container'
+                                                onClick={e => {
+                                                    // Prevent selecting result when trying to add to whitelist.
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    let whitelistedResults: readonly Node[] = [];
+                                                    switch (state.currentTab) {
+                                                        case 'non_whitelisted':
+                                                            whitelistedResults = [...state.whitelistedResults, user];
+                                                            break;
+
+                                                        case 'whitelisted':
+                                                            whitelistedResults = state.whitelistedResults.filter(
+                                                                result => result.id !== user.id,
+                                                            );
+                                                            break;
+
+                                                        default:
+                                                            assertUnreachable(state.currentTab);
+                                                    }
+                                                    localStorage.set<readonly Node[]>(
+                                                        WHITELISTED_RESULTS_STORAGE_KEY,
+                                                        whitelistedResults,
+                                                    );
+                                                    setState({ ...state, whitelistedResults });
+                                                }}
+                                            >
+                                                <img
+                                                    className='avatar'
+                                                    alt={user.username}
+                                                    src={user.profile_pic_url}
+                                                />
+                                                <span className='avatar-icon-overlay-container'>
+                                                    {state.currentTab === 'non_whitelisted' ? (
+                                                        <UserCheckIcon />
+                                                    ) : (
+                                                        <UserUncheckIcon />
+                                                    )}
+                                                </span>
+                                            </div>
                                             <div className='flex column m-medium'>
                                                 <a
                                                     className='fs-xlarge'
@@ -672,7 +784,13 @@ function App() {
                                 switch (state.status) {
                                     case 'scanning':
                                         return copyListToClipboard(
-                                            getUsersForDisplay(state.results, state.searchTerm, state.filter),
+                                            getUsersForDisplay(
+                                                state.results,
+                                                state.whitelistedResults,
+                                                state.currentTab,
+                                                state.searchTerm,
+                                                state.filter,
+                                            ),
                                         );
                                     case 'initial':
                                     case 'unfollowing':
@@ -716,6 +834,16 @@ function App() {
                                 // Avoid allowing to select all before scan completed to avoid confusion
                                 // regarding what exactly is selected while scanning in progress.
                                 disabled={state.percentage < 100}
+                                checked={
+                                    state.selectedResults.length ===
+                                    getUsersForDisplay(
+                                        state.results,
+                                        state.whitelistedResults,
+                                        state.currentTab,
+                                        state.searchTerm,
+                                        state.filter,
+                                    ).length
+                                }
                                 className='toggle-all-checkbox'
                                 onClick={toggleAllUsers}
                             />
