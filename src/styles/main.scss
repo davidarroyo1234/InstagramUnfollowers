@@ -36,9 +36,10 @@ html {
             }
 
             .logo {
-                font-family: monospace;
+                font-size: 1.75rem;
+                letter-spacing: 2px;
+                font-weight: lighter;
                 cursor: pointer;
-                @extend .fs-large;
             }
 
             .search-bar {
