@@ -24,12 +24,12 @@ If you prefer to use the older version please use this [commit](https://github.c
 
 3. You will be met with the following interface:
 
-    <img src="./assets/main.png" alt="main" width="1613" />
+    <img src="./assets/initial.png" alt="Initial screen" />
 
 4. Click "RUN" to start scanning for users who do not follow you back.
 5. Once it finishes printing the users, you will be met with the following screen which will show you the results:
 
-    <img src="./assets/results.png" alt="main" width="1265" />
+    <img src="./assets/results.png" alt="Results screen" />
 
 6. If you wish to un-follow any of these users, you can select 1 or more of them via the checkbox next to each user.
 
