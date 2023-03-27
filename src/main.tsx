@@ -4,7 +4,6 @@ import './styles.scss';
 
 import { Node, User } from './model/user';
 import { urlGenerator, assertUnreachable, getCookie, sleep, unfollowUserUrlGenerator } from './utils';
-import { Storage } from './services/storage';
 import { UserCheckIcon } from './components/icons/UserCheckIcon';
 import { UserUncheckIcon } from './components/icons/UserUncheckIcon';
 
@@ -149,7 +148,6 @@ function App() {
     const [toast, setToast] = useState<{ readonly show: false } | { readonly show: true; readonly text: string }>({
         show: false,
     });
-    const localStorage = new Storage('local');
 
     let isActiveProcess: boolean;
     switch (state.status) {
@@ -168,7 +166,9 @@ function App() {
         if (state.status !== 'initial') {
             return;
         }
-        const whitelistedResultsFromStorage = localStorage.get<readonly Node[]>(WHITELISTED_RESULTS_STORAGE_KEY);
+        const whitelistedResultsFromStorage: string | null = localStorage.getItem(WHITELISTED_RESULTS_STORAGE_KEY);
+        const whitelistedResults: readonly Node[] =
+            whitelistedResultsFromStorage === null ? [] : JSON.parse(whitelistedResultsFromStorage);
         setState({
             status: 'scanning',
             page: 1,
@@ -177,7 +177,7 @@ function App() {
             percentage: 0,
             results: [],
             selectedResults: [],
-            whitelistedResults: whitelistedResultsFromStorage ?? [],
+            whitelistedResults,
             filter: {
                 showNonFollowers: true,
                 showFollowers: false,
@@ -621,9 +621,9 @@ function App() {
                                                         default:
                                                             assertUnreachable(state.currentTab);
                                                     }
-                                                    localStorage.set<readonly Node[]>(
+                                                    localStorage.setItem(
                                                         WHITELISTED_RESULTS_STORAGE_KEY,
-                                                        whitelistedResults,
+                                                        JSON.stringify(whitelistedResults),
                                                     );
                                                     setState({ ...state, whitelistedResults });
                                                 }}

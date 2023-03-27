@@ -12,7 +12,6 @@
         "removeComments": false,
         "esModuleInterop": true,
         "sourceMap": false,
-        "downlevelIteration": true,
         "baseUrl": "src/",
         "target": "es5",
         "outDir": "dist",
