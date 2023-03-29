@@ -27,7 +27,6 @@
     "webpack-cli": "^5.0.1"
   },
   "dependencies": {
-    "babel-preset-es2015": "^6.24.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "preact": "^10.11.3"
   }
