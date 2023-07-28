@@ -4,7 +4,7 @@ const indexPath = process.argv[2];
 const minifiedCodePath = process.argv[3];
 
 const CODE_BLOCK_START = "const instagramScript = \"";
-const CODE_BLOCK_END = "\";";
+const CODE_BLOCK_END = "\";//__END_OF_SCRIPT__";
 
 const replaceRange = (s, start, end, substitute) => {
   return s.substring(0, start) + substitute + s.substring(end);
