@@ -41,7 +41,8 @@ If you prefer to use the older version please use this [commit](https://github.c
 
 ## DEV
 
-When introducing new changes to `main.js`, make sure to run the "build" command in-order to automatically format, compress, and convert your code.
+Node version: 16.14.0 (If using nvm use the comand "nvm use")
+When introducing new changes to `main.tsx`, make sure to run the "build" command in-order to automatically format, compress, and convert your code. (In the future will be automatic).
 
 ## Legal
 
