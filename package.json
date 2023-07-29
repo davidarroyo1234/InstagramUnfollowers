@@ -1,7 +1,7 @@
 {
   "scripts": {
     "webpack-build": "webpack --mode production",
-    "update-readme": "node scripts/update-readme.js README.md dist/dist.js",
+    "update-readme": "node scripts/update-index.js docs/index.html dist/dist.js",
     "build": "npm run webpack-build && npm run update-readme"
   },
   "babel": {
