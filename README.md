@@ -8,7 +8,6 @@ A nifty tool that lets you see who doesn't follow you back on Instagram.
 ## **WARNING**
 
 This version utilizes the Instagram API for better performance.  
-If you prefer to use the older version please use this [commit](https://github.com/davidarroyo1234/InstagramUnfollowers/tree/50a0bcbc9fe349b8664a74c0e4477bc974d0352b).
 
 ## Usage
 
