@@ -232,3 +232,25 @@ html {
         }
     }
 }
+
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0;
+    @extend .fs-large;
+    @extend .p-medium;
+
+    .button-control {
+        background-color: #222;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        color: white;
+        cursor: pointer;
+    }
+    .button-pause {
+        width: 100%;
+    }
+}

@@ -98,6 +98,12 @@ function getUnfollowLogForDisplay(log: readonly UnfollowLogEntry[], searchTerm: 
     return entries;
 }
 
+// pause
+let scanningPaused = false;
+function pauseScan() {
+    scanningPaused = !scanningPaused;
+}
+
 type ScanningTab = 'non_whitelisted' | 'whitelisted';
 
 interface ScanningFilter {
@@ -119,27 +125,27 @@ interface UnfollowLogEntry {
 
 type State =
     | {
-          readonly status: 'initial';
-      }
+        readonly status: 'initial';
+    }
     | {
-          readonly status: 'scanning';
-          readonly page: number;
-          readonly currentTab: ScanningTab;
-          readonly searchTerm: string;
-          readonly percentage: number;
-          readonly results: readonly Node[];
-          readonly whitelistedResults: readonly Node[];
-          readonly selectedResults: readonly Node[];
-          readonly filter: ScanningFilter;
-      }
+        readonly status: 'scanning';
+        readonly page: number;
+        readonly currentTab: ScanningTab;
+        readonly searchTerm: string;
+        readonly percentage: number;
+        readonly results: readonly Node[];
+        readonly whitelistedResults: readonly Node[];
+        readonly selectedResults: readonly Node[];
+        readonly filter: ScanningFilter;
+    }
     | {
-          readonly status: 'unfollowing';
-          readonly searchTerm: string;
-          readonly percentage: number;
-          readonly selectedResults: readonly Node[];
-          readonly unfollowLog: readonly UnfollowLogEntry[];
-          readonly filter: UnfollowFilter;
-      };
+        readonly status: 'unfollowing';
+        readonly searchTerm: string;
+        readonly percentage: number;
+        readonly selectedResults: readonly Node[];
+        readonly unfollowLog: readonly UnfollowLogEntry[];
+        readonly filter: UnfollowFilter;
+    };
 
 function App() {
     const [state, setState] = useState<State>({
@@ -265,6 +271,33 @@ function App() {
         }
     };
 
+    // it will work the same as toggleAllUsers, but it will select everyone on the current page.
+    const toggleCurrentePageUsers = (e: ChangeEvent<HTMLInputElement>) => {
+        if (state.status !== 'scanning') {
+            return;
+        }
+        if (e.currentTarget.checked) {
+            setState({
+                ...state,
+                selectedResults: getCurrentPageUnfollowers(
+                    getUsersForDisplay(
+                        state.results,
+                        state.whitelistedResults,
+                        state.currentTab,
+                        state.searchTerm,
+                        state.filter,
+                    ),
+                    state.page,
+                ),
+            });
+        } else {
+            setState({
+                ...state,
+                selectedResults: [],
+            });
+        }
+    };
+
     useEffect(() => {
         const onBeforeUnload = (e: BeforeUnloadEvent) => {
             // Prompt user if he tries to leave while in the middle of a process (searching / unfollowing / etc..)
@@ -332,6 +365,12 @@ function App() {
                     };
                     return newState;
                 });
+
+                // Pause scanning if user requested so.
+                while (scanningPaused) {
+                    await sleep(1000);
+                    console.info('Scan paused');
+                }
 
                 await sleep(Math.floor(Math.random() * (1000 - 600)) + 1000);
                 scrollCycle++;
@@ -495,6 +534,14 @@ function App() {
                             <p>Displayed: {usersForDisplay.length}</p>
                             <p>Total: {state.results.length}</p>
                         </div>
+                        {/* Scan controls */}
+                        <div className='controls'>
+                            <button
+                                className='button-control button-pause'
+                                onClick={pauseScan}>
+                                    {scanningPaused ? 'Resume' : 'Pause'}
+                            </button>
+                        </div>
                         <div className='grow t-center'>
                             <p>Pages</p>
                             <a
@@ -645,7 +692,7 @@ function App() {
                                                 <a
                                                     className='fs-xlarge'
                                                     target='_blank'
-                                                    href={`../${user.username}`}
+                                                    href={`/${user.username}`}
                                                     rel='noreferrer'
                                                 >
                                                     {user.username}
@@ -830,10 +877,38 @@ function App() {
                         />
                         {state.status === 'scanning' && (
                             <input
+                                title='Select all on this page'
                                 type='checkbox'
                                 // Avoid allowing to select all before scan completed to avoid confusion
                                 // regarding what exactly is selected while scanning in progress.
-                                disabled={state.percentage < 100}
+                                disabled={
+                                    // if paused, allow to select all even if scan is not completed.
+                                    (!scanningPaused && state.percentage < 100) || !scanningPaused
+                                }
+                                checked={
+                                    state.selectedResults.length ===
+                                    getUsersForDisplay(
+                                        state.results,
+                                        state.whitelistedResults,
+                                        state.currentTab,
+                                        state.searchTerm,
+                                        state.filter,
+                                    ).length
+                                }
+                                className='toggle-all-checkbox'
+                                onClick={toggleCurrentePageUsers}
+                            />
+                        )}
+                        {state.status === 'scanning' && (
+                            <input
+                                title='Select all'
+                                type='checkbox'
+                                // Avoid allowing to select all before scan completed to avoid confusion
+                                // regarding what exactly is selected while scanning in progress.
+                                disabled={
+                                    // if paused, allow to select all even if scan is not completed.
+                                    (!scanningPaused && state.percentage < 100) || !scanningPaused
+                                }
                                 checked={
                                     state.selectedResults.length ===
                                     getUsersForDisplay(
