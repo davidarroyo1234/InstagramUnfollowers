@@ -4,6 +4,7 @@ import './styles.scss';
 
 import { Node, User } from './model/user';
 import { urlGenerator, assertUnreachable, getCookie, sleep, unfollowUserUrlGenerator } from './utils';
+import { Toast } from './components/toast';
 import { UserCheckIcon } from './components/icons/UserCheckIcon';
 import { UserUncheckIcon } from './components/icons/UserUncheckIcon';
 
@@ -381,6 +382,7 @@ function App() {
                 }
                 setToast({ show: false });
             }
+            setToast({ show: true, text: 'Scanning completed!' });
         };
         scan();
         // Dependency array not entirely legit, but works this way. TODO: Find a way to fix.
@@ -928,7 +930,7 @@ function App() {
 
                 {markup}
 
-                {toast.show && <div className='toast'>{toast.text}</div>}
+                {toast.show && <Toast show={toast.show} message={toast.text} onClose={() => setToast({ show: false })} />}
             </section>
         </main>
     );

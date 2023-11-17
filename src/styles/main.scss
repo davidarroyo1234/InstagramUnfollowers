@@ -213,18 +213,6 @@ html {
             }
         }
 
-        .toast {
-            position: fixed;
-            bottom: $size-medium;
-            left: $size-medium;
-            color: black;
-            background-color: #fff;
-            border-radius: 6px;
-            font-size: 1.25em;
-            z-index: 2;
-            @extend .p-xlarge;
-        }
-
         .badge {
             background: #222;
             border-radius: 15px;
@@ -233,6 +221,67 @@ html {
     }
 }
 
+.toast {
+    position: fixed;
+    display: flex;
+    opacity: 1;
+    justify-content: space-between;
+    align-items: start;
+    width: 100%;
+    max-width: 360px;
+    padding: 0.8em;
+    gap: 0.5em;
+    bottom: $size-medium;
+    right: $size-medium;
+    color: black;
+    background-color: #fff;
+    font-size: 1.25em;
+    border-radius: 6px;
+    z-index: 2;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
+    animation: slide-out 0.5s ease-in-out;
+
+    > .toast {
+        &__message {
+            display: flex;
+            margin: 0;
+        }
+
+        &__close-button {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 1em;
+        }
+    }
+
+    .show {
+        animation: slide-in 0.5s ease-in-out;
+        display: flex;
+        opacity: 1;
+    }
+
+    &.success {
+        background-color: #51bb42;
+        color: white;
+    }
+
+    &.error {
+        background-color: #f4511e;
+        color: white;
+    }
+
+    &.info {
+        background-color: #2196f3;
+        color: white;
+    }
+
+    &.warning {
+        background-color: #fdd835;
+        color: black;
+    }
+}
 
 .controls {
     display: flex;
