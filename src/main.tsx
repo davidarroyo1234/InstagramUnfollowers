@@ -885,7 +885,7 @@ function App() {
                                 // regarding what exactly is selected while scanning in progress.
                                 disabled={
                                     // if paused, allow to select all even if scan is not completed.
-                                    (!scanningPaused && state.percentage < 100) || !scanningPaused
+                                  state.percentage < 100 && !scanningPaused
                                 }
                                 checked={
                                     state.selectedResults.length ===
@@ -909,7 +909,7 @@ function App() {
                                 // regarding what exactly is selected while scanning in progress.
                                 disabled={
                                     // if paused, allow to select all even if scan is not completed.
-                                    (!scanningPaused && state.percentage < 100) || !scanningPaused
+                                  state.percentage < 100 && !scanningPaused
                                 }
                                 checked={
                                     state.selectedResults.length ===
