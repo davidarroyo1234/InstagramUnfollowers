@@ -369,7 +369,7 @@ function App() {
 
                 // Pause scanning if user requested so.
                 while (scanningPaused) {
-                    await sleep(1000);
+                    await sleep(1);
                     console.info('Scan paused');
                 }
 
@@ -377,8 +377,10 @@ function App() {
                 scrollCycle++;
                 if (scrollCycle > 6) {
                     scrollCycle = 0;
-                    setToast({ show: true, text: 'Sleeping 10 secs to prevent getting temp blocked' });
-                    await sleep(10000);
+                    setToast({ show: true, text: 'Sleeping 10 secs to prevent getting temp blocked TR TR AU
+                        
+                    ' });
+                    await sleep(10);
                 }
                 setToast({ show: false });
             }
@@ -456,8 +458,8 @@ function App() {
                 await sleep(Math.floor(Math.random() * (6000 - 4000)) + 4000);
 
                 if (counter % 5 === 0) {
-                    setToast({ show: true, text: 'Sleeping 5 minutes to prevent getting temp blocked' });
-                    await sleep(300000);
+                    setToast({ show: true, text: 'Sleeping 5 minutes to prevent getting temp blocked TR TR TR TR' });
+                    await sleep(30);
                 }
                 setToast({ show: false });
             }
