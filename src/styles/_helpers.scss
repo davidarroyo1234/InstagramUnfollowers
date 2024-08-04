@@ -145,8 +145,8 @@
   top: 4rem;
   left: 50%;
   transform: translateX(-50%);
-  width: 600px;
-  height: 240px;
+  width: 750px;
+  height: 290px;
   background: #313131;
   border: 1px solid #ccc;
   padding: 1rem;
@@ -215,5 +215,13 @@
   width: 60px;
   margin-left: 10px;
 }
+
+.warning{
+  color: yellow;
+  b {
+    color: red;
+  }
+}
+
 
 

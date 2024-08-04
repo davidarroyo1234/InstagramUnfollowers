@@ -21,6 +21,7 @@ import { State } from "./model/state";
 import { Searching } from "./components/Searching";
 import { Toolbar } from "./components/Toolbar";
 import { Unfollowing } from "./components/Unfollowing";
+import { Timings } from "./model/timings";
 
 // pause
 let scanningPaused = false;
@@ -39,7 +40,7 @@ function App() {
     show: false,
   });
 
-  // @ts-ignore
+  //TODO FOR NEXT UPDATE SAVE THIS IN STORAGE
   const [timings, setTimings] = useState<Timings>(
     {
       timeBetweenSearchCycles: DEFAULT_TIME_BETWEEN_SEARCH_CYCLES,
