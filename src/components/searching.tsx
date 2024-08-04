@@ -24,7 +24,7 @@ export const Searching = ({
                             UserCheckIcon,
                             UserUncheckIcon,
                           }: SearchingProps) => {
-  if (state.status !== "scanning" ) {
+  if (state.status !== "scanning") {
     return null;
   }
 

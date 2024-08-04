@@ -11,12 +11,12 @@ import {
   assertUnreachable,
   copyListToClipboard, getCookie,
   getCurrentPageUnfollowers,
-  getUnfollowLogForDisplay,
   getUsersForDisplay, sleep, unfollowUserUrlGenerator, urlGenerator,
 } from "./utils/utils";
 import { NotSearching } from "./components/not-searching";
 import { State } from "./model/state";
 import { Searching } from "./components/searching";
+import { Unfollowing } from "./components/unfollowing";
 
 
 // pause
@@ -353,7 +353,7 @@ function App() {
       break;
 
     case "scanning": {
-      markup =<Searching
+      markup = <Searching
         state={state}
         handleScanFilter={handleScanFilter}
         toggleUser={toggleUser}
@@ -362,71 +362,15 @@ function App() {
         scanningPaused={scanningPaused}
         UserCheckIcon={UserCheckIcon}
         UserUncheckIcon={UserUncheckIcon}
-      ></Searching>
+      ></Searching>;
       break;
     }
 
     case "unfollowing":
-      markup = (
-        <section className="flex">
-          <aside className="app-sidebar">
-            <menu className="flex column grow m-clear p-clear">
-              <p>Filter</p>
-              <label className="badge m-small">
-                <input
-                  type="checkbox"
-                  name="showSucceeded"
-                  checked={state.filter.showSucceeded}
-                  onChange={handleUnfollowFilter}
-                />
-                &nbsp;Succeeded
-              </label>
-              <label className="badge m-small">
-                <input
-                  type="checkbox"
-                  name="showFailed"
-                  checked={state.filter.showFailed}
-                  onChange={handleUnfollowFilter}
-                />
-                &nbsp;Failed
-              </label>
-            </menu>
-          </aside>
-          <article className="unfollow-log-container">
-            {state.unfollowLog.length === state.selectedResults.length && (
-              <>
-                <hr />
-                <div className="fs-large p-medium clr-green">All DONE!</div>
-                <hr />
-              </>
-            )}
-            {getUnfollowLogForDisplay(state.unfollowLog, state.searchTerm, state.filter).map(
-              (entry, index) =>
-                entry.unfollowedSuccessfully ? (
-                  <div className="p-medium" key={entry.user.id}>
-                    Unfollowed
-                    <a
-                      className="clr-inherit"
-                      target="_blank"
-                      href={`../${entry.user.username}`}
-                      rel="noreferrer"
-                    >
-                      &nbsp;{entry.user.username}
-                    </a>
-                    <span className="clr-cyan">
-                                            &nbsp; [{index + 1}/{state.selectedResults.length}]
-                                        </span>
-                  </div>
-                ) : (
-                  <div className="p-medium clr-red" key={entry.user.id}>
-                    Failed to unfollow {entry.user.username} [{index + 1}/
-                    {state.selectedResults.length}]
-                  </div>
-                ),
-            )}
-          </article>
-        </section>
-      );
+      markup = <Unfollowing
+        state={state}
+        handleUnfollowFilter={handleUnfollowFilter}
+      ></Unfollowing>;
       break;
 
     default:
