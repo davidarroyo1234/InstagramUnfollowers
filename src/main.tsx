@@ -9,7 +9,7 @@ import { UserUncheckIcon } from "./components/icons/UserUncheckIcon";
 import { INSTAGRAM_HOSTNAME, WHITELISTED_RESULTS_STORAGE_KEY } from "./constants/constants";
 import {
   assertUnreachable,
-  copyListToClipboard, getCookie,
+  getCookie,
   getCurrentPageUnfollowers,
   getUsersForDisplay, sleep, unfollowUserUrlGenerator, urlGenerator,
 } from "./utils/utils";
@@ -17,6 +17,7 @@ import { NotSearching } from "./components/not-searching";
 import { State } from "./model/state";
 import { Searching } from "./components/searching";
 import { Unfollowing } from "./components/unfollowing";
+import { ToolBar } from "./components/toolbar";
 
 
 // pause
@@ -380,139 +381,14 @@ function App() {
   return (
     <main id="main" role="main" className="iu">
       <section className="overlay">
-        <header className="app-header">
-          {isActiveProcess && (
-            <progress
-              className="progressbar"
-              value={state.status !== "initial" ? state.percentage : 0}
-              max="100"
-            />
-          )}
-          <div className="app-header-content">
-            <div
-              className="logo"
-              onClick={() => {
-                if (isActiveProcess) {
-                  // Avoid resetting state while active process.
-                  return;
-                }
-                switch (state.status) {
-                  case "initial":
-                    if (confirm("Go back to Instagram?")) {
-                      location.reload();
-                    }
-                    break;
-
-                  case "scanning":
-                  case "unfollowing":
-                    setState({
-                      status: "initial",
-                    });
-                }
-              }}
-            >
-              InstagramUnfollowers
-            </div>
-            <button
-              className="copy-list"
-              onClick={() => {
-                switch (state.status) {
-                  case "scanning":
-                    return copyListToClipboard(
-                      getUsersForDisplay(
-                        state.results,
-                        state.whitelistedResults,
-                        state.currentTab,
-                        state.searchTerm,
-                        state.filter,
-                      ),
-                    );
-                  case "initial":
-                  case "unfollowing":
-                    return;
-                  default:
-                    assertUnreachable(state);
-                }
-              }}
-              disabled={state.status === "initial"}
-            >
-              COPY LIST
-            </button>
-            <input
-              type="text"
-              className="search-bar"
-              placeholder="Search..."
-              disabled={state.status === "initial"}
-              value={state.status === "initial" ? "" : state.searchTerm}
-              onChange={e => {
-                switch (state.status) {
-                  case "initial":
-                    return;
-                  case "scanning":
-                    return setState({
-                      ...state,
-                      searchTerm: e.currentTarget.value,
-                    });
-                  case "unfollowing":
-                    return setState({
-                      ...state,
-                      searchTerm: e.currentTarget.value,
-                    });
-                  default:
-                    assertUnreachable(state);
-                }
-              }}
-            />
-            {state.status === "scanning" && (
-              <input
-                title="Select all on this page"
-                type="checkbox"
-                // Avoid allowing to select all before scan completed to avoid confusion
-                // regarding what exactly is selected while scanning in progress.
-                disabled={
-                  // if paused, allow to select all even if scan is not completed.
-                  state.percentage < 100 && !scanningPaused
-                }
-                checked={
-                  state.selectedResults.length ===
-                  getUsersForDisplay(
-                    state.results,
-                    state.whitelistedResults,
-                    state.currentTab,
-                    state.searchTerm,
-                    state.filter,
-                  ).length
-                }
-                className="toggle-all-checkbox"
-                onClick={toggleCurrentePageUsers}
-              />
-            )}
-            {state.status === "scanning" && (
-              <input
-                title="Select all"
-                type="checkbox"
-                // Avoid allowing to select all before scan completed to avoid confusion
-                // regarding what exactly is selected while scanning in progress.
-                disabled={
-                  // if paused, allow to select all even if scan is not completed.
-                  state.percentage < 100 && !scanningPaused
-                }
-                checked={
-                  state.selectedResults.length ===
-                  getUsersForDisplay(
-                    state.results,
-                    state.whitelistedResults,
-                    state.currentTab,
-                    state.searchTerm,
-                    state.filter,
-                  ).length
-                }
-                className="toggle-all-checkbox"
-                onClick={toggleAllUsers}
-              />
-            )}
-          </div>
-        </header>
+       <ToolBar
+       state={state}
+        setState={setState}
+        scanningPaused={scanningPaused}
+        isActiveProcess={isActiveProcess}
+        toggleAllUsers={toggleAllUsers}
+        toggleCurrentePageUsers={toggleCurrentePageUsers}
+       ></ToolBar>
 
         {markup}
 
