@@ -145,8 +145,8 @@
   top: 4rem;
   left: 50%;
   transform: translateX(-50%);
-  width: 300px;
-  height: 300px;
+  width: 600px;
+  height: 240px;
   background: #313131;
   border: 1px solid #ccc;
   padding: 1rem;
@@ -165,9 +165,16 @@
   gap: 10px;
   position: absolute;
   bottom: 10px;
-  left: 27%;
+  left: 37%;
 }
 
+.minimun-width {
+  min-width: 350px;
+}
+
+.margin-between-input-and-label{
+  margin-left: 10px;
+}
 .btn  {
   border: 1px solid #ccc !important;
   border-radius: 5px !important;

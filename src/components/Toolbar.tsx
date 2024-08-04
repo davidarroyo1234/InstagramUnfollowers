@@ -3,6 +3,7 @@ import { State } from "../model/state";
 import { assertUnreachable, copyListToClipboard, getUsersForDisplay } from "../utils/utils";
 import { SettingMenu } from "./SettingMenu";
 import { SettingIcon } from "./icons/SettingIcon";
+import { Timings } from "../model/timings";
 
 interface ToolBarProps {
   isActiveProcess: boolean;
@@ -11,6 +12,8 @@ interface ToolBarProps {
   scanningPaused: boolean;
   toggleAllUsers: (e: ChangeEvent<HTMLInputElement>) => void;
   toggleCurrentePageUsers: (e: ChangeEvent<HTMLInputElement>) => void;
+  currentTimings: Timings;
+  setTimings: (timings: Timings) => void;
 }
 
 export const Toolbar = ({
@@ -20,6 +23,8 @@ export const Toolbar = ({
                           scanningPaused,
                           toggleAllUsers,
                           toggleCurrentePageUsers,
+                          currentTimings,
+                          setTimings,
                         }: ToolBarProps) => {
 
   const [setingMenu, setSettingMenu] = useState(false);
@@ -83,9 +88,9 @@ export const Toolbar = ({
         >
           COPY LIST
         </button>
-        <SettingIcon onClickLogo={() => {
-          setSettingMenu(true);
-        }} />
+        {
+          state.status === "initial" && <SettingIcon onClickLogo={() => {setSettingMenu(true);}} />
+        }
         <input
           type="text"
           className="search-bar"
@@ -160,9 +165,11 @@ export const Toolbar = ({
           />
         )}
       </div>
-      {setingMenu &&
+      {(setingMenu) &&
         <SettingMenu
           setSettingState={setSettingMenu}
+          currentTimings={currentTimings}
+          setTimings={setTimings}
         ></SettingMenu>
       }
 

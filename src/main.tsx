@@ -6,7 +6,10 @@ import { User, UserNode } from "./model/user";
 import { Toast } from "./components/Toast";
 import { UserCheckIcon } from "./components/icons/UserCheckIcon";
 import { UserUncheckIcon } from "./components/icons/UserUncheckIcon";
-import { INSTAGRAM_HOSTNAME, WHITELISTED_RESULTS_STORAGE_KEY } from "./constants/constants";
+import { DEFAULT_TIME_BETWEEN_SEARCH_CYCLES,
+  DEFAULT_TIME_BETWEEN_UNFOLLOWS,
+  DEFAULT_TIME_TO_WAIT_AFTER_FIVE_SEARCH_CYCLES,
+  DEFAULT_TIME_TO_WAIT_AFTER_FIVE_UNFOLLOWS, INSTAGRAM_HOSTNAME, WHITELISTED_RESULTS_STORAGE_KEY } from "./constants/constants";
 import {
   assertUnreachable,
   getCookie,
@@ -18,7 +21,6 @@ import { State } from "./model/state";
 import { Searching } from "./components/Searching";
 import { Toolbar } from "./components/Toolbar";
 import { Unfollowing } from "./components/Unfollowing";
-
 
 // pause
 let scanningPaused = false;
@@ -32,9 +34,21 @@ function App() {
   const [state, setState] = useState<State>({
     status: "initial",
   });
+
   const [toast, setToast] = useState<{ readonly show: false } | { readonly show: true; readonly text: string }>({
     show: false,
   });
+
+  // @ts-ignore
+  const [timings, setTimings] = useState<Timings>(
+    {
+      timeBetweenSearchCycles: DEFAULT_TIME_BETWEEN_SEARCH_CYCLES,
+      timeToWaitAfterFiveSearchCycles: DEFAULT_TIME_TO_WAIT_AFTER_FIVE_SEARCH_CYCLES,
+      timeBetweenUnfollows: DEFAULT_TIME_BETWEEN_UNFOLLOWS,
+      timeToWaitAfterFiveUnfollows: DEFAULT_TIME_TO_WAIT_AFTER_FIVE_UNFOLLOWS,
+    }
+  );
+
 
   let isActiveProcess: boolean;
   switch (state.status) {
@@ -253,12 +267,12 @@ function App() {
           console.info("Scan paused");
         }
 
-        await sleep(Math.floor(Math.random() * (1000 - 600)) + 1000);
+        await sleep(Math.floor(Math.random() * (timings.timeBetweenSearchCycles - timings.timeBetweenSearchCycles * 0.7)) + timings.timeBetweenSearchCycles);
         scrollCycle++;
         if (scrollCycle > 6) {
           scrollCycle = 0;
           setToast({ show: true, text: "Sleeping 10 secs to prevent getting temp blocked" });
-          await sleep(10000);
+          await sleep(timings.timeToWaitAfterFiveSearchCycles);
         }
         setToast({ show: false });
       }
@@ -333,11 +347,11 @@ function App() {
         if (user === state.selectedResults[state.selectedResults.length - 1]) {
           break;
         }
-        await sleep(Math.floor(Math.random() * (6000 - 4000)) + 4000);
+        await sleep(Math.floor(Math.random() * (timings.timeBetweenUnfollows * 1.2 - timings.timeBetweenUnfollows)) + timings.timeBetweenUnfollows);
 
         if (counter % 5 === 0) {
           setToast({ show: true, text: "Sleeping 5 minutes to prevent getting temp blocked" });
-          await sleep(300000);
+          await sleep(timings.timeToWaitAfterFiveUnfollows);
         }
         setToast({ show: false });
       }
@@ -381,14 +395,16 @@ function App() {
   return (
     <main id="main" role="main" className="iu">
       <section className="overlay">
-       <Toolbar
-       state={state}
-        setState={setState}
-        scanningPaused={scanningPaused}
-        isActiveProcess={isActiveProcess}
-        toggleAllUsers={toggleAllUsers}
-        toggleCurrentePageUsers={toggleCurrentePageUsers}
-       ></Toolbar>
+        <Toolbar
+          state={state}
+          setState={setState}
+          scanningPaused={scanningPaused}
+          isActiveProcess={isActiveProcess}
+          toggleAllUsers={toggleAllUsers}
+          toggleCurrentePageUsers={toggleCurrentePageUsers}
+          setTimings={setTimings}
+          currentTimings={timings}
+        ></Toolbar>
 
         {markup}
 
