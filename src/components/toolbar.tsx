@@ -1,6 +1,7 @@
 import React, { ChangeEvent } from "react";
 import { State } from "../model/state";
 import { assertUnreachable, copyListToClipboard, getUsersForDisplay } from "../utils/utils";
+import { SettingMenu } from "./setting-menu";
 
 interface ToolBarProps {
   isActiveProcess: boolean;
@@ -152,6 +153,7 @@ export const ToolBar = ({
           />
         )}
       </div>
+      <SettingMenu />
     </header>
   );
 };
