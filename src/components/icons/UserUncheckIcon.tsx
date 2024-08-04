@@ -5,7 +5,7 @@ export const UserUncheckIcon = () => (
         width='35'
         height='35'
         viewBox='0 0 24 24'
-        fill='none'
+        fill='#FFFFFF'
         stroke='currentColor'
         strokeWidth='2'
         strokeLinecap='round'

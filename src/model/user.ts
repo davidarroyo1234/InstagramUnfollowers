@@ -1,14 +1,14 @@
 export interface User {
     readonly count: number;
     readonly page_info: PageInfo;
-    readonly edges: Edge[];
+    readonly edges: UserEdge[];
 }
 
-export interface Edge {
-    readonly node: Node;
+export interface UserEdge {
+    readonly node: UserNode;
 }
 
-export interface Node {
+export interface UserNode {
     readonly id: string;
     readonly username: string;
     readonly full_name: string;

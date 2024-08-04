@@ -1,141 +1,227 @@
 // Layout
 .main-layout {
-    width: 100%;
-    max-width: 1300px;
-    margin: 0 auto;
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
 }
 
 .with-app-header {
-    padding-top: 4rem !important;
+  padding-top: 4rem !important;
 }
 
 // Flex
 .flex {
-    display: flex;
+  display: flex;
 
-    &.align-center {
-        align-items: center;
-    }
+  &.align-center {
+    align-items: center;
+  }
 
-    &.justify-center {
-        justify-content: center;
-    }
+  &.justify-center {
+    justify-content: center;
+  }
 
-    &.column {
-        flex-direction: column;
-    }
+  &.column {
+    flex-direction: column;
+  }
 }
 
 .grow {
-    flex: 1;
+  flex: 1;
 }
 
 // Width
 .w {
-    &-100 {
-        width: 100%;
-    }
+  &-100 {
+    width: 100%;
+  }
 }
 
 // Padding
 .p {
-    &-small {
-        padding: $size-small;
-    }
+  &-small {
+    padding: $size-small;
+  }
 
-    &-medium {
-        padding: $size-medium;
-    }
+  &-medium {
+    padding: $size-medium;
+  }
 
-    &-large {
-        padding: $size-large;
-    }
+  &-large {
+    padding: $size-large;
+  }
 
-    &-xlarge {
-        padding: $size-xlarge;
-    }
+  &-xlarge {
+    padding: $size-xlarge;
+  }
 
-    &-clear {
-        padding: 0;
-    }
+  &-clear {
+    padding: 0;
+  }
 }
 
 // Margin
 .m {
-    &-small {
-        margin: $size-small;
-    }
+  &-small {
+    margin: $size-small;
+  }
 
-    &-medium {
-        margin: $size-medium;
-    }
+  &-medium {
+    margin: $size-medium;
+  }
 
-    &-large {
-        margin: $size-large;
-    }
+  &-large {
+    margin: $size-large;
+  }
 
-    &-xlarge {
-        margin: $size-xlarge;
-    }
+  &-xlarge {
+    margin: $size-xlarge;
+  }
 
-    &-clear {
-        margin: 0;
-    }
+  &-clear {
+    margin: 0;
+  }
 }
 
 // font-Size
 .fs {
-    &-small {
-        font-size: $size-small;
-    }
+  &-small {
+    font-size: $size-small;
+  }
 
-    &-medium {
-        font-size: $size-medium;
-    }
+  &-medium {
+    font-size: $size-medium;
+  }
 
-    &-large {
-        font-size: $size-large;
-    }
+  &-large {
+    font-size: $size-large;
+  }
 
-    &-xlarge {
-        font-size: $size-xlarge;
-    }
+  &-xlarge {
+    font-size: $size-xlarge;
+  }
 }
 
 // Colors
 .clr {
-    &-inherit {
-        color: inherit;
-    }
+  &-inherit {
+    color: inherit;
+  }
 
-    &-red {
-        color: $clr-red;
-    }
+  &-red {
+    color: $clr-red;
+  }
 
-    &-green {
-        color: $clr-green;
-    }
+  &-green {
+    color: $clr-green;
+  }
 
-    &-cyan {
-        color: $clr-cyan;
-    }
+  &-cyan {
+    color: $clr-cyan;
+  }
 }
 
 // Display
 .d {
-    &-none {
-        display: none;
-    }
+  &-none {
+    display: none;
+  }
 }
 
 // Text
 .t {
-    &-center {
-        text-align: center;
-    }
+  &-center {
+    text-align: center;
+  }
 }
 
 // Position
 .pos-relative {
-    position: relative;
+  position: relative;
 }
+
+.setting-menu {
+  position: absolute;
+  top: 4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 750px;
+  height: 290px;
+  background: #313131;
+  border: 1px solid #ccc;
+  padding: 1rem;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.setting-menu h3 {
+  text-align: center;
+}
+
+.setting-menu .btn-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  position: absolute;
+  bottom: 10px;
+  left: 37%;
+}
+
+.minimun-width {
+  min-width: 350px;
+}
+
+.margin-between-input-and-label{
+  margin-left: 10px;
+}
+.btn  {
+  border: 1px solid #ccc !important;
+  border-radius: 5px !important;
+  padding: 5px 10px !important;
+  cursor: pointer !important;
+  color: white !important;
+  background-color: gray !important;
+  width: 65px !important;
+  height: 30px !important;
+}
+
+.btn:hover {
+  background-color: #313131 !important;
+}
+
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.66);
+  z-index: 100;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -5px;
+}
+
+.setting-menu label, h3 {
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.setting-menu input {
+  width: 60px;
+  margin-left: 10px;
+}
+
+.warning{
+  color: yellow;
+  b {
+    color: red;
+  }
+}
+
+
+
