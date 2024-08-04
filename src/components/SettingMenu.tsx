@@ -49,7 +49,7 @@ export const SettingMenu = ({
               type="number"
               id="searchCycles"
               name="searchCycles"
-              min={1000}
+              min={500}
               max={999999}
               value={timeBetweenSearchCycles}
               onChange={(e) => handleInputChange(e, setTimeBetweenSearchCycles)}
@@ -63,7 +63,7 @@ export const SettingMenu = ({
               type="number"
               id="fiveSearchCycles"
               name="fiveSearchCycles"
-              min={10000}
+              min={4000}
               max={999999}
               value={timeToWaitAfterFiveSearchCycles}
               onChange={(e) => handleInputChange(e, setTimeToWaitAfterFiveSearchCycles)}
@@ -77,7 +77,7 @@ export const SettingMenu = ({
               type="number"
               id="timeBetweenUnfollow"
               name="timeBetweenUnfollow"
-              min={2500}
+              min={1000}
               max={999999}
               value={timeBetweenUnfollows}
               onChange={(e) => handleInputChange(e, setTimeBetweenUnfollows)}
@@ -91,7 +91,7 @@ export const SettingMenu = ({
               type="number"
               id="timeAfterFiveUnfollows"
               name="timeAfterFiveUnfollows"
-              min={30000}
+              min={7000}
               max={999999}
               value={timeToWaitAfterFiveUnfollows}
               onChange={(e) => handleInputChange(e, setTimeToWaitAfterFiveUnfollows)}
