@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from "react";
+import React, { ChangeEvent, useState } from "react";
 import { State } from "../model/state";
 import { assertUnreachable, copyListToClipboard, getUsersForDisplay } from "../utils/utils";
 import { SettingMenu } from "./SettingMenu";
@@ -21,6 +21,9 @@ export const Toolbar = ({
                           toggleAllUsers,
                           toggleCurrentePageUsers,
                         }: ToolBarProps) => {
+
+  const [setingMenu, setSettingMenu] = useState(false);
+
   return (
     <header className="app-header">
       {isActiveProcess && (
@@ -80,7 +83,9 @@ export const Toolbar = ({
         >
           COPY LIST
         </button>
-        <SettingIcon/>
+        <SettingIcon onClickLogo={() => {
+          setSettingMenu(true);
+        }} />
         <input
           type="text"
           className="search-bar"
@@ -155,8 +160,10 @@ export const Toolbar = ({
           />
         )}
       </div>
-      {false &&
-        <SettingMenu ></SettingMenu>
+      {setingMenu &&
+        <SettingMenu
+          setSettingState={setSettingMenu}
+        ></SettingMenu>
       }
 
     </header>
