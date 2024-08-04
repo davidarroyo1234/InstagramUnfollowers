@@ -3,7 +3,7 @@ import { render } from "react-dom";
 import "./styles.scss";
 
 import { User, UserNode } from "./model/user";
-import { Toast } from "./components/toast";
+import { Toast } from "./components/Toast";
 import { UserCheckIcon } from "./components/icons/UserCheckIcon";
 import { UserUncheckIcon } from "./components/icons/UserUncheckIcon";
 import { INSTAGRAM_HOSTNAME, WHITELISTED_RESULTS_STORAGE_KEY } from "./constants/constants";
@@ -13,11 +13,11 @@ import {
   getCurrentPageUnfollowers,
   getUsersForDisplay, sleep, unfollowUserUrlGenerator, urlGenerator,
 } from "./utils/utils";
-import { NotSearching } from "./components/not-searching";
+import { NotSearching } from "./components/NotSearching";
 import { State } from "./model/state";
-import { Searching } from "./components/searching";
-import { Unfollowing } from "./components/unfollowing";
-import { ToolBar } from "./components/toolbar";
+import { Searching } from "./components/Searching";
+import { Toolbar } from "./components/Toolbar";
+import { Unfollowing } from "./components/Unfollowing";
 
 
 // pause
@@ -381,14 +381,14 @@ function App() {
   return (
     <main id="main" role="main" className="iu">
       <section className="overlay">
-       <ToolBar
+       <Toolbar
        state={state}
         setState={setState}
         scanningPaused={scanningPaused}
         isActiveProcess={isActiveProcess}
         toggleAllUsers={toggleAllUsers}
         toggleCurrentePageUsers={toggleCurrentePageUsers}
-       ></ToolBar>
+       ></Toolbar>
 
         {markup}
 

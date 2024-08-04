@@ -1,7 +1,8 @@
 import React, { ChangeEvent } from "react";
 import { State } from "../model/state";
 import { assertUnreachable, copyListToClipboard, getUsersForDisplay } from "../utils/utils";
-import { SettingMenu } from "./setting-menu";
+import { SettingMenu } from "./SettingMenu";
+import { SettingIcon } from "./icons/SettingIcon";
 
 interface ToolBarProps {
   isActiveProcess: boolean;
@@ -12,7 +13,7 @@ interface ToolBarProps {
   toggleCurrentePageUsers: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export const ToolBar = ({
+export const Toolbar = ({
                           isActiveProcess,
                           state,
                           setState,
@@ -79,6 +80,7 @@ export const ToolBar = ({
         >
           COPY LIST
         </button>
+        <SettingIcon/>
         <input
           type="text"
           className="search-bar"
@@ -153,7 +155,10 @@ export const ToolBar = ({
           />
         )}
       </div>
-      <SettingMenu />
+      {false &&
+        <SettingMenu ></SettingMenu>
+      }
+
     </header>
   );
 };

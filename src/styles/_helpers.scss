@@ -179,6 +179,10 @@
   height: 30px !important;
 }
 
+.btn:hover {
+  background-color: #313131 !important;
+}
+
 .backdrop {
   position: fixed;
   top: 0;
@@ -193,32 +197,6 @@
   display: flex;
   flex-wrap: wrap;
   margin: 0 -5px;
-}
-
-.column {
-  flex: 1;
-  padding: 0 15px;
-  box-sizing: border-box;
-}
-
-.column-1 {
-  flex-basis: 33.33%;
-}
-
-.column-2 {
-  flex-basis: 33.33%;
-}
-
-.column-3 {
-  flex-basis: 33.33%;
-}
-
-.column {
-  background-color: #f4f4f4;
-  border: 1px solid #ccc;
-  text-align: center;
-  padding: 20px;
-  margin-bottom: 20px;
 }
 
 .setting-menu label, h3 {

@@ -8,11 +8,11 @@ export const SettingMenu = ({}: SettingMenuProps) => {
   return (
     <div className="backdrop">
       <div className="setting-menu">
-          <div className="col-12">
+          <div >
             <h3>Settings</h3>
           </div>
         <div className="row">
-          <div className="col-12">
+          <div >
             <label htmlFor="sleeptime">Sleeptime</label>
             <input type="text" id="sleeptime" name="sleeptime" min={60000} max={999999} />
             <label htmlFor="sleeptime"> (ms)</label>
