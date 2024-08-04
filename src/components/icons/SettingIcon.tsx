@@ -9,6 +9,7 @@ export const SettingIcon = (
     onClickLogo,
   }: SettingIconProps,
 ) => {
+  //THANKS TO https://www.svgrepo.com/svg/13688/settings for the SVG :)
   return (
     <svg
       style={{ cursor: "pointer" }}
