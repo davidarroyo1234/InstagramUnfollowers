@@ -1,5 +1,5 @@
 import React from "react";
-import { getCurrentPageUnfollowers } from "../utils/utils";
+import { assertUnreachable, getCurrentPageUnfollowers, getMaxPage, getUsersForDisplay } from "../utils/utils";
 import { State } from "../model/state";
 import { UserNode } from "../model/user";
 
@@ -9,14 +9,9 @@ export interface SearchingProps {
   scanningPaused: boolean;
   pauseScan: () => void;
   handleScanFilter: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  usersForDisplay: readonly UserNode[];
   toggleUser: (checked: boolean, user: UserNode) => void;
-  onNewLetter: (firstLetter: string) => void;
-  currentLetter: string;
   UserCheckIcon: React.FC;
   UserUncheckIcon: React.FC;
-  assertUnreachable: (x: never) => never;
-  getMaxPage: (usersForDisplay: readonly UserNode[]) => number;
 }
 
 export const Searching = ({
@@ -25,18 +20,27 @@ export const Searching = ({
                             scanningPaused,
                             pauseScan,
                             handleScanFilter,
-                            usersForDisplay,
                             toggleUser,
-                            onNewLetter,
-                            currentLetter,
                             UserCheckIcon,
                             UserUncheckIcon,
-                            assertUnreachable,
-                            getMaxPage,
                           }: SearchingProps) => {
   if (state.status !== "scanning" ) {
     return null;
   }
+
+  const usersForDisplay = getUsersForDisplay(
+    state.results,
+    state.whitelistedResults,
+    state.currentTab,
+    state.searchTerm,
+    state.filter,
+  );
+  let currentLetter = "";
+
+  const onNewLetter = (firstLetter: string) => {
+    currentLetter = firstLetter;
+    return <div className="alphabet-character">{currentLetter}</div>;
+  };
 
   return (
     <section className="flex">
@@ -131,7 +135,7 @@ export const Searching = ({
             if (!confirm("Are you sure?")) {
               return;
             }
-
+            //TODO TEMP until types are properly fixed
             // @ts-ignore
             setState(prevState => {
               if (prevState.status !== "scanning") {

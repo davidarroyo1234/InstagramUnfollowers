@@ -11,7 +11,6 @@ import {
   assertUnreachable,
   copyListToClipboard, getCookie,
   getCurrentPageUnfollowers,
-  getMaxPage,
   getUnfollowLogForDisplay,
   getUsersForDisplay, sleep, unfollowUserUrlGenerator, urlGenerator,
 } from "./utils/utils";
@@ -354,30 +353,13 @@ function App() {
       break;
 
     case "scanning": {
-      const usersForDisplay = getUsersForDisplay(
-        state.results,
-        state.whitelistedResults,
-        state.currentTab,
-        state.searchTerm,
-        state.filter,
-      );
-      let currentLetter = "";
-      const onNewLetter = (firstLetter: string) => {
-        currentLetter = firstLetter;
-        return <div className="alphabet-character">{currentLetter}</div>;
-      };
       markup =<Searching
         state={state}
-        usersForDisplay={usersForDisplay}
-        currentLetter={currentLetter}
-        onNewLetter={onNewLetter}
         handleScanFilter={handleScanFilter}
         toggleUser={toggleUser}
         pauseScan={pauseScan}
-        assertUnreachable={assertUnreachable}
         setState={setState}
         scanningPaused={scanningPaused}
-        getMaxPage={getMaxPage}
         UserCheckIcon={UserCheckIcon}
         UserUncheckIcon={UserUncheckIcon}
       ></Searching>

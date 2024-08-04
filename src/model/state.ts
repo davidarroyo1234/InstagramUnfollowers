@@ -25,4 +25,5 @@ type UnfollowingState = {
   readonly filter: UnfollowFilter;
 };
 
+//TODO THIS TYPE OF MULTIPLE STATE NEEDS TO BE SEPARETED IN DIFFERENT FILES ASAP (Global state,unfollowing state, scanning state etc...)
 export type State = { readonly status: 'initial' } | ScanningState | UnfollowingState;
