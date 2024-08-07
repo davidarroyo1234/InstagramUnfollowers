@@ -272,7 +272,7 @@ function App() {
         scrollCycle++;
         if (scrollCycle > 6) {
           scrollCycle = 0;
-          setToast({ show: true, text: `Sleeping ${timings.timeToWaitAfterFiveSearchCycles / 1000 } secs to prevent getting temp blocked` });
+          setToast({ show: true, text: `Sleeping ${timings.timeToWaitAfterFiveSearchCycles / 1000 } seconds to prevent getting temp blocked` });
           await sleep(timings.timeToWaitAfterFiveSearchCycles);
         }
         setToast({ show: false });
@@ -351,7 +351,7 @@ function App() {
         await sleep(Math.floor(Math.random() * (timings.timeBetweenUnfollows * 1.2 - timings.timeBetweenUnfollows)) + timings.timeBetweenUnfollows);
 
         if (counter % 5 === 0) {
-          setToast({ show: true, text: `Sleeping ${timings.timeToWaitAfterFiveUnfollows / 1000 } minutes to prevent getting temp blocked` });
+          setToast({ show: true, text: `Sleeping ${timings.timeToWaitAfterFiveUnfollows / 60000 } seconds to prevent getting temp blocked` });
           await sleep(timings.timeToWaitAfterFiveUnfollows);
         }
         setToast({ show: false });
