@@ -91,7 +91,7 @@ export const SettingMenu = ({
               type="number"
               id="timeAfterFiveUnfollows"
               name="timeAfterFiveUnfollows"
-              min={7000}
+              min={70000}
               max={999999}
               value={timeToWaitAfterFiveUnfollows}
               onChange={(e) => handleInputChange(e, setTimeToWaitAfterFiveUnfollows)}
