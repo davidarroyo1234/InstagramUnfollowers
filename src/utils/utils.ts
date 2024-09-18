@@ -1,5 +1,5 @@
 import { UserNode } from "../model/user";
-import { UNFOLLOWERS_PER_PAGE } from "../constants/constants";
+import { UNFOLLOWERS_PER_PAGE, WITHOUT_PROFILE_PICTURE_URL_ID } from "../constants/constants";
 import { ScanningTab } from "../model/scanning-tab";
 import { ScanningFilter } from "../model/scanning-filter";
 import { UnfollowLogEntry } from "../model/unfollow-log-entry";
@@ -61,6 +61,9 @@ export function getUsersForDisplay(
       continue;
     }
     if (!filter.showNonFollowers && !result.follows_viewer) {
+      continue;
+    }
+    if(!filter.showWithOutProfilePicture && result.profile_pic_url.includes(WITHOUT_PROFILE_PICTURE_URL_ID)){
       continue;
     }
     const userMatchesSearchTerm =

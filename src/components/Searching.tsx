@@ -83,6 +83,15 @@ export const Searching = ({
             />
             &nbsp;Private
           </label>
+          <label className="badge m-small">
+            <input
+              type="checkbox"
+              name="showWithOutProfilePicture"
+              checked={state.filter.showWithOutProfilePicture}
+              onChange={handleScanFilter}
+            />
+            &nbsp;Without Profile Picture
+          </label>
         </menu>
         <div className="grow">
           <p>Displayed: {usersForDisplay.length}</p>

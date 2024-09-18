@@ -85,6 +85,7 @@ function App() {
         showFollowers: false,
         showVerified: true,
         showPrivate: true,
+        showWithOutProfilePicture: true,
       },
     });
   };
