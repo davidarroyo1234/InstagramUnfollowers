@@ -2,6 +2,8 @@ import React from "react";
 import { assertUnreachable, getCurrentPageUnfollowers, getMaxPage, getUsersForDisplay } from "../utils/utils";
 import { State } from "../model/state";
 import { UserNode } from "../model/user";
+import { WHITELISTED_RESULTS_STORAGE_KEY } from "../constants/constants";
+
 
 export interface SearchingProps {
   state: State;
@@ -233,7 +235,7 @@ export const Searching = ({
                           assertUnreachable(state.currentTab);
                       }
                       localStorage.setItem(
-                        "WHITELISTED_RESULTS_STORAGE_KEY",
+                        WHITELISTED_RESULTS_STORAGE_KEY,
                         JSON.stringify(whitelistedResults),
                       );
                       setState({ ...state, whitelistedResults });
