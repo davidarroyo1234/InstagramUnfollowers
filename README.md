@@ -42,11 +42,12 @@ This version utilizes the Instagram API for better performance.
 10. With the latest version, you can now tweak and customize the timings of the script. You can do this by clicking on the "Settings" button.
 
  <img src="./assets/settings.png" alt="Settings screen" />
+
 ## Notes
 
 **_The more users you have to check, more time it will take_**
 
-**_This script has been tested only on Chromium-based browsers_**
+**_The latest version of the script runs both on chromium and firefox based browsers_**
 
 ## DEV
 
