@@ -1,3 +1,6 @@
+@use "variables";
+@use "helpers";
+
 * {
     box-sizing: border-box;
 }
@@ -12,7 +15,7 @@ html {
 
     .iu {
         font-family: system-ui;
-        @extend .main-layout;
+        @include helpers.main-layout;
 
         .overlay {
             color: #fff;
@@ -29,9 +32,9 @@ html {
             @extend .flex;
 
             &-content {
-                padding: 0 $size-medium;
+                padding: 0 variables.$size-medium;
                 justify-content: space-between;
-                @extend .main-layout;
+                @include helpers.main-layout;
                 @extend .flex;
                 @extend .align-center;
             }
@@ -46,7 +49,7 @@ html {
             .search-bar {
                 color: white;
                 border-radius: 8px;
-                padding: $size-small;
+                padding: variables.$size-small;
                 font-weight: bold;
                 font-family: inherit;
                 background-color: transparent;
@@ -113,8 +116,8 @@ html {
             }
 
             &.unfollow {
-                margin-bottom: $size-large;
-                background-color: $clr-red !important;
+                margin-bottom: variables.$size-large;
+                background-color: variables.$clr-red !important;
                 @extend .badge;
                 @extend .fs-large;
                 @extend .clr-inherit;
@@ -231,8 +234,8 @@ html {
     max-width: 360px;
     padding: 0.8em;
     gap: 0.5em;
-    bottom: $size-medium;
-    right: $size-medium;
+    bottom: variables.$size-medium;
+    right: variables.$size-medium;
     color: black;
     background-color: #fff;
     font-size: 1.25em;
