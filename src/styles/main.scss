@@ -16,6 +16,8 @@ html {
     .iu {
         font-family: system-ui;
         @include helpers.main-layout;
+        display: flex;
+        flex-direction: column; // Stack elements vertically
 
         .overlay {
             color: #fff;
@@ -40,10 +42,22 @@ html {
             }
 
             .logo {
-                font-size: 1.75rem;
+                display: flex;
+                flex-direction: row;
+                gap: 1rem;
+                align-items: center;
+                justify-content: center;
+                font-size: 1rem;
                 letter-spacing: 2px;
-                font-weight: lighter;
                 cursor: pointer;
+
+                .logo-text {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    font-weight: 500;
+                }
             }
 
             .search-bar {
@@ -58,10 +72,8 @@ html {
         }
 
         .app-sidebar {
-            position: sticky;
-            top: 0;
+            position: relative; // Change to relative
             overflow: auto;
-            height: 100vh;
             min-width: 300px;
             border-inline-end: 1px solid #333;
             @extend .flex;
@@ -69,6 +81,12 @@ html {
             @extend .p-medium;
             @extend .fs-large;
             @extend .with-app-header;
+        
+            // Mobile styles
+            @media (max-width: 768px) {
+                gap: 1rem;
+                background-color: #222; // Match the header background
+            }
         }
 
         label {
@@ -98,7 +116,11 @@ html {
             @extend .p-clear;
 
             &.copy-list {
+                font-weight: 300;
                 color: white;
+                background-color: #111;
+                padding: 5px;
+                border-radius: 5px;
                 @extend .fs-medium;
             }
 
@@ -153,18 +175,22 @@ html {
 
                 .avatar-container {
                     @extend .pos-relative;
+
                     &:hover {
                         & .avatar {
                             filter: brightness(0.25) blur(3px);
                         }
+
                         & .avatar-icon-overlay-container {
                             display: inline-block;
                         }
                     }
+
                     .avatar {
                         width: 75px;
                         border-radius: 50%;
                     }
+
                     .avatar-icon-overlay-container {
                         position: absolute;
                         top: 50%;
@@ -209,6 +235,7 @@ html {
                 @extend .fs-xlarge;
                 @extend .t-center;
                 @extend .p-small;
+
                 &-active {
                     color: inherit;
                     background-color: #222;
@@ -244,7 +271,7 @@ html {
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
     animation: slide-out 0.5s ease-in-out;
 
-    > .toast {
+    >.toast {
         &__message {
             display: flex;
             margin: 0;
@@ -266,12 +293,12 @@ html {
     }
 
     &.success {
-        background-color: #51bb42;
+        background-color: variables.$clr-green;
         color: white;
     }
 
     &.error {
-        background-color: #f4511e;
+        background-color: variables.$clr-red;
         color: white;
     }
 
@@ -302,7 +329,15 @@ html {
         color: white;
         cursor: pointer;
     }
+
     .button-pause {
         width: 100%;
+    }
+
+    // Mobile styles
+    @media (max-width: 768px) {
+        flex-direction: column; // Stack controls vertically
+        align-items: stretch; // Stretch buttons to full width
+        gap: 1rem; // Add spacing between controls
     }
 }

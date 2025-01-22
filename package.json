@@ -1,8 +1,7 @@
 {
   "scripts": {
     "webpack-build": "webpack --mode production",
-    "dev": "webpack serve --mode development",
-    "prod": "webpack serve --mode production",
+    "build-dev": "npm run build && webpack serve --mode development",
     "update-readme": "node scripts/update-index.js public/index.html dist/dist.js",
     "build": "npm run webpack-build && npm run update-readme"
   },
