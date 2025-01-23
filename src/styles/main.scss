@@ -6,21 +6,21 @@
 }
 
 html {
-    background-color: #111 !important;
+    background-color: variables.$bg-primary !important;
 
     body {
         margin: 0;
-        background-color: #111 !important;
+        background-color: variables.$bg-primary !important;
     }
 
     .iu {
         font-family: system-ui;
         @include helpers.main-layout;
         display: flex;
-        flex-direction: column; // Stack elements vertically
+        flex-direction: column;
 
         .overlay {
-            color: #fff;
+            color: variables.$clr-white;
         }
 
         .app-header {
@@ -29,7 +29,7 @@ html {
             left: 0;
             right: 0;
             height: 4rem;
-            background-color: #222;
+            background-color: variables.$bg-secondary;
             z-index: 1;
             @extend .flex;
 
@@ -44,7 +44,7 @@ html {
             .logo {
                 display: flex;
                 flex-direction: row;
-                gap: 1rem;
+                gap: variables.$size-small;
                 align-items: center;
                 justify-content: center;
                 font-size: 1rem;
@@ -61,31 +61,30 @@ html {
             }
 
             .search-bar {
-                color: white;
-                border-radius: 8px;
+                color: variables.$clr-white;
+                border-radius: variables.$border-radius;
                 padding: variables.$size-small;
                 font-weight: bold;
                 font-family: inherit;
                 background-color: transparent;
-                border: 1px solid #444;
+                border: 1px solid variables.$clr-border;
             }
         }
 
         .app-sidebar {
-            position: relative; // Change to relative
+            position: relative;
             overflow: auto;
             min-width: 300px;
-            border-inline-end: 1px solid #333;
+            border-inline-end: 1px solid variables.$border-color;
             @extend .flex;
             @extend .column;
             @extend .p-medium;
             @extend .fs-large;
             @extend .with-app-header;
-        
-            // Mobile styles
+
             @media (max-width: 768px) {
-                gap: 1rem;
-                background-color: #222; // Match the header background
+                gap: variables.$size-medium;
+                background-color: variables.$bg-secondary;
             }
         }
 
@@ -110,31 +109,38 @@ html {
         }
 
         button {
-            background: none;
-            border: none;
+            border: 1px solid variables.$clr-black;
             cursor: pointer;
+            background-color: variables.$bg-secondary;
+            border-radius: variables.$border-radius;
+            color: variables.$clr-white;
             @extend .p-clear;
 
             &.copy-list {
                 font-weight: 300;
-                color: white;
-                background-color: #111;
+                color: variables.$clr-white;
+                background-color: variables.$clr-black;
                 padding: 5px;
                 border-radius: 5px;
                 @extend .fs-medium;
             }
 
             &.run-scan {
+                background-color: transparent;
                 position: absolute;
                 left: 50%;
                 top: 50%;
                 transform: translate(-50%, -50%);
                 font-size: 2em;
-                color: white;
-                border: 1px solid white;
+                color: variables.$clr-white;
+                border: 1px solid variables.$clr-white;
                 height: 160px;
                 width: 160px;
                 border-radius: 50%;
+            }
+
+            &.run-scan:hover {
+                background-color: variables.$bg-secondary;
             }
 
             &.unfollow {
@@ -160,7 +166,7 @@ html {
 
         .results-container {
             .alphabet-character {
-                border-bottom: 1px solid #222;
+                border-bottom: 1px solid variables.$bg-secondary;
                 @extend .m-medium;
                 @extend .p-medium;
                 @extend .fs-xlarge;
@@ -228,7 +234,7 @@ html {
             @extend .p-large;
 
             .tab {
-                color: gray;
+                color: variables.$clr-gray;
                 border-radius: 8px;
                 cursor: pointer;
                 @extend .grow;
@@ -238,13 +244,13 @@ html {
 
                 &-active {
                     color: inherit;
-                    background-color: #222;
+                    background-color: variables.$bg-secondary;
                 }
             }
         }
 
         .badge {
-            background: #222;
+            background: variables.$bg-secondary;
             border-radius: 15px;
             @extend .p-medium;
         }
@@ -263,8 +269,8 @@ html {
     gap: 0.5em;
     bottom: variables.$size-medium;
     right: variables.$size-medium;
-    color: black;
-    background-color: #fff;
+    color: variables.$clr-black;
+    background-color: variables.$clr-white;
     font-size: 1.25em;
     border-radius: 6px;
     z-index: 2;
@@ -294,22 +300,22 @@ html {
 
     &.success {
         background-color: variables.$clr-green;
-        color: white;
+        color: variables.$clr-white;
     }
 
     &.error {
         background-color: variables.$clr-red;
-        color: white;
+        color: variables.$clr-white;
     }
 
     &.info {
         background-color: #2196f3;
-        color: white;
+        color: variables.$clr-white;
     }
 
     &.warning {
         background-color: #fdd835;
-        color: black;
+        color: variables.$clr-black;
     }
 }
 
@@ -323,10 +329,10 @@ html {
     @extend .p-medium;
 
     .button-control {
-        background-color: #222;
-        border-radius: 8px;
+        background-color: variables.$bg-secondary;
+        border-radius: variables.$border-radius;
         padding: 0.5rem 1rem;
-        color: white;
+        color: variables.$clr-white;
         cursor: pointer;
     }
 
@@ -334,10 +340,9 @@ html {
         width: 100%;
     }
 
-    // Mobile styles
     @media (max-width: 768px) {
-        flex-direction: column; // Stack controls vertically
-        align-items: stretch; // Stretch buttons to full width
-        gap: 1rem; // Add spacing between controls
+        flex-direction: column;
+        align-items: stretch;
+        gap: variables.$size-medium;
     }
 }
