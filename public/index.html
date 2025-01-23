@@ -62,21 +62,21 @@
   .copy-button {
     padding: 0.6em 1em;
     max-width: 320px;
-    background-color: #FFFFFF;
+    color: #FFFFFF;
+    background-color: #222;
     border: none;
-    border-radius: 4px;
+    border-radius: 1em;
     font-size: 2em;
-    color: #111111;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 0.5em;
-    transition-duration: 100ms;
+    transition-duration: 500ms;
   }
 
   .copy-button:hover {
-    background-color: #F2F2F2;
+    background-color: #333;
   }
 
   .white {
@@ -134,7 +134,7 @@
     pointer-events: none;
     opacity: 0;
     transition-duration: 100ms;
-    background-color: #007F0D;
+    background-color: #17bdbd;
   }
 
   .confirm-overlay.show {
@@ -202,6 +202,16 @@
     flex-direction: column;
     gap: 1em;
   }
+
+  pre {
+    border-radius: 1em;
+    overflow: hidden !important;
+  }
+
+  .language-javascript {
+    border: unset !important;
+
+  }
 </style>
 
 <body>
@@ -225,10 +235,10 @@
         <pre><code class="language-javascript" id="code"></code></pre>
       </div>
       <button class="copy-button" onclick="copyToClipboard()">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
             d="M26 2H9.25C9.1125 2 9 2.1125 9 2.25V4C9 4.1375 9.1125 4.25 9.25 4.25H24.75V25.75C24.75 25.8875 24.8625 26 25 26H26.75C26.8875 26 27 25.8875 27 25.75V3C27 2.44687 26.5531 2 26 2ZM22 6H6C5.44687 6 5 6.44687 5 7V23.5844C5 23.85 5.10625 24.1031 5.29375 24.2906L10.7094 29.7062C10.7781 29.775 10.8563 29.8312 10.9406 29.8781V29.9375H11.0719C11.1812 29.9781 11.2969 30 11.4156 30H22C22.5531 30 23 29.5531 23 29V7C23 6.44687 22.5531 6 22 6ZM10.9375 26.7563L8.24687 24.0625H10.9375V26.7563ZM20.75 27.75H12.9375V23.3125C12.9375 22.6219 12.3781 22.0625 11.6875 22.0625H7.25V8.25H20.75V27.75Z"
-            fill="#111111" />
+            fill="#FFFFFF" />
         </svg>
 
         Copy code
