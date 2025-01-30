@@ -65,8 +65,8 @@ export const Unfollowing = (
                   &nbsp;{entry.user.username}
                 </a>
                 <span className="clr-cyan">
-                                            &nbsp; [{index + 1}/{state.selectedResults.length}]
-                                        </span>
+                  &nbsp; [{index + 1}/{state.selectedResults.length}]
+                </span>
               </div>
             ) : (
               <div className="p-medium clr-red" key={entry.user.id}>

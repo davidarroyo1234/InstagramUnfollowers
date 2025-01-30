@@ -7,7 +7,7 @@ interface ToastProps {
     onClose?: () => void;
 }
 
-export const Toast = ({show = false, style = 'info', message, onClose}: ToastProps) => (
+export const Toast = ({ show = false, style = 'info', message, onClose }: ToastProps) => (
     <div className={`toast ${show ? 'show' : ''} ${style}`} role='alert'>
         <p className='toast__message'>{message}</p>
         <button className='toast__close-button' onClick={onClose} title='close'>&times;</button>

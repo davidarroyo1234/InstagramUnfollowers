@@ -1,21 +1,26 @@
+@use "variables";
+@use "helpers";
+
 * {
     box-sizing: border-box;
 }
 
 html {
-    background-color: #111 !important;
+    background-color: variables.$bg-primary !important;
 
     body {
         margin: 0;
-        background-color: #111 !important;
+        background-color: variables.$bg-primary !important;
     }
 
     .iu {
         font-family: system-ui;
-        @extend .main-layout;
-
+        @include helpers.main-layout;
+        display: flex;
+        flex-direction: column;
+        
         .overlay {
-            color: #fff;
+            color: variables.$clr-white;
         }
 
         .app-header {
@@ -24,33 +29,45 @@ html {
             left: 0;
             right: 0;
             height: 4rem;
-            background-color: #222;
+            background-color: variables.$bg-secondary;
             z-index: 1;
             @extend .flex;
 
             &-content {
-                padding: 0 $size-medium;
+                padding: 0 variables.$size-medium;
                 justify-content: space-between;
-                @extend .main-layout;
+                @include helpers.main-layout;
                 @extend .flex;
                 @extend .align-center;
             }
 
             .logo {
-                font-size: 1.75rem;
+                display: flex;
+                flex-direction: row;
+                gap: variables.$size-small;
+                align-items: center;
+                justify-content: center;
+                font-size: 1rem;
                 letter-spacing: 2px;
-                font-weight: lighter;
                 cursor: pointer;
+
+                .logo-text {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    font-weight: 500;
+                }
             }
 
             .search-bar {
-                color: white;
-                border-radius: 8px;
-                padding: $size-small;
+                color: variables.$clr-white;
+                border-radius: variables.$border-radius;
+                padding: variables.$size-small;
                 font-weight: bold;
                 font-family: inherit;
                 background-color: transparent;
-                border: 1px solid #444;
+                border: 1px solid variables.$clr-border;
             }
         }
 
@@ -67,6 +84,7 @@ html {
             @extend .fs-large;
             @extend .with-app-header;
         }
+
 
         label {
             cursor: pointer;
@@ -89,32 +107,43 @@ html {
         }
 
         button {
-            background: none;
-            border: none;
+            border: 1px solid variables.$clr-black;
             cursor: pointer;
+            background-color: variables.$bg-secondary;
+            border-radius: variables.$border-radius;
+            color: variables.$clr-white;
             @extend .p-clear;
 
             &.copy-list {
-                color: white;
+                font-weight: 300;
+                color: variables.$clr-white;
+                background-color: variables.$clr-black;
+                padding: 5px;
+                border-radius: 5px;
                 @extend .fs-medium;
             }
 
             &.run-scan {
+                background-color: transparent;
                 position: absolute;
                 left: 50%;
                 top: 50%;
                 transform: translate(-50%, -50%);
                 font-size: 2em;
-                color: white;
-                border: 1px solid white;
+                color: variables.$clr-white;
+                border: 1px solid variables.$clr-white;
                 height: 160px;
                 width: 160px;
                 border-radius: 50%;
             }
 
+            &.run-scan:hover {
+                background-color: variables.$bg-secondary;
+            }
+
             &.unfollow {
-                margin-bottom: $size-large;
-                background-color: $clr-red !important;
+                margin-bottom: variables.$size-large;
+                background-color: variables.$clr-red !important;
                 @extend .badge;
                 @extend .fs-large;
                 @extend .clr-inherit;
@@ -135,7 +164,7 @@ html {
 
         .results-container {
             .alphabet-character {
-                border-bottom: 1px solid #222;
+                border-bottom: 1px solid variables.$bg-secondary;
                 @extend .m-medium;
                 @extend .p-medium;
                 @extend .fs-xlarge;
@@ -150,18 +179,22 @@ html {
 
                 .avatar-container {
                     @extend .pos-relative;
+
                     &:hover {
                         & .avatar {
                             filter: brightness(0.25) blur(3px);
                         }
+
                         & .avatar-icon-overlay-container {
                             display: inline-block;
                         }
                     }
+
                     .avatar {
                         width: 75px;
                         border-radius: 50%;
                     }
+
                     .avatar-icon-overlay-container {
                         position: absolute;
                         top: 50%;
@@ -199,22 +232,23 @@ html {
             @extend .p-large;
 
             .tab {
-                color: gray;
+                color: variables.$clr-gray;
                 border-radius: 8px;
                 cursor: pointer;
                 @extend .grow;
                 @extend .fs-xlarge;
                 @extend .t-center;
                 @extend .p-small;
+
                 &-active {
                     color: inherit;
-                    background-color: #222;
+                    background-color: variables.$bg-secondary;
                 }
             }
         }
 
         .badge {
-            background: #222;
+            background: variables.$bg-secondary;
             border-radius: 15px;
             @extend .p-medium;
         }
@@ -231,17 +265,17 @@ html {
     max-width: 360px;
     padding: 0.8em;
     gap: 0.5em;
-    bottom: $size-medium;
-    right: $size-medium;
-    color: black;
-    background-color: #fff;
+    bottom: variables.$size-medium;
+    right: variables.$size-medium;
+    color: variables.$clr-black;
+    background-color: variables.$clr-white;
     font-size: 1.25em;
     border-radius: 6px;
     z-index: 2;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
     animation: slide-out 0.5s ease-in-out;
 
-    > .toast {
+    >.toast {
         &__message {
             display: flex;
             margin: 0;
@@ -263,23 +297,23 @@ html {
     }
 
     &.success {
-        background-color: #51bb42;
-        color: white;
+        background-color: variables.$clr-green;
+        color: variables.$clr-white;
     }
 
     &.error {
-        background-color: #f4511e;
-        color: white;
+        background-color: variables.$clr-red;
+        color: variables.$clr-white;
     }
 
     &.info {
         background-color: #2196f3;
-        color: white;
+        color: variables.$clr-white;
     }
 
     &.warning {
         background-color: #fdd835;
-        color: black;
+        color: variables.$clr-black;
     }
 }
 
@@ -293,12 +327,13 @@ html {
     @extend .p-medium;
 
     .button-control {
-        background-color: #222;
-        border-radius: 8px;
+        background-color: variables.$bg-secondary;
+        border-radius: variables.$border-radius;
         padding: 0.5rem 1rem;
-        color: white;
+        color: variables.$clr-white;
         cursor: pointer;
     }
+
     .button-pause {
         width: 100%;
     }

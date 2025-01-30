@@ -4,6 +4,7 @@ import { assertUnreachable, copyListToClipboard, getUsersForDisplay } from "../u
 import { SettingMenu } from "./SettingMenu";
 import { SettingIcon } from "./icons/SettingIcon";
 import { Timings } from "../model/timings";
+import { Logo } from "./icons/Logo";
 
 interface ToolBarProps {
   isActiveProcess: boolean;
@@ -17,15 +18,15 @@ interface ToolBarProps {
 }
 
 export const Toolbar = ({
-                          isActiveProcess,
-                          state,
-                          setState,
-                          scanningPaused,
-                          toggleAllUsers,
-                          toggleCurrentePageUsers,
-                          currentTimings,
-                          setTimings,
-                        }: ToolBarProps) => {
+  isActiveProcess,
+  state,
+  setState,
+  scanningPaused,
+  toggleAllUsers,
+  toggleCurrentePageUsers,
+  currentTimings,
+  setTimings,
+}: ToolBarProps) => {
 
   const [setingMenu, setSettingMenu] = useState(false);
 
@@ -61,7 +62,11 @@ export const Toolbar = ({
             }
           }}
         >
-          InstagramUnfollowers
+          <Logo />
+          <div className="logo-text">
+            <span>Instagram</span>
+            <span>Unfollowers</span>
+          </div>
         </div>
         <button
           className="copy-list"
@@ -86,10 +91,10 @@ export const Toolbar = ({
           }}
           disabled={state.status === "initial"}
         >
-          COPY LIST
+          Copy List
         </button>
         {
-          state.status === "initial" && <SettingIcon onClickLogo={() => {setSettingMenu(true);}} />
+          state.status === "initial" && <SettingIcon onClickLogo={() => { setSettingMenu(true); }} />
         }
         <input
           type="text"

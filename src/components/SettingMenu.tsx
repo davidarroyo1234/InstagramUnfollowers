@@ -8,10 +8,10 @@ interface SettingMenuProps {
 }
 
 export const SettingMenu = ({
-                              setSettingState,
-                              currentTimings,
-                              setTimings,
-                            }: SettingMenuProps) => {
+  setSettingState,
+  currentTimings,
+  setTimings,
+}: SettingMenuProps) => {
   const [timeBetweenSearchCycles, setTimeBetweenSearchCycles] = useState(currentTimings.timeBetweenSearchCycles);
   const [timeToWaitAfterFiveSearchCycles, setTimeToWaitAfterFiveSearchCycles] = useState(currentTimings.timeToWaitAfterFiveSearchCycles);
   const [timeBetweenUnfollows, setTimeBetweenUnfollows] = useState(currentTimings.timeBetweenUnfollows);
