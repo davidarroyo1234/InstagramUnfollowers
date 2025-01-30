@@ -43,7 +43,7 @@ This version utilizes the Instagram API for better performance.
 
 ## 📱 Mobile Usage
 
-For Android users who want to debug on mobile:
+For Android users who want to use it on mobile:
 
 1. Download the latest version of [Eruda Android Browser](https://github.com/liriliri/eruda-android/releases/)
 2. Open Instagram web through the Eruda browser
@@ -59,7 +59,7 @@ For Android users who want to debug on mobile:
 
 - Node version: 16.14.0 (If using nvm, run `nvm use`)
 - After modifying `main.tsx`, run the "build" command to format, compress, and convert your code
-- Future updates will include automatic building
+- Automatic re-building can be done using nodemon build-dev
 
 ## ⚖️ Legal & License
 
