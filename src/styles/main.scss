@@ -18,7 +18,7 @@ html {
         @include helpers.main-layout;
         display: flex;
         flex-direction: column;
-
+        
         .overlay {
             color: variables.$clr-white;
         }
@@ -72,21 +72,19 @@ html {
         }
 
         .app-sidebar {
-            position: relative;
+            position: sticky;
+            top: 0;
             overflow: auto;
+            height: 100vh;
             min-width: 300px;
-            border-inline-end: 1px solid variables.$border-color;
+            border-inline-end: 1px solid #333;
             @extend .flex;
             @extend .column;
             @extend .p-medium;
             @extend .fs-large;
             @extend .with-app-header;
-
-            @media (max-width: 768px) {
-                gap: variables.$size-medium;
-                background-color: variables.$bg-secondary;
-            }
         }
+
 
         label {
             cursor: pointer;
@@ -338,11 +336,5 @@ html {
 
     .button-pause {
         width: 100%;
-    }
-
-    @media (max-width: 768px) {
-        flex-direction: column;
-        align-items: stretch;
-        gap: variables.$size-medium;
     }
 }
