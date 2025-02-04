@@ -17,15 +17,15 @@ export interface SearchingProps {
 }
 
 export const Searching = ({
-                            state,
-                            setState,
-                            scanningPaused,
-                            pauseScan,
-                            handleScanFilter,
-                            toggleUser,
-                            UserCheckIcon,
-                            UserUncheckIcon,
-                          }: SearchingProps) => {
+  state,
+  setState,
+  scanningPaused,
+  pauseScan,
+  handleScanFilter,
+  toggleUser,
+  UserCheckIcon,
+  UserUncheckIcon,
+}: SearchingProps) => {
   if (state.status !== "scanning") {
     return null;
   }
