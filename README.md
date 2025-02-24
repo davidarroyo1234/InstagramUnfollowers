@@ -2,72 +2,78 @@
 
 [![Maintenance](https://img.shields.io/maintenance/yes/2025)](https://github.com/davidarroyo1234/InstagramUnfollowers)
 
-A nifty tool that lets you see who doesn't follow you back on Instagram.  
-<u>Browser-based and requires no downloads or installations!</u>
+Instagram Unfollowers is a handy browser-based tool that helps you identify who doesn't follow you back on Instagram – no downloads or installations required!
 
 ## ⚠️ WARNING
 
-This version utilizes the Instagram API for better performance.  
+This version leverages the Instagram API for enhanced performance.  
+**Use responsibly and at your own risk.**
 
 ## 🖥️ Desktop Usage
 
-1. Copy the code from: [InstagramUnfollowers Tool](https://davidarroyo1234.github.io/InstagramUnfollowers/)
+1. **Copy the Code:**  
+   Visit [InstagramUnfollowers Tool](https://davidarroyo1234.github.io/InstagramUnfollowers/) and click the **COPY** button to copy the code snippet.
+   
+   ![Copy code button](./assets/copy_code.png)
 
-2. Press the COPY button to copy the code.
+2. **Log in to Instagram:**  
+   Open Instagram in your browser and sign in to your account.
 
-    <img src="./assets/copy_code.png" alt="Copy code button" />
+3. **Open Developer Console:**  
+   - **Windows:** Press `Ctrl + Shift + J`
+   - **Mac OS:** Press `⌘ + ⌥ + I`
 
-3. Go to Instagram website and log in to your account
+4. **Paste and Execute:**  
+   Paste the copied code into the console to reveal the interface.
+   
+   ![Initial screen](./assets/initial.png)
 
-4. Open the developer console:
-   - Windows: `Ctrl + Shift + J`
-   - Mac OS: `⌘ + ⌥ + I`
+5. **Run the Script:**  
+   Click the **RUN** button to start scanning.
 
-5. Paste the code and you'll see this interface:
+6. **View Results:**  
+   Once scanning is complete, the results will appear.
+   
+   ![Results screen](./assets/results.png)
 
-    <img src="./assets/initial.png" alt="Initial screen" />
+7. **Whitelist Users:**  
+   Click on a user's profile image to whitelist them (so they won’t be unfollowed).
 
-6. Click "RUN" to start scanning
+8. **Select Users to Unfollow:**  
+   Use the checkboxes to select which users to unfollow.
 
-7. After scanning completes, you'll see the results:
-
-    <img src="./assets/results.png" alt="Results screen" />
-
-8. 🤍 Whitelist users by clicking their profile image
-
-9. ✅ Select users to unfollow using the checkboxes
-
-10. ⚙️ Customize script timings via the "Settings" button:
-
-    <img src="./assets/settings.png" alt="Settings screen" />
+9. **Customize Settings:**  
+   Adjust script timing and other options by clicking the **Settings** button.
+   
+   ![Settings screen](./assets/settings.png)
 
 ## 📱 Mobile Usage
 
-For Android users who want to use it on mobile:
+For Android users:
 
-1. Download the latest version of [Eruda Android Browser](https://github.com/liriliri/eruda-android/releases/)
-2. Open Instagram web through the Eruda browser
-3. Follow the same steps as desktop (the console will be automatically available when clicking the eruda icon)
+1. Download the latest version of the [Eruda Android Browser](https://github.com/liriliri/eruda-android/releases/).
+2. Open Instagram via the Eruda browser.
+3. Follow the same steps as on desktop (the developer console is automatically available via the Eruda icon).
 
 ## ⚡ Performance Notes
 
-- Processing time increases with the number of users to check
-- Script works on both Chromium and Firefox-based browsers
-- The script takes a few more seconds to load on mobile
+- Processing time increases with the number of users to scan.
+- Compatible with both Chromium and Firefox-based browsers.
+- Mobile devices may experience slightly longer load times.
 
 ## 🛠️ Development
 
-- Node version: 16.14.0 (If using nvm, run `nvm use`)
-- After modifying `main.tsx`, run the "build" command to format, compress, and convert your code
-- Automatic re-building can be done using nodemon build-dev
+- **Node Version:** 16.14.0 (use `nvm use` if applicable).
+- After modifying `main.tsx`, run the build command to format, compress, and transpile your code.
+- Use `nodemon build-dev` for automatic rebuilding during development.
 
 ## ⚖️ Legal & License
 
-**Disclaimer:** This tool is not affiliated, associated, authorized, endorsed by, or officially connected with Instagram.
+**Disclaimer:**  
+This tool is not affiliated with, endorsed by, or officially connected to Instagram.  
+Use at your own risk!
 
-⚠️ Use at your own risk!
-
-📜 Licensed under the [MIT License](LICENSE)
-- ✅ Free to use, copy, and modify
-- 🤝 Open source and community-friendly
-- 📋 See [LICENSE](LICENSE) file for full terms
+This project is licensed under the [MIT License](LICENSE).  
+- Free to use, copy, and modify.
+- Open source and community-friendly.
+- See the [LICENSE](LICENSE) file for full terms.
