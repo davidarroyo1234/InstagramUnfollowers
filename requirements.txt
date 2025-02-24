@@ -1,0 +1,1 @@
+instaloader==4.9.5
