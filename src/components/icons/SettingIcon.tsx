@@ -13,7 +13,7 @@ export const SettingIcon = (
   return (
     <svg
       style={{ cursor: "pointer" }}
-      fill="#FFFF00"
+      fill="#00ffff"
       height="35px"
       width="35px"
       viewBox="0 0 54 54"
