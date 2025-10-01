@@ -63,7 +63,7 @@ export function getUsersForDisplay(
     if (!filter.showNonFollowers && !result.follows_viewer) {
       continue;
     }
-    if(!filter.showWithOutProfilePicture && WITHOUT_PROFILE_PICTURE_URL_IDS.some(id => result.profile_pic_url.includes(id))){
+    if (!filter.showWithOutProfilePicture && WITHOUT_PROFILE_PICTURE_URL_IDS.some(id => result.profile_pic_url.includes(id))) {
       continue;
     }
     const userMatchesSearchTerm =
