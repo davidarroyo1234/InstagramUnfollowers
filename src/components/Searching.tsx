@@ -95,9 +95,12 @@ export const Searching = ({
             &nbsp;Without Profile Picture
           </label>
         </menu>
-        <div className="grow">
+        <div className="sidebar-stats">
           <p>Displayed: {usersForDisplay.length}</p>
           <p>Total: {state.results.length}</p>
+          <p className="whitelist-counter">
+            <span className="whitelist-badge">★</span> Whitelisted: {state.whitelistedResults.length}
+          </p>
         </div>
         {/* Scan controls */}
         <div className="controls">
@@ -108,37 +111,39 @@ export const Searching = ({
             {scanningPaused ? "Resume" : "Pause"}
           </button>
         </div>
-        <div className="grow t-center">
+        <div className="sidebar-pagination">
           <p>Pages</p>
-          <a
-            onClick={() => {
-              if (state.page - 1 > 0) {
-                setState({
-                  ...state,
-                  page: state.page - 1,
-                });
-              }
-            }}
-            className="p-medium"
-          >
-            ❮
-          </a>
-          <span>
-            {state.page}&nbsp;/&nbsp;{getMaxPage(usersForDisplay)}
-          </span>
-          <a
-            onClick={() => {
-              if (state.page < getMaxPage(usersForDisplay)) {
-                setState({
-                  ...state,
-                  page: state.page + 1,
-                });
-              }
-            }}
-            className="p-medium"
-          >
-            ❯
-          </a>
+          <div className="pagination-controls">
+            <a
+              onClick={() => {
+                if (state.page - 1 > 0) {
+                  setState({
+                    ...state,
+                    page: state.page - 1,
+                  });
+                }
+              }}
+              className="p-medium"
+            >
+              ❮
+            </a>
+            <span>
+              {state.page}&nbsp;/&nbsp;{getMaxPage(usersForDisplay)}
+            </span>
+            <a
+              onClick={() => {
+                if (state.page < getMaxPage(usersForDisplay)) {
+                  setState({
+                    ...state,
+                    page: state.page + 1,
+                  });
+                }
+              }}
+              className="p-medium"
+            >
+              ❯
+            </a>
+          </div>
         </div>
         <button
           className="unfollow"

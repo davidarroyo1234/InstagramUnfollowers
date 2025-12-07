@@ -35,9 +35,18 @@ This version utilizes the Instagram API for better performance.
 
 8. 🤍 Whitelist users by clicking their profile image
 
-9. ✅ Select users to unfollow using the checkboxes
+9. 💾 Manage your whitelist via Settings:
+   - Export: Save your whitelist as a JSON backup file
+   - Import: Restore or merge whitelisted users from a file
+   - Clear: Remove all users from whitelist
+   
+   Your whitelist persists between sessions automatically!
 
-10. ⚙️ Customize script timings via the "Settings" button:
+    <img src="./assets/settings_whitelist.png" alt="Settings screen" />
+
+10. ✅ Select users to unfollow using the checkboxes
+
+11. ⚙️ Customize script timings via the "Settings" button:
 
     <img src="./assets/settings.png" alt="Settings screen" />
 
@@ -54,6 +63,17 @@ For Android users who want to use it on mobile:
 - Processing time increases with the number of users to check
 - Script works on both Chromium and Firefox-based browsers
 - The script takes a few more seconds to load on mobile
+- Whitelist data is stored locally in your browser (localStorage)
+
+## ✨ Features
+
+- 🔍 Scan and identify users who don't follow you back
+- 🤍 Whitelist system to protect specific accounts from unfollowing
+- 💾 Export/Import whitelist functionality for backup and transfer
+- ⚙️ Customizable timing settings to avoid rate limits
+- 🎨 Clean, minimalist interface inspired by Apple design
+- 📱 Fully responsive - works on desktop and mobile
+- 🔒 All data stored locally - no external servers
 
 ## 🛠️ Development
 
