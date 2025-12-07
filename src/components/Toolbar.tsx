@@ -5,6 +5,7 @@ import { SettingMenu } from "./SettingMenu";
 import { SettingIcon } from "./icons/SettingIcon";
 import { Timings } from "../model/timings";
 import { Logo } from "./icons/Logo";
+import { UserNode } from "../model/user";
 
 interface ToolBarProps {
   isActiveProcess: boolean;
@@ -14,6 +15,8 @@ interface ToolBarProps {
   toggleCurrentePageUsers: (e: ChangeEvent<HTMLInputElement>) => void;
   currentTimings: Timings;
   setTimings: (timings: Timings) => void;
+  whitelistedUsers: readonly UserNode[];
+  onWhitelistUpdate: (users: readonly UserNode[]) => void;
 }
 
 export const Toolbar = ({
@@ -24,6 +27,8 @@ export const Toolbar = ({
   toggleCurrentePageUsers,
   currentTimings,
   setTimings,
+  whitelistedUsers,
+  onWhitelistUpdate,
 }: ToolBarProps) => {
 
   const [setingMenu, setSettingMenu] = useState(false);
@@ -170,6 +175,8 @@ export const Toolbar = ({
           setSettingState={setSettingMenu}
           currentTimings={currentTimings}
           setTimings={setTimings}
+          whitelistedUsers={whitelistedUsers}
+          onWhitelistUpdate={onWhitelistUpdate}
         ></SettingMenu>
       }
 

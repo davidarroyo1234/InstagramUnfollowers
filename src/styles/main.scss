@@ -74,15 +74,80 @@ html {
         .app-sidebar {
             position: sticky;
             top: 0;
-            overflow: auto;
             height: 100vh;
-            min-width: 300px;
+            min-width: 280px;
+            max-width: 280px;
             border-inline-end: 1px solid #333;
-            @extend .flex;
-            @extend .column;
-            @extend .p-medium;
+            display: flex;
+            flex-direction: column;
+            padding: 0.8rem;
+            overflow-y: auto;
+            overflow-x: hidden;
             @extend .fs-large;
             @extend .with-app-header;
+
+            // Scrollbar styling
+            &::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: #1c1c1e;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: #48484a;
+                border-radius: 3px;
+            }
+
+            &::-webkit-scrollbar-thumb:hover {
+                background: #636366;
+            }
+
+            menu {
+                margin-bottom: 0.5rem;
+                
+                p {
+                    margin: 0 0 0.4rem 0;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                }
+
+                label {
+                    margin-bottom: 0.3rem;
+                    font-size: 0.85rem;
+                }
+            }
+        }
+
+        .sidebar-stats {
+            margin: 0.5rem 0;
+            padding: 0.6rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+
+            p {
+                margin: 0.25rem 0;
+                font-size: 0.85rem;
+            }
+        }
+
+        .sidebar-pagination {
+            margin: 0.5rem 0;
+            text-align: center;
+
+            p {
+                margin: 0 0 0.3rem 0;
+                font-size: 0.85rem;
+            }
+
+            .pagination-controls {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.8rem;
+                font-size: 0.9rem;
+            }
         }
 
 
@@ -142,11 +207,31 @@ html {
             }
 
             &.unfollow {
-                margin-bottom: variables.$size-large;
-                background-color: variables.$clr-red !important;
-                @extend .badge;
-                @extend .fs-large;
-                @extend .clr-inherit;
+                width: 100%;
+                background-color: #ff3b30 !important;
+                color: #ffffff !important;
+                border: none !important;
+                border-radius: 10px !important;
+                padding: 0.75rem 1rem !important;
+                font-size: 0.95rem !important;
+                font-weight: 600 !important;
+                letter-spacing: 0.02em !important;
+                transition: background-color 0.15s ease, opacity 0.15s ease !important;
+                margin: 0.8rem 0 0 0 !important;
+                flex-shrink: 0;
+
+                &:hover {
+                    background-color: #d70015 !important;
+                }
+
+                &:active {
+                    opacity: 0.8;
+                }
+
+                &:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
             }
         }
 
@@ -325,20 +410,539 @@ html {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin: 0.5rem 0;
     padding: 0;
     @extend .fs-large;
-    @extend .p-medium;
 
     .button-control {
-        background-color: variables.$bg-secondary;
-        border-radius: variables.$border-radius;
-        padding: 0.5rem 1rem;
+        background-color: #48484a;
+        border-radius: 8px;
+        padding: 0.5rem 0.8rem;
         color: variables.$clr-white;
         cursor: pointer;
+        border: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: background-color 0.15s ease;
+
+        &:hover {
+            background-color: #636366;
+        }
     }
 
     .button-pause {
         width: 100%;
+    }
+}
+
+// Whitelist Manager Styles
+.whitelist-manager {
+    padding: 0;
+    background-color: transparent;
+    border: none;
+
+    .whitelist-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background-color: rgba(255, 255, 255, 0.06);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+
+        h4 {
+            margin: 0;
+            font-size: 1.15rem;
+            color: variables.$clr-white;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .whitelist-count {
+            background-color: #48484a;
+            padding: 0.35rem 0.9rem;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: variables.$clr-white;
+            letter-spacing: -0.01em;
+        }
+    }
+
+    .whitelist-message {
+        padding: 0.85rem 1rem;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+        font-size: 0.88rem;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        line-height: 1.4;
+
+        &.success {
+            background-color: rgba(52, 199, 89, 0.15);
+            border: 1px solid rgba(52, 199, 89, 0.3);
+            color: #a5d6a7;
+        }
+
+        &.error {
+            background-color: rgba(255, 59, 48, 0.15);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            color: #ef9a9a;
+        }
+    }
+
+    .whitelist-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+
+        .btn {
+            padding: 0.7rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.15s ease, opacity 0.15s ease;
+            font-family: inherit;
+            letter-spacing: -0.01em;
+
+            &:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+
+            &:not(:disabled):hover {
+                opacity: 0.9;
+            }
+
+            &:not(:disabled):active {
+                opacity: 0.7;
+            }
+        }
+
+        .btn-export {
+            background: #007aff;
+            color: #ffffff;
+
+            &:hover {
+                background: #0051d5;
+            }
+        }
+
+        .btn-import {
+            background: #34c759;
+            color: #ffffff;
+
+            &:hover {
+                background: #248a3d;
+            }
+        }
+
+        .btn-clear {
+            background: #ff3b30;
+            color: #ffffff;
+
+            &:hover {
+                background: #d70015;
+            }
+        }
+
+        .import-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+
+            .import-mode {
+                display: flex;
+                gap: 1.2rem;
+                padding: 0.6rem 0.8rem;
+                background-color: rgba(0, 0, 0, 0.25);
+                border-radius: 8px;
+                flex-wrap: wrap;
+
+                label {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.4rem;
+                    font-size: 0.85rem;
+                    color: variables.$clr-white;
+                    cursor: pointer;
+                    font-weight: 400;
+                    letter-spacing: -0.01em;
+
+                    input[type="radio"] {
+                        width: auto;
+                        height: auto;
+                        cursor: pointer;
+                        accent-color: #007aff;
+                    }
+                }
+            }
+        }
+    }
+
+    .whitelist-info {
+        margin-top: 1rem;
+        padding: 0.85rem 1rem;
+        background-color: rgba(0, 122, 255, 0.08);
+        border: 1px solid rgba(0, 122, 255, 0.2);
+        border-radius: 8px;
+
+        .info-text {
+            margin: 0;
+            font-size: 0.84rem;
+            line-height: 1.5;
+            color: #90caf9;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+
+            strong {
+                color: #64b5f6;
+                font-weight: 500;
+            }
+        }
+    }
+}
+
+// Responsive for Whitelist Manager
+@media (max-width: 768px) {
+    .whitelist-manager {
+        .whitelist-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+
+            h4 {
+                font-size: 1.1rem;
+            }
+
+            .whitelist-count {
+                font-size: 0.85rem;
+            }
+        }
+
+        .whitelist-message {
+            font-size: 0.85rem;
+            padding: 0.6rem;
+        }
+
+        .whitelist-actions {
+            gap: 0.7rem;
+
+            .btn {
+                font-size: 0.88rem;
+                padding: 0.65rem 0.9rem;
+            }
+
+            .import-section .import-mode {
+                flex-direction: column;
+                gap: 0.5rem;
+
+                label {
+                    font-size: 0.8rem;
+                }
+            }
+        }
+
+        .whitelist-info {
+            padding: 0.6rem;
+
+            .info-text {
+                font-size: 0.8rem;
+            }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .whitelist-manager {
+        .whitelist-header {
+            padding: 0.8rem;
+
+            h4 {
+                font-size: 1rem;
+            }
+
+            .whitelist-count {
+                font-size: 0.8rem;
+                padding: 0.25rem 0.6rem;
+            }
+        }
+
+        .whitelist-actions {
+            .btn {
+                font-size: 0.86rem;
+                padding: 0.6rem 0.85rem;
+            }
+        }
+
+        .whitelist-info .info-text {
+            font-size: 0.75rem;
+        }
+    }
+}
+
+// Whitelist counter in sidebar
+.whitelist-counter {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: variables.$clr-white;
+    font-weight: 500;
+
+    .whitelist-badge {
+        color: #ffd700;
+        font-size: 1.2rem;
+    }
+}
+
+@keyframes slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Responsive for Sidebar and Unfollow Button
+@media (max-width: 1440px) {
+    .iu .app-sidebar {
+        min-width: 260px;
+        max-width: 260px;
+        padding: 0.7rem;
+
+        menu {
+            margin-bottom: 0.4rem;
+
+            p {
+                font-size: 0.85rem;
+                margin-bottom: 0.35rem;
+            }
+
+            label {
+                font-size: 0.82rem;
+                margin-bottom: 0.25rem;
+            }
+        }
+    }
+
+    .sidebar-stats {
+        margin: 0.4rem 0;
+        padding: 0.5rem;
+
+        p {
+            margin: 0.2rem 0;
+            font-size: 0.82rem;
+        }
+    }
+
+    .sidebar-pagination {
+        margin: 0.4rem 0;
+
+        p {
+            font-size: 0.82rem;
+        }
+
+        .pagination-controls {
+            font-size: 0.85rem;
+            gap: 0.6rem;
+        }
+    }
+
+    .iu button.unfollow {
+        font-size: 0.9rem !important;
+        padding: 0.7rem 0.9rem !important;
+        margin: 0.7rem 0 0 0 !important;
+    }
+
+    .controls .button-control {
+        padding: 0.45rem 0.7rem;
+        font-size: 0.82rem;
+    }
+}
+
+@media (max-width: 1024px) {
+    .iu .app-sidebar {
+        min-width: 240px;
+        max-width: 240px;
+        padding: 0.6rem;
+
+        menu {
+            margin-bottom: 0.35rem;
+
+            p {
+                font-size: 0.8rem;
+                margin-bottom: 0.3rem;
+            }
+
+            label {
+                font-size: 0.78rem;
+                margin-bottom: 0.2rem;
+            }
+        }
+    }
+
+    .sidebar-stats {
+        margin: 0.35rem 0;
+        padding: 0.45rem;
+
+        p {
+            margin: 0.15rem 0;
+            font-size: 0.78rem;
+        }
+    }
+
+    .sidebar-pagination {
+        margin: 0.35rem 0;
+
+        p {
+            font-size: 0.78rem;
+        }
+
+        .pagination-controls {
+            font-size: 0.8rem;
+            gap: 0.5rem;
+        }
+    }
+
+    .iu button.unfollow {
+        font-size: 0.85rem !important;
+        padding: 0.65rem 0.85rem !important;
+        margin: 0.6rem 0 0 0 !important;
+    }
+
+    .controls .button-control {
+        padding: 0.4rem 0.65rem;
+        font-size: 0.78rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .iu .app-sidebar {
+        min-width: 200px;
+        max-width: 200px;
+        padding: 0.5rem;
+
+        menu {
+            margin-bottom: 0.3rem;
+
+            p {
+                font-size: 0.75rem;
+                margin-bottom: 0.25rem;
+            }
+
+            label {
+                font-size: 0.74rem;
+                margin-bottom: 0.15rem;
+            }
+        }
+    }
+
+    .sidebar-stats {
+        margin: 0.3rem 0;
+        padding: 0.4rem;
+
+        p {
+            margin: 0.12rem 0;
+            font-size: 0.74rem;
+        }
+    }
+
+    .sidebar-pagination {
+        margin: 0.3rem 0;
+
+        p {
+            font-size: 0.74rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .pagination-controls {
+            font-size: 0.75rem;
+            gap: 0.4rem;
+        }
+    }
+
+    .iu button.unfollow {
+        font-size: 0.8rem !important;
+        padding: 0.6rem 0.75rem !important;
+        border-radius: 8px !important;
+        margin: 0.5rem 0 0 0 !important;
+    }
+
+    .controls {
+        margin: 0.4rem 0;
+
+        .button-control {
+            padding: 0.35rem 0.6rem;
+            font-size: 0.74rem;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .iu .app-sidebar {
+        min-width: 160px;
+        max-width: 160px;
+        padding: 0.4rem;
+
+        menu {
+            margin-bottom: 0.25rem;
+
+            p {
+                font-size: 0.7rem;
+                margin-bottom: 0.2rem;
+            }
+
+            label {
+                font-size: 0.68rem;
+                margin-bottom: 0.12rem;
+            }
+        }
+    }
+
+    .sidebar-stats {
+        margin: 0.25rem 0;
+        padding: 0.35rem;
+
+        p {
+            margin: 0.1rem 0;
+            font-size: 0.68rem;
+        }
+    }
+
+    .sidebar-pagination {
+        margin: 0.25rem 0;
+
+        p {
+            font-size: 0.68rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .pagination-controls {
+            font-size: 0.7rem;
+            gap: 0.3rem;
+        }
+    }
+
+    .iu button.unfollow {
+        font-size: 0.75rem !important;
+        padding: 0.55rem 0.7rem !important;
+        border-radius: 7px !important;
+        font-weight: 500 !important;
+        margin: 0.4rem 0 0 0 !important;
+    }
+
+    .controls {
+        margin: 0.3rem 0;
+
+        .button-control {
+            padding: 0.3rem 0.5rem;
+            font-size: 0.68rem;
+        }
     }
 }
