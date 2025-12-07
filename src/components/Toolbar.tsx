@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useState } from "react";
 import { State } from "../model/state";
-import { assertUnreachable, copyListToClipboard, getUsersForDisplay } from "../utils/utils";
+import { assertUnreachable, copyListToClipboard, getCurrentPageUnfollowers, getUsersForDisplay } from "../utils/utils";
 import { SettingMenu } from "./SettingMenu";
 import { SettingIcon } from "./icons/SettingIcon";
 import { Timings } from "../model/timings";
@@ -10,7 +10,6 @@ interface ToolBarProps {
   isActiveProcess: boolean;
   state: State;
   setState: (state: State) => void;
-  scanningPaused: boolean;
   toggleAllUsers: (e: ChangeEvent<HTMLInputElement>) => void;
   toggleCurrentePageUsers: (e: ChangeEvent<HTMLInputElement>) => void;
   currentTimings: Timings;
@@ -21,7 +20,6 @@ export const Toolbar = ({
   isActiveProcess,
   state,
   setState,
-  scanningPaused,
   toggleAllUsers,
   toggleCurrentePageUsers,
   currentTimings,
@@ -127,22 +125,20 @@ export const Toolbar = ({
             type="checkbox"
             // Avoid allowing to select all before scan completed to avoid confusion
             // regarding what exactly is selected while scanning in progress.
-            disabled={
-              // if paused, allow to select all even if scan is not completed.
-              state.percentage < 100 && !scanningPaused
-            }
+            disabled={state.percentage < 100}
             checked={
-              state.selectedResults.length ===
-              getUsersForDisplay(
-                state.results,
-                state.whitelistedResults,
-                state.currentTab,
-                state.searchTerm,
-                state.filter,
-              ).length
+              (() => {
+                const displayed = getUsersForDisplay(state.results, state.whitelistedResults, state.currentTab, state.searchTerm, state.filter);
+                const pageUsers = getCurrentPageUnfollowers(displayed, state.page);
+                // Fix: Check if pageUsers is not empty and all are selected
+                // Previous logic didn't account for empty page or partial selections correctly
+                return pageUsers.length > 0 && pageUsers.every(u => state.selectedResults.some(s => s.id === u.id));
+              })()
             }
             className="toggle-all-checkbox"
-            onClick={toggleCurrentePageUsers}
+            // Fix: Changed from onClick to onChange for proper React checkbox handling
+            // onClick doesn't trigger reliably for controlled checkboxes
+            onChange={toggleCurrentePageUsers}
           />
         )}
         {state.status === "scanning" && (
@@ -151,10 +147,7 @@ export const Toolbar = ({
             type="checkbox"
             // Avoid allowing to select all before scan completed to avoid confusion
             // regarding what exactly is selected while scanning in progress.
-            disabled={
-              // if paused, allow to select all even if scan is not completed.
-              state.percentage < 100 && !scanningPaused
-            }
+            disabled={state.percentage < 100}
             checked={
               state.selectedResults.length ===
               getUsersForDisplay(
@@ -166,7 +159,9 @@ export const Toolbar = ({
               ).length
             }
             className="toggle-all-checkbox"
-            onClick={toggleAllUsers}
+            // Fix: Changed from onClick to onChange for proper React checkbox handling
+            // onClick doesn't trigger reliably for controlled checkboxes
+            onChange={toggleAllUsers}
           />
         )}
       </div>

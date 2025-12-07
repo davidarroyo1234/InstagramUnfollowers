@@ -154,6 +154,10 @@ html {
             width: 100%;
             height: 8px;
             position: absolute;
+            // Fix: Added explicit positioning to prevent white gap at the end
+            // Without left: 0 and top: 0, the progress bar doesn't fully align
+            left: 0;
+            top: 0;
         }
 
         .results-container,

@@ -257,7 +257,9 @@ function App() {
           }
           const newState: State = {
             ...prevState,
-            percentage: Math.floor((currentFollowedUsersCount / totalFollowedUsersCount) * 100),
+            // Fix: Changed from Math.floor to Math.round to ensure progress reaches 100%
+            // Math.floor would leave progress at 99% when near completion
+            percentage: Math.round((currentFollowedUsersCount / totalFollowedUsersCount) * 100),
             results,
           };
           return newState;
@@ -299,7 +301,9 @@ function App() {
       let counter = 0;
       for (const user of state.selectedResults) {
         counter += 1;
-        const percentage = Math.floor((counter / state.selectedResults.length) * 100);
+        // Fix: Changed from Math.floor to Math.round to ensure progress reaches 100%
+        // Math.floor would leave progress at 99% when near completion
+        const percentage = Math.round((counter / state.selectedResults.length) * 100);
         try {
           await fetch(unfollowUserUrlGenerator(user.id), {
             headers: {
@@ -400,7 +404,6 @@ function App() {
         <Toolbar
           state={state}
           setState={setState}
-          scanningPaused={scanningPaused}
           isActiveProcess={isActiveProcess}
           toggleAllUsers={toggleAllUsers}
           toggleCurrentePageUsers={toggleCurrentePageUsers}
