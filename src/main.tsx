@@ -9,7 +9,7 @@ import { UserUncheckIcon } from "./components/icons/UserUncheckIcon";
 import { DEFAULT_TIME_BETWEEN_SEARCH_CYCLES,
   DEFAULT_TIME_BETWEEN_UNFOLLOWS,
   DEFAULT_TIME_TO_WAIT_AFTER_FIVE_SEARCH_CYCLES,
-  DEFAULT_TIME_TO_WAIT_AFTER_FIVE_UNFOLLOWS, INSTAGRAM_HOSTNAME, WHITELISTED_RESULTS_STORAGE_KEY } from "./constants/constants";
+  DEFAULT_TIME_TO_WAIT_AFTER_FIVE_UNFOLLOWS, INSTAGRAM_HOSTNAME } from "./constants/constants";
 import {
   assertUnreachable,
   getCookie,
@@ -22,6 +22,7 @@ import { Searching } from "./components/Searching";
 import { Toolbar } from "./components/Toolbar";
 import { Unfollowing } from "./components/Unfollowing";
 import { Timings } from "./model/timings";
+import { loadWhitelist, saveWhitelist } from "./utils/whitelist-manager";
 
 // pause
 let scanningPaused = false;
@@ -68,9 +69,7 @@ function App() {
     if (state.status !== "initial") {
       return;
     }
-    const whitelistedResultsFromStorage: string | null = localStorage.getItem(WHITELISTED_RESULTS_STORAGE_KEY);
-    const whitelistedResults: readonly UserNode[] =
-      whitelistedResultsFromStorage === null ? [] : JSON.parse(whitelistedResultsFromStorage);
+    const whitelistedResults = loadWhitelist();
     setState({
       status: "scanning",
       page: 1,
@@ -191,6 +190,16 @@ function App() {
       setState({
         ...state,
         selectedResults: [],
+      });
+    }
+  };
+
+  const onWhitelistUpdate = (updatedWhitelist: readonly UserNode[]) => {
+    saveWhitelist(updatedWhitelist);
+    if (state.status === "scanning") {
+      setState({
+        ...state,
+        whitelistedResults: updatedWhitelist,
       });
     }
   };
@@ -409,6 +418,8 @@ function App() {
           toggleCurrentePageUsers={toggleCurrentePageUsers}
           setTimings={setTimings}
           currentTimings={timings}
+          whitelistedUsers={state.status === "scanning" ? state.whitelistedResults : loadWhitelist()}
+          onWhitelistUpdate={onWhitelistUpdate}
         ></Toolbar>
 
         {markup}
