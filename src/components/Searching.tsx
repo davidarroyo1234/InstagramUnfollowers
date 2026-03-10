@@ -1,5 +1,5 @@
 import React from "react";
-import { assertUnreachable, getCurrentPageUnfollowers, getMaxPage, getUsersForDisplay } from "../utils/utils";
+import { assertUnreachable, getCurrentPageUnfollowers, getMaxPage, getUsersForDisplay, isWithoutProfilePicture } from "../utils/utils";
 import { State } from "../model/state";
 import { UserNode } from "../model/user";
 import { WHITELISTED_RESULTS_STORAGE_KEY } from "../constants/constants";
@@ -94,6 +94,49 @@ export const Searching = ({
             />
             &nbsp;Without Profile Picture
           </label>
+          <hr className="sidebar-divider" />
+          <p>Smart Select</p>
+          <div className="flex column gap-small">
+            <button
+              className="button-secondary"
+              onClick={() => {
+                const verifiedUsers = usersForDisplay.filter(u => u.is_verified);
+                const currentIds = new Set(state.selectedResults.map(u => u.id));
+                const toAdd = verifiedUsers.filter(u => !currentIds.has(u.id));
+                setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
+              }}
+            >
+              Select Verified
+            </button>
+            <button
+              className="button-secondary"
+              onClick={() => {
+                const privateUsers = usersForDisplay.filter(u => u.is_private);
+                const currentIds = new Set(state.selectedResults.map(u => u.id));
+                const toAdd = privateUsers.filter(u => !currentIds.has(u.id));
+                setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
+              }}
+            >
+              Select Private
+            </button>
+            <button
+              className="button-secondary"
+              onClick={() => {
+                const noPicUsers = usersForDisplay.filter(u => isWithoutProfilePicture(u));
+                const currentIds = new Set(state.selectedResults.map(u => u.id));
+                const toAdd = noPicUsers.filter(u => !currentIds.has(u.id));
+                setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
+              }}
+            >
+              Select No Profile Pic
+            </button>
+            <button
+              className="button-secondary danger-text"
+              onClick={() => setState({ ...state, selectedResults: [] })}
+            >
+              Clear Selection
+            </button>
+          </div>
         </menu>
         <div className="sidebar-stats">
           <p>Displayed: {usersForDisplay.length}</p>
@@ -220,7 +263,7 @@ export const Searching = ({
                 <div className="flex grow align-center">
                   <div
                     className="avatar-container"
-                    onClick={e => {
+                    onClick={(e: React.MouseEvent<HTMLDivElement>) => {
                       // Prevent selecting result when trying to add to whitelist.
                       e.preventDefault();
                       e.stopPropagation();
@@ -251,6 +294,9 @@ export const Searching = ({
                       alt={user.username}
                       src={user.profile_pic_url}
                     />
+                    <div className="avatar-preview">
+                      <img src={user.profile_pic_url.replace("s150x150/", "s320x320/")} alt={user.username} />
+                    </div>
                     <span className="avatar-icon-overlay-container">
                       {state.currentTab === "non_whitelisted" ? (
                         <UserCheckIcon />
@@ -281,7 +327,7 @@ export const Searching = ({
                   className="account-checkbox"
                   type="checkbox"
                   checked={state.selectedResults.indexOf(user) !== -1}
-                  onChange={e => toggleUser(e.currentTarget.checked, user)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => toggleUser(e.currentTarget.checked, user)}
                 />
               </label>
             </>

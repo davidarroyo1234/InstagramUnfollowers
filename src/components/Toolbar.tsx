@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useState } from "react";
 import { State } from "../model/state";
-import { assertUnreachable, copyListToClipboard, getCurrentPageUnfollowers, getUsersForDisplay } from "../utils/utils";
+import { assertUnreachable, copyListToClipboard, exportToCSV, exportToJSON, getCurrentPageUnfollowers, getUsersForDisplay } from "../utils/utils";
 import { SettingMenu } from "./SettingMenu";
 import { SettingIcon } from "./icons/SettingIcon";
 import { Timings } from "../model/timings";
@@ -95,6 +95,30 @@ export const Toolbar = ({
           disabled={state.status === "initial"}
         >
           Copy List
+        </button>
+        <button
+          className="copy-list"
+          title="Export to JSON"
+          onClick={() => {
+            if (state.status === "scanning") {
+              exportToJSON(getUsersForDisplay(state.results, state.whitelistedResults, state.currentTab, state.searchTerm, state.filter));
+            }
+          }}
+          disabled={state.status !== "scanning"}
+        >
+          JSON
+        </button>
+        <button
+          className="copy-list"
+          title="Export to CSV"
+          onClick={() => {
+            if (state.status === "scanning") {
+              exportToCSV(getUsersForDisplay(state.results, state.whitelistedResults, state.currentTab, state.searchTerm, state.filter));
+            }
+          }}
+          disabled={state.status !== "scanning"}
+        >
+          CSV
         </button>
         {
           state.status === "initial" && <SettingIcon onClickLogo={() => { setSettingMenu(true); }} />
