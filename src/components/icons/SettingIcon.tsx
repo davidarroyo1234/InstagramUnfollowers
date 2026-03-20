@@ -1,13 +1,13 @@
-import React from "react";
+import React, { FC } from "react";
 
 interface SettingIconProps {
   onClickLogo: (func: any) => void;
 }
 
-export const SettingIcon = (
+export const SettingIcon: FC<SettingIconProps> = (
   {
     onClickLogo,
-  }: SettingIconProps,
+  },
 ) => {
   //THANKS TO https://www.svgrepo.com/svg/13688/settings for the SVG :)
   return (

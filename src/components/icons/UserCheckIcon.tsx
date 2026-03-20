@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { FC } from 'react';
 
-export const UserCheckIcon = () => (
+export const UserCheckIcon: FC = () => (
     <svg
         width='35'
         height='35'
