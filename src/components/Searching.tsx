@@ -48,7 +48,7 @@ export const Searching = ({
     <section className="flex">
       <aside className="app-sidebar">
         <div className="sidebar-content">
-          <menu className="flex column m-clear p-clear">
+          <menu className="sidebar-filters-grid">
             <p>Filter</p>
             <label className="badge m-small">
               <input
@@ -93,52 +93,51 @@ export const Searching = ({
                 checked={state.filter.showWithOutProfilePicture}
                 onChange={handleScanFilter}
               />
-              &nbsp;Without Profile Picture
+              &nbsp;No Pic
             </label>
-            <hr className="sidebar-divider" />
-            <p>Smart Select</p>
-            <div className="flex column gap-small">
-              <button
-                className="button-secondary"
-                onClick={() => {
-                  const verifiedUsers = usersForDisplay.filter(u => u.is_verified);
-                  const currentIds = new Set(state.selectedResults.map(u => u.id));
-                  const toAdd = verifiedUsers.filter(u => !currentIds.has(u.id));
-                  setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
-                }}
-              >
-                Select Verified
-              </button>
-              <button
-                className="button-secondary"
-                onClick={() => {
-                  const privateUsers = usersForDisplay.filter(u => u.is_private);
-                  const currentIds = new Set(state.selectedResults.map(u => u.id));
-                  const toAdd = privateUsers.filter(u => !currentIds.has(u.id));
-                  setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
-                }}
-              >
-                Select Private
-              </button>
-              <button
-                className="button-secondary"
-                onClick={() => {
-                  const noPicUsers = usersForDisplay.filter(u => isWithoutProfilePicture(u));
-                  const currentIds = new Set(state.selectedResults.map(u => u.id));
-                  const toAdd = noPicUsers.filter(u => !currentIds.has(u.id));
-                  setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
-                }}
-              >
-                Select No Profile Pic
-              </button>
-              <button
-                className="button-secondary danger-text"
-                onClick={() => setState({ ...state, selectedResults: [] })}
-              >
-                Clear Selection
-              </button>
-            </div>
           </menu>
+
+          <div className="sidebar-buttons-grid">
+            <button
+              className="button-secondary"
+              onClick={() => {
+                const verifiedUsers = usersForDisplay.filter(u => u.is_verified);
+                const currentIds = new Set(state.selectedResults.map(u => u.id));
+                const toAdd = verifiedUsers.filter(u => !currentIds.has(u.id));
+                setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
+              }}
+            >
+              Verified
+            </button>
+            <button
+              className="button-secondary"
+              onClick={() => {
+                const privateUsers = usersForDisplay.filter(u => u.is_private);
+                const currentIds = new Set(state.selectedResults.map(u => u.id));
+                const toAdd = privateUsers.filter(u => !currentIds.has(u.id));
+                setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
+              }}
+            >
+              Private
+            </button>
+            <button
+              className="button-secondary"
+              onClick={() => {
+                const noPicUsers = usersForDisplay.filter(u => isWithoutProfilePicture(u));
+                const currentIds = new Set(state.selectedResults.map(u => u.id));
+                const toAdd = noPicUsers.filter(u => !currentIds.has(u.id));
+                setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
+              }}
+            >
+              No Pic
+            </button>
+            <button
+              className="button-secondary danger-text"
+              onClick={() => setState({ ...state, selectedResults: [] })}
+            >
+              Clear
+            </button>
+          </div>
           <div className="sidebar-stats">
             <p>Displayed: {usersForDisplay.length}</p>
             <p>Total Scanned: {state.results.length}</p>

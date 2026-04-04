@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - **UI Density:** Restructured sidebar layout to be more compact. Combined "Pause" and "Pagination" into a single row.
+- **Grid Layouts:** Filters and Smart Select buttons are now organized in a 2-column grid, reducing vertical height by 50%.
 - **Scan Summary:** Modernized the summary layout with a 3-column grid and clearer labels ("Private" instead of "P").
 - **Visuals:** Updated sidebar with glassmorphism effects and optimized scrollbars.
 
@@ -65,6 +66,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ### Cambiado
 - **Densidad de UI:** Reestructurado el panel lateral para que sea más compacto. Botón de "Pausa" y "Paginación" ahora comparten fila.
+- **Diseño en Rejilla:** Los filtros y botones de selección inteligente ahora están en modo 2 columnas, reduciendo la altura vertical un 50%.
 - **Resumen de Escaneo:** Diseño de resumen en 3 columnas y etiquetas más claras ("Private" en lugar de "P").
 - **Estética:** Actualizado el lateral con efectos de desenfoque (glassmorphism) y optimización de barras de scroll.
 
