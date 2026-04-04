@@ -36,10 +36,9 @@ export const Toolbar = ({
   return (
     <header className="app-header">
       {isActiveProcess && (
-        <progress
-          className="progressbar"
-          value={state.status !== "initial" ? state.percentage : 0}
-          max="100"
+        <div 
+          className="progressbar" 
+          style={{ '--progress-width': `${state.status !== 'initial' ? state.percentage : 0}%` } as React.CSSProperties}
         />
       )}
       <div className="app-header-content">

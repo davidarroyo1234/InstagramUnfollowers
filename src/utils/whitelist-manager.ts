@@ -1,5 +1,6 @@
 import { UserNode } from "../model/user";
-import { WHITELISTED_RESULTS_STORAGE_KEY } from "../constants/constants";
+import { Timings } from "../model/timings";
+import { WHITELISTED_RESULTS_STORAGE_KEY, TIMINGS_STORAGE_KEY } from "../constants/constants";
 
 /**
  * Export whitelist to a JSON file
@@ -107,4 +108,19 @@ export const mergeWhitelists = (
   const existingIds = new Set(existing.map(user => user.id));
   const uniqueImported = imported.filter(user => !existingIds.has(user.id));
   return [...existing, ...uniqueImported];
+};
+
+/**
+ * Load timings from localStorage
+ */
+export const loadTimings = (): Timings | null => {
+  const timingsFromStorage = localStorage.getItem(TIMINGS_STORAGE_KEY);
+  return timingsFromStorage === null ? null : JSON.parse(timingsFromStorage);
+};
+
+/**
+ * Save timings to localStorage
+ */
+export const saveTimings = (timings: Timings): void => {
+  localStorage.setItem(TIMINGS_STORAGE_KEY, JSON.stringify(timings));
 };

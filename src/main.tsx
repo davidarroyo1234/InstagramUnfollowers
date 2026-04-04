@@ -22,7 +22,7 @@ import { Searching } from "./components/Searching";
 import { Toolbar } from "./components/Toolbar";
 import { Unfollowing } from "./components/Unfollowing";
 import { Timings } from "./model/timings";
-import { loadWhitelist, saveWhitelist } from "./utils/whitelist-manager";
+import { loadWhitelist, saveWhitelist, loadTimings, saveTimings } from "./utils/whitelist-manager";
 
 // pause
 let scanningPaused = false;
@@ -41,15 +41,20 @@ function App() {
     show: false,
   });
 
-  //TODO FOR NEXT UPDATE SAVE THIS IN STORAGE
-  const [timings, setTimings] = useState<Timings>(
-    {
+  const [timings, setTimings] = useState<Timings>(() => {
+    const storedTimings = loadTimings();
+    return storedTimings ?? {
       timeBetweenSearchCycles: DEFAULT_TIME_BETWEEN_SEARCH_CYCLES,
       timeToWaitAfterFiveSearchCycles: DEFAULT_TIME_TO_WAIT_AFTER_FIVE_SEARCH_CYCLES,
       timeBetweenUnfollows: DEFAULT_TIME_BETWEEN_UNFOLLOWS,
       timeToWaitAfterFiveUnfollows: DEFAULT_TIME_TO_WAIT_AFTER_FIVE_UNFOLLOWS,
-    }
-  );
+    };
+  });
+
+  // Save timings whenever they change
+  useEffect(() => {
+    saveTimings(timings);
+  }, [timings]);
 
 
   let isActiveProcess: boolean;
@@ -280,12 +285,20 @@ function App() {
           console.info("Scan paused");
         }
 
+        // Human-like behavior: Micro-pause between fetching chunks
+        const microPause = Math.floor(Math.random() * 1500) + 500; // 500ms - 2000ms
+        await sleep(microPause);
+
+        // Standard delay between cycles
         await sleep(Math.floor(Math.random() * (timings.timeBetweenSearchCycles - timings.timeBetweenSearchCycles * 0.7)) + timings.timeBetweenSearchCycles);
+        
         scrollCycle++;
         if (scrollCycle > 6) {
           scrollCycle = 0;
-          setToast({ show: true, text: `Sleeping ${timings.timeToWaitAfterFiveSearchCycles / 1000 } seconds to prevent getting temp blocked` });
-          await sleep(timings.timeToWaitAfterFiveSearchCycles);
+          // Variable long sleep to avoid patterns
+          const longSleepVar = timings.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000); // +/- 5 seconds
+          setToast({ show: true, text: `Sleeping ${Math.round(longSleepVar / 1000)} seconds to prevent getting temp blocked` });
+          await sleep(longSleepVar);
         }
         setToast({ show: false });
       }

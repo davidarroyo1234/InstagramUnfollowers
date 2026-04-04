@@ -29,8 +29,11 @@ html {
             left: 0;
             right: 0;
             height: 4rem;
-            background-color: variables.$bg-secondary;
-            z-index: 1;
+            background-color: rgba(variables.$bg-secondary, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 10;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             @extend .flex;
 
             &-content {
@@ -77,31 +80,40 @@ html {
             height: 100vh;
             min-width: 280px;
             max-width: 280px;
-            border-inline-end: 1px solid #333;
+            background-color: rgba(variables.$bg-primary, 0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-inline-end: 1px solid rgba(255, 255, 255, 0.08);
             display: flex;
             flex-direction: column;
             padding: 0.8rem;
-            overflow-y: auto;
-            overflow-x: hidden;
             @extend .fs-large;
             @extend .with-app-header;
 
-            // Scrollbar styling
-            &::-webkit-scrollbar {
-                width: 6px;
-            }
+            .sidebar-content {
+                flex: 1;
+                overflow-y: auto;
+                overflow-x: hidden;
+                padding-right: 4px;
+                margin-bottom: 0.5rem;
 
-            &::-webkit-scrollbar-track {
-                background: #1c1c1e;
-            }
+                // Scrollbar styling
+                &::-webkit-scrollbar {
+                    width: 4px;
+                }
 
-            &::-webkit-scrollbar-thumb {
-                background: #48484a;
-                border-radius: 3px;
-            }
+                &::-webkit-scrollbar-track {
+                    background: transparent;
+                }
 
-            &::-webkit-scrollbar-thumb:hover {
-                background: #636366;
+                &::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 2px;
+                }
+
+                &::-webkit-scrollbar-thumb:hover {
+                    background: rgba(255, 255, 255, 0.2);
+                }
             }
 
             menu {
@@ -121,32 +133,98 @@ html {
         }
 
         .sidebar-stats {
-            margin: 0.5rem 0;
-            padding: 0.6rem;
+            margin: 0.3rem 0;
+            padding: 0.4rem;
             background: rgba(255, 255, 255, 0.03);
             border-radius: 6px;
 
             p {
-                margin: 0.25rem 0;
-                font-size: 0.85rem;
+                margin: 0.15rem 0;
+                font-size: 0.8rem;
+            }
+
+            .whitelist-counter {
+                margin-top: 0.2rem;
             }
         }
 
-        .sidebar-pagination {
-            margin: 0.5rem 0;
-            text-align: center;
+        .sidebar-summary {
+            margin: 0.4rem 0;
+            padding: 0.5rem 0.8rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
 
-            p {
-                margin: 0 0 0.3rem 0;
+            h4 {
+                margin: 0 0 0.4rem 0;
                 font-size: 0.85rem;
+                font-weight: 600;
+                color: #007aff;
             }
 
-            .pagination-controls {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.8rem;
-                font-size: 0.9rem;
+            .summary-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 0.4rem;
+
+                .summary-item {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.1rem;
+
+                    span {
+                        font-size: 0.65rem;
+                        color: rgba(255, 255, 255, 0.5);
+                        text-transform: uppercase;
+                    }
+
+                    strong {
+                        font-size: 0.95rem;
+                        font-weight: 700;
+                    }
+                }
+            }
+        }
+
+        .sidebar-footer-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin: 0.4rem 0;
+
+            .button-pause {
+                flex: 1;
+                font-size: 0.8rem;
+                padding: 0.4rem;
+            }
+
+            .sidebar-pagination {
+                flex: 1;
+                text-align: center;
+
+                .pagination-controls {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.4rem;
+                    font-size: 0.85rem;
+                    background: rgba(255, 255, 255, 0.05);
+                    padding: 0.4rem;
+                    border-radius: 6px;
+
+                    span {
+                        font-weight: 600;
+                        min-width: 40px;
+                    }
+
+                    a {
+                        padding: 0 4px;
+                        &:hover {
+                            color: #007aff;
+                        }
+                    }
+                }
             }
         }
 
@@ -217,8 +295,9 @@ html {
                 font-weight: 600 !important;
                 letter-spacing: 0.02em !important;
                 transition: background-color 0.15s ease, opacity 0.15s ease !important;
-                margin: 0.8rem 0 0 0 !important;
+                margin: 0 !important;
                 flex-shrink: 0;
+                box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
 
                 &:hover {
                     background-color: #d70015 !important;
@@ -237,12 +316,24 @@ html {
 
         .progressbar {
             width: 100%;
-            height: 8px;
+            height: 6px;
             position: absolute;
-            // Fix: Added explicit positioning to prevent white gap at the end
-            // Without left: 0 and top: 0, the progress bar doesn't fully align
             left: 0;
             top: 0;
+            background: rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+
+            &::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: var(--progress-width, 0%);
+                background: linear-gradient(90deg, #007aff, #00c6ff);
+                box-shadow: 0 0 12px rgba(0, 122, 255, 0.6);
+                transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
         }
 
         .results-container,
@@ -308,6 +399,27 @@ html {
                     color: #51bb42;
                     font-weight: 500;
                     @extend .p-small;
+                }
+
+                .whitelist-star-button {
+                    background: none;
+                    border: none;
+                    color: rgba(255, 255, 255, 0.2);
+                    font-size: 1.4rem;
+                    cursor: pointer;
+                    padding: 0.2rem;
+                    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s ease;
+                    line-height: 1;
+
+                    &:hover {
+                        color: rgba(255, 215, 0, 0.6);
+                        transform: scale(1.2);
+                    }
+
+                    &.active {
+                        color: #ffd700;
+                        text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+                    }
                 }
             }
         }
@@ -946,3 +1058,8 @@ html {
         }
     }
 }
+.gap-small { gap: 4px; }
+.button-secondary { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #efefef; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; text-align: left; transition: all 0.2s ease; }
+.button-secondary:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
+.button-secondary.danger-text { color: #ff4d4d; }
+.button-secondary.danger-text:hover { background: rgba(255, 77, 77, 0.1); }
