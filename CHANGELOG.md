@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-04-04
+
+### Added
+- **Whitelist Star Button:** Dedicated star (★) button on each profile row for instant whitelist management.
+- **Sticky Actions:** The "UNFOLLOW" button is now fixed at the bottom of the sidebar for constant accessibility.
+- **Anti-Detection Measures:** Randomized micro-pauses (500ms-2k ms) and dynamic sleep cycles (+/- 5s randomization) to mimic human behavior and avoid Instagram rate limits.
+- **Data Persistence:** Whitelist state and scan timing settings are now saved in `localStorage`.
+
+### Changed
+- **UI Density:** Restructured sidebar layout to be more compact. Combined "Pause" and "Pagination" into a single row.
+- **Grid Layouts:** Filters and Smart Select buttons are now organized in a 2-column grid, reducing vertical height by 50%.
+- **Scan Summary:** Modernized the summary layout with a 3-column grid and clearer labels ("Private" instead of "P").
+- **Visuals:** Updated sidebar with glassmorphism effects and optimized scrollbars.
+
 ## [1.1.0] - 2026-03-10
 
 ### Added
@@ -41,6 +55,20 @@ All notable changes to this project will be documented in this file.
 # Historial de Cambios (Spanish)
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
+
+## [1.2.0] - 2026-04-04
+
+### Añadido
+- **Botón de Estrella (Whitelist):** Botón (★) dedicado en cada usuario para añadir o quitar de la lista blanca al instante.
+- **Acciones Fijas:** El botón "UNFOLLOW" ahora está fijado en la parte inferior del lateral para que siempre esté accesible.
+- **Medidas Anti-Detección:** Micro-pausas aleatorias (500ms-2k ms) y ciclos de espera dinámicos (variación de +/- 5s) para imitar comportamiento humano y evitar bloqueos.
+- **Persistencia de Datos:** El estado de la Whitelist y la configuración de tiempos ahora se guardan en el navegador (`localStorage`).
+
+### Cambiado
+- **Densidad de UI:** Reestructurado el panel lateral para que sea más compacto. Botón de "Pausa" y "Paginación" ahora comparten fila.
+- **Diseño en Rejilla:** Los filtros y botones de selección inteligente ahora están en modo 2 columnas, reduciendo la altura vertical un 50%.
+- **Resumen de Escaneo:** Diseño de resumen en 3 columnas y etiquetas más claras ("Private" en lugar de "P").
+- **Estética:** Actualizado el lateral con efectos de desenfoque (glassmorphism) y optimización de barras de scroll.
 
 ## [1.1.0] - 2026-03-10
 
