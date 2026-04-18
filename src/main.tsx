@@ -296,7 +296,10 @@ function App() {
         if (scrollCycle > 6) {
           scrollCycle = 0;
           // Variable long sleep to avoid patterns
-          const longSleepVar = timings.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000); // +/- 5 seconds
+          const longSleepVar = Math.max(
+            0,
+            timings.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000), // +/- 5 seconds
+          );
           setToast({ show: true, text: `Sleeping ${Math.round(longSleepVar / 1000)} seconds to prevent getting temp blocked` });
           await sleep(longSleepVar);
         }

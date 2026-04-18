@@ -110,12 +110,30 @@ export const mergeWhitelists = (
   return [...existing, ...uniqueImported];
 };
 
+const isTimings = (value: unknown): value is Timings => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  return Object.values(value).every((timing) => typeof timing === "number");
+};
+
 /**
  * Load timings from localStorage
  */
 export const loadTimings = (): Timings | null => {
   const timingsFromStorage = localStorage.getItem(TIMINGS_STORAGE_KEY);
-  return timingsFromStorage === null ? null : JSON.parse(timingsFromStorage);
+
+  if (timingsFromStorage === null) {
+    return null;
+  }
+
+  try {
+    const parsedTimings: unknown = JSON.parse(timingsFromStorage);
+    return isTimings(parsedTimings) ? parsedTimings : null;
+  } catch {
+    return null;
+  }
 };
 
 /**
