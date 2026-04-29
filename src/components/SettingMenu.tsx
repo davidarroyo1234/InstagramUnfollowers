@@ -95,7 +95,7 @@ export const SettingMenu = ({
               </div>
 
               <div className="row">
-                <label className="minimun-width">Default time to wait after five unfollows</label>
+                <label className="minimun-width">Unfollow rate window (12 unfollows per window)</label>
                 <input
                   type="number"
                   id="timeAfterFiveUnfollows"

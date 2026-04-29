@@ -161,6 +161,12 @@ html {
                     justify-content: center;
                 }
             }
+
+            .unfollow-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 0.6rem;
+            }
         }
 
 

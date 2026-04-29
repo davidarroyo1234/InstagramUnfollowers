@@ -323,6 +323,10 @@ function App() {
         throw new Error("csrftoken cookie is null");
       }
 
+      const UNFOLLOWS_PER_WINDOW = 12;
+      const windowMs = timings.timeToWaitAfterFiveUnfollows;
+      const minDelayBetweenUnfollowsMs = Math.ceil(windowMs / UNFOLLOWS_PER_WINDOW);
+
       let counter = 0;
       for (const user of state.selectedResults) {
         counter += 1;
@@ -378,12 +382,12 @@ function App() {
         if (user === state.selectedResults[state.selectedResults.length - 1]) {
           break;
         }
-        await sleep(Math.floor(Math.random() * (timings.timeBetweenUnfollows * 1.2 - timings.timeBetweenUnfollows)) + timings.timeBetweenUnfollows);
 
-        if (counter % 5 === 0) {
-          setToast({ show: true, text: `Sleeping ${timings.timeToWaitAfterFiveUnfollows / 60000 } minutes to prevent getting temp blocked` });
-          await sleep(timings.timeToWaitAfterFiveUnfollows);
-        }
+        // Rate limit: ~12 unfollows per 5 minutes (minimum delay of 25s between unfollows).
+        const baseDelayMs = Math.max(timings.timeBetweenUnfollows, minDelayBetweenUnfollowsMs);
+        const delayMs = Math.floor(Math.random() * (baseDelayMs * 0.2)) + baseDelayMs; // +0-20% jitter
+        setToast({ show: true, text: `Waiting ${Math.round(delayMs / 1000)}s (${UNFOLLOWS_PER_WINDOW} unfollows / ${Math.round(windowMs / 60000)} min)` });
+        await sleep(delayMs);
         setToast({ show: false });
       }
     };

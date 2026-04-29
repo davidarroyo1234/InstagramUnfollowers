@@ -60,7 +60,7 @@ export const Unfollowing = (
                   className="clr-inherit"
                   target="_blank"
                   href={`../${entry.user.username}`}
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                 >
                   &nbsp;{entry.user.username}
                 </a>

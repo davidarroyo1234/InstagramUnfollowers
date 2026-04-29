@@ -205,38 +205,87 @@ export const Searching = ({
             </div>
           </div>
         </div>
-        <button
-          className="unfollow"
-          onClick={() => {
-            if (!confirm("Are you sure?")) {
-              return;
-            }
-            //TODO TEMP until types are properly fixed
-            // @ts-ignore
-            setState(prevState => {
-              if (prevState.status !== "scanning") {
-                return prevState;
+        <div className="unfollow-actions">
+          <button
+            className="unfollow"
+            disabled={state.percentage < 100 || usersForDisplay.length === 0}
+            onClick={() => {
+              const tabLabel = state.currentTab === "whitelisted" ? "WHITELISTED" : "NON-WHITELISTED";
+              if (!confirm(`Unfollow ALL displayed users in ${tabLabel} tab (${usersForDisplay.length})?`)) {
+                return;
               }
-              if (prevState.selectedResults.length === 0) {
-                alert("Must select at least a single user to unfollow");
-                return prevState;
+              if (state.currentTab === "whitelisted") {
+                if (!confirm("WARNING: You are on the WHITELISTED tab. This will unfollow users you have whitelisted. Continue?")) {
+                  return;
+                }
               }
-              const newState: State = {
-                ...prevState,
-                status: "unfollowing",
-                percentage: 0,
-                unfollowLog: [],
-                filter: {
-                  showSucceeded: true,
-                  showFailed: true,
-                },
-              };
-              return newState;
-            });
-          }}
-        >
-          UNFOLLOW ({state.selectedResults.length})
-        </button>
+              // TODO TEMP until types are properly fixed
+              // @ts-ignore
+              setState(prevState => {
+                if (prevState.status !== "scanning") {
+                  return prevState;
+                }
+                const allDisplayedUsers = getUsersForDisplay(
+                  prevState.results,
+                  prevState.whitelistedResults,
+                  prevState.currentTab,
+                  prevState.searchTerm,
+                  prevState.filter,
+                );
+                if (allDisplayedUsers.length === 0) {
+                  alert("No users to unfollow with current filters");
+                  return prevState;
+                }
+                const newState: State = {
+                  ...prevState,
+                  status: "unfollowing",
+                  percentage: 0,
+                  selectedResults: allDisplayedUsers,
+                  unfollowLog: [],
+                  filter: {
+                    showSucceeded: true,
+                    showFailed: true,
+                  },
+                };
+                return newState;
+              });
+            }}
+          >
+            UNFOLLOW ALL ({usersForDisplay.length})
+          </button>
+          <button
+            className="unfollow"
+            onClick={() => {
+              if (!confirm("Are you sure?")) {
+                return;
+              }
+              //TODO TEMP until types are properly fixed
+              // @ts-ignore
+              setState(prevState => {
+                if (prevState.status !== "scanning") {
+                  return prevState;
+                }
+                if (prevState.selectedResults.length === 0) {
+                  alert("Must select at least a single user to unfollow");
+                  return prevState;
+                }
+                const newState: State = {
+                  ...prevState,
+                  status: "unfollowing",
+                  percentage: 0,
+                  unfollowLog: [],
+                  filter: {
+                    showSucceeded: true,
+                    showFailed: true,
+                  },
+                };
+                return newState;
+              });
+            }}
+          >
+            UNFOLLOW ({state.selectedResults.length})
+          </button>
+        </div>
       </aside>
       <article className="results-container">
         <nav className="tabs-container">
@@ -327,7 +376,7 @@ export const Searching = ({
                       className="fs-xlarge"
                       target="_blank"
                       href={`/${user.username}`}
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                     >
                       {user.username}
                     </a>
