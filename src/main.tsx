@@ -24,7 +24,18 @@ import { Unfollowing } from "./components/Unfollowing";
 import { Timings } from "./model/timings";
 import { loadWhitelist, saveWhitelist, loadTimings, saveTimings } from "./utils/whitelist-manager";
 
-// pause
+/**
+ * Aplikasi ini dijalankan dengan cara di-paste ke Console saat kamu sedang membuka `www.instagram.com`.
+ *
+ * Kenapa bisa bekerja?
+ * - Kode ini dieksekusi di konteks halaman Instagram (origin yang sama).
+ * - Saat kita melakukan `fetch(...)` ke `instagram.com`, cookie login kamu ikut terkirim otomatis (karena `credentials: "include"`).
+ *
+ * Catatan keamanan:
+ * - Jangan pernah paste script dari sumber yang tidak kamu percaya, karena script di console punya akses ke sesi akunmu.
+ */
+
+// Flag global untuk pause/resume proses scan tanpa mematikan UI.
 let scanningPaused = false;
 
 function pauseScan() {
@@ -33,14 +44,18 @@ function pauseScan() {
 
 
 function App() {
+  // State utama aplikasi (mode awal / scanning / berhenti mengikuti) + semua data yang tampil di UI.
   const [state, setState] = useState<State>({
     status: "initial",
   });
 
+  // Toast adalah notifikasi kecil di pojok layar (mis. saat aplikasi menunggu/delay).
   const [toast, setToast] = useState<{ readonly show: false } | { readonly show: true; readonly text: string }>({
     show: false,
   });
 
+  // `timings` mengatur delay agar perilaku lebih "manusiawi" dan mengurangi risiko action-block dari Instagram.
+  // Nilai disimpan di localStorage agar tidak hilang saat reload.
   const [timings, setTimings] = useState<Timings>(() => {
     const storedTimings = loadTimings();
     return storedTimings ?? {
@@ -51,12 +66,13 @@ function App() {
     };
   });
 
-  // Save timings whenever they change
+  // Simpan timings setiap kali berubah.
   useEffect(() => {
     saveTimings(timings);
   }, [timings]);
 
 
+  // Dipakai untuk menampilkan progress bar dan mencegah reset state saat proses masih berjalan.
   let isActiveProcess: boolean;
   switch (state.status) {
     case "initial":
@@ -74,6 +90,7 @@ function App() {
     if (state.status !== "initial") {
       return;
     }
+    // Muat whitelist dari localStorage agar user yang di-whitelist tidak ikut dihapus-follow (berhenti diikuti).
     const whitelistedResults = loadWhitelist();
     setState({
       status: "scanning",
@@ -99,18 +116,16 @@ function App() {
       return;
     }
     if (state.selectedResults.length > 0) {
-      if (!confirm("Changing filter options will clear selected users")) {
-        // Force re-render. Bit of a hack but had an issue where the checkbox state was still
-        // changing in the UI even even when not confirming. So updating the state fixes this
-        // by synchronizing the checkboxes with the filter statuses in the state.
+      if (!confirm("Mengubah filter akan mengosongkan pilihan user. Lanjut?")) {
+        // Paksa re-render. Ini sedikit "hacky", tapi pernah ada kasus checkbox di UI berubah
+        // walau user membatalkan confirm. Dengan setState ulang, kita sinkronkan UI dengan state.
         setState({ ...state });
         return;
       }
     }
     setState({
       ...state,
-      // Make sure to clear selected results when changing filter options. This is to avoid having
-      // users selected in the unfollow queue but not visible in the UI, which would be confusing.
+      // Saat filter berubah, pilihan user harus dihapus agar tidak ada user yang "terpilih" tapi tidak terlihat di UI.
       selectedResults: [],
       filter: {
         ...state.filter,
@@ -153,6 +168,7 @@ function App() {
     if (state.status !== "scanning") {
       return;
     }
+    // Pilih semua user yang sedang tampil (sesuai tab + searchTerm + filter).
     if (e.currentTarget.checked) {
       setState({
         ...state,
@@ -172,7 +188,7 @@ function App() {
     }
   };
 
-  // it will work the same as toggleAllUsers, but it will select everyone on the current page.
+  // Mirip toggleAllUsers, tapi hanya memilih user pada halaman (pagination) yang sedang dibuka.
   const toggleCurrentePageUsers = (e: ChangeEvent<HTMLInputElement>) => {
     if (state.status !== "scanning") {
       return;
@@ -200,6 +216,7 @@ function App() {
   };
 
   const onWhitelistUpdate = (updatedWhitelist: readonly UserNode[]) => {
+    // Simpan whitelist ke localStorage dan update state agar UI langsung ikut berubah.
     saveWhitelist(updatedWhitelist);
     if (state.status === "scanning") {
       setState({
@@ -211,31 +228,32 @@ function App() {
 
   useEffect(() => {
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Prompt user if he tries to leave while in the middle of a process (searching / unfollowing / etc..)
-      // This is especially good for avoiding accidental tab closing which would result in a frustrating experience.
+      // Tampilkan prompt jika user mencoba menutup tab saat proses masih berjalan (scan / berhenti mengikuti).
+      // Ini mencegah tab tertutup tidak sengaja dan progres hilang.
       if (!isActiveProcess) {
         return;
       }
 
-      // `e` Might be undefined in older browsers, so silence linter for this one.
+      // `e` bisa saja undefined di browser lama, jadi kita abaikan peringatan linter untuk bagian ini.
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       e = e || window.event;
 
-      // `e` Might be undefined in older browsers, so silence linter for this one.
-      // For IE and Firefox prior to version 4
+      // `e` bisa saja undefined di browser lama, jadi kita abaikan peringatan linter untuk bagian ini.
+      // Untuk IE dan Firefox versi lama (sebelum v4)
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (e) {
-        e.returnValue = "Changes you made may not be saved.";
+        e.returnValue = "Perubahan yang kamu buat mungkin tidak tersimpan.";
       }
 
-      // For Safari
-      return "Changes you made may not be saved.";
+      // Untuk Safari
+      return "Perubahan yang kamu buat mungkin tidak tersimpan.";
     };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [isActiveProcess, state]);
 
   useEffect(() => {
+    // Proses scanning: mengambil daftar akun yang kamu follow dari endpoint GraphQL Instagram.
     const scan = async () => {
       if (state.status !== "scanning") {
         return;
@@ -271,58 +289,60 @@ function App() {
           }
           const newState: State = {
             ...prevState,
-            // Fix: Changed from Math.floor to Math.round to ensure progress reaches 100%
-            // Math.floor would leave progress at 99% when near completion
+            // Pakai Math.round agar progress bisa benar-benar mencapai 100%.
             percentage: Math.round((currentFollowedUsersCount / totalFollowedUsersCount) * 100),
             results,
           };
           return newState;
         });
 
-        // Pause scanning if user requested so.
+        // Pause scanning jika user menekan tombol pause.
         while (scanningPaused) {
           await sleep(1000);
-          console.info("Scan paused");
+          console.info("Scan dijeda");
         }
 
-        // Human-like behavior: Micro-pause between fetching chunks
+        // Micro-pause acak agar lebih mirip perilaku manusia.
         const microPause = Math.floor(Math.random() * 1500) + 500; // 500ms - 2000ms
         await sleep(microPause);
 
-        // Standard delay between cycles
+        // Delay standar antar siklus fetch (diacak sedikit).
         await sleep(Math.floor(Math.random() * (timings.timeBetweenSearchCycles - timings.timeBetweenSearchCycles * 0.7)) + timings.timeBetweenSearchCycles);
         
         scrollCycle++;
         if (scrollCycle > 6) {
           scrollCycle = 0;
-          // Variable long sleep to avoid patterns
+          // Sesekali tidur lebih lama agar tidak membentuk pola request yang terlalu konsisten.
           const longSleepVar = Math.max(
             0,
-            timings.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000), // +/- 5 seconds
+            timings.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000), // +/- 5 detik
           );
-          setToast({ show: true, text: `Sleeping ${Math.round(longSleepVar / 1000)} seconds to prevent getting temp blocked` });
+          setToast({ show: true, text: `Tidur ${Math.round(longSleepVar / 1000)} detik supaya tidak kena blokir sementara` });
           await sleep(longSleepVar);
         }
         setToast({ show: false });
       }
-      setToast({ show: true, text: "Scanning completed!" });
+      setToast({ show: true, text: "Pemindaian selesai!" });
     };
     scan();
-    // Dependency array not entirely legit, but works this way. TODO: Find a way to fix.
+    // Dependency array belum ideal, tapi saat ini cukup berfungsi. TODO: Cari cara yang lebih rapi.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.status]);
 
   useEffect(() => {
+    // Proses berhenti mengikuti: mengirim request POST ke endpoint unfollow Instagram untuk setiap user yang dipilih.
     const unfollow = async () => {
       if (state.status !== "unfollowing") {
         return;
       }
 
+      // Instagram memakai CSRF token (dari cookie `csrftoken`) untuk memvalidasi request POST.
       const csrftoken = getCookie("csrftoken");
       if (csrftoken === null) {
-        throw new Error("csrftoken cookie is null");
+        throw new Error("Cookie csrftoken kosong (null)");
       }
 
+      // Rate limit: target maksimal 12 aksi berhenti mengikuti per window (default window = 5 menit).
       const UNFOLLOWS_PER_WINDOW = 12;
       const windowMs = timings.timeToWaitAfterFiveUnfollows;
       const minDelayBetweenUnfollowsMs = Math.ceil(windowMs / UNFOLLOWS_PER_WINDOW);
@@ -330,8 +350,7 @@ function App() {
       let counter = 0;
       for (const user of state.selectedResults) {
         counter += 1;
-        // Fix: Changed from Math.floor to Math.round to ensure progress reaches 100%
-        // Math.floor would leave progress at 99% when near completion
+        // Pakai Math.round agar progress bisa benar-benar mencapai 100%.
         const percentage = Math.round((counter / state.selectedResults.length) * 100);
         try {
           await fetch(unfollowUserUrlGenerator(user.id), {
@@ -378,21 +397,22 @@ function App() {
             };
           });
         }
-        // If unfollowing the last user in the list, no reason to wait.
+        // Jika ini user terakhir, tidak perlu delay lagi.
         if (user === state.selectedResults[state.selectedResults.length - 1]) {
           break;
         }
 
-        // Rate limit: ~12 unfollows per 5 minutes (minimum delay of 25s between unfollows).
+        // Rate limit: jaga agar rata-rata tidak lebih cepat dari `UNFOLLOWS_PER_WINDOW` per `windowMs`.
+        // Ditambah jitter acak agar tidak terlihat seperti bot.
         const baseDelayMs = Math.max(timings.timeBetweenUnfollows, minDelayBetweenUnfollowsMs);
-        const delayMs = Math.floor(Math.random() * (baseDelayMs * 0.2)) + baseDelayMs; // +0-20% jitter
-        setToast({ show: true, text: `Waiting ${Math.round(delayMs / 1000)}s (${UNFOLLOWS_PER_WINDOW} unfollows / ${Math.round(windowMs / 60000)} min)` });
+        const delayMs = Math.floor(Math.random() * (baseDelayMs * 0.2)) + baseDelayMs; // +0-20% variasi acak
+        setToast({ show: true, text: `Menunggu ${Math.round(delayMs / 1000)} detik (${UNFOLLOWS_PER_WINDOW} aksi / ${Math.round(windowMs / 60000)} menit)` });
         await sleep(delayMs);
         setToast({ show: false });
       }
     };
     unfollow();
-    // Dependency array not entirely legit, but works this way. TODO: Find a way to fix.
+    // Dependency array belum ideal, tapi saat ini cukup berfungsi. TODO: Cari cara yang lebih rapi.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.status]);
 
@@ -451,9 +471,10 @@ function App() {
 }
 
 if (location.hostname !== INSTAGRAM_HOSTNAME) {
-  alert("Can be used only on Instagram routes");
+  alert("Script ini hanya bisa digunakan di website Instagram (www.instagram.com).");
 } else {
   document.title = "InstagramUnfollowers";
+  // Kosongkan halaman Instagram dan render UI tool ini.
   document.body.innerHTML = "";
   render(<App />, document.body);
 }

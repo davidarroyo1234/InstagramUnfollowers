@@ -18,6 +18,7 @@ export const SettingMenu = ({
   whitelistedUsers,
   onWhitelistUpdate,
 }: SettingMenuProps) => {
+  // Salin timings dari state global ke state lokal form (agar input bisa diedit sebelum disimpan).
   const [timeBetweenSearchCycles, setTimeBetweenSearchCycles] = useState(currentTimings.timeBetweenSearchCycles);
   const [timeToWaitAfterFiveSearchCycles, setTimeToWaitAfterFiveSearchCycles] = useState(currentTimings.timeToWaitAfterFiveSearchCycles);
   const [timeBetweenUnfollows, setTimeBetweenUnfollows] = useState(currentTimings.timeBetweenUnfollows);
@@ -25,6 +26,7 @@ export const SettingMenu = ({
 
   const handleSave = (event: any) => {
     event.preventDefault();
+    // Kirim timings baru ke parent. Parent akan menyimpan ke localStorage via `saveTimings(...)`.
     setTimings({
       timeBetweenSearchCycles,
       timeToWaitAfterFiveSearchCycles,
@@ -45,15 +47,15 @@ export const SettingMenu = ({
     <form onSubmit={handleSave}>
       <div className="backdrop">
         <div className="setting-menu">
-          {/* Settings Module */}
+          {/* Modul pengaturan timings */}
           <div className="settings-module">
             <div className="module-header">
-              <h3>Settings</h3>
+              <h3>Pengaturan</h3>
             </div>
 
             <div className="settings-content">
               <div className="row">
-                <label className="minimun-width">Default time between search cycles</label>
+                <label className="minimun-width">Jeda default antar siklus pencarian</label>
                 <input
                   type="number"
                   id="searchCycles"
@@ -67,7 +69,7 @@ export const SettingMenu = ({
               </div>
 
               <div className="row">
-                <label className="minimun-width">Default time to wait after five search cycles</label>
+                <label className="minimun-width">Waktu tunggu setelah beberapa siklus pencarian</label>
                 <input
                   type="number"
                   id="fiveSearchCycles"
@@ -81,7 +83,7 @@ export const SettingMenu = ({
               </div>
 
               <div className="row">
-                <label className="minimun-width">Default time between unfollows</label>
+                <label className="minimun-width">Jeda default antar aksi berhenti mengikuti</label>
                 <input
                   type="number"
                   id="timeBetweenUnfollow"
@@ -95,7 +97,7 @@ export const SettingMenu = ({
               </div>
 
               <div className="row">
-                <label className="minimun-width">Unfollow rate window (12 unfollows per window)</label>
+                <label className="minimun-width">Jendela rate-limit berhenti mengikuti (12 aksi per jendela)</label>
                 <input
                   type="number"
                   id="timeAfterFiveUnfollows"
@@ -109,16 +111,16 @@ export const SettingMenu = ({
               </div>
 
               <div className="warning-container">
-                <h3 className="warning"><b>WARNING:</b> Modifying these settings can lead to your account being banned.</h3>
-                <h3 className="warning">USE IT AT YOUR OWN RISK!!!!</h3>
+                <h3 className="warning"><b>PERINGATAN:</b> Mengubah pengaturan ini bisa menyebabkan akun kamu kena pembatasan atau banned.</h3>
+                <h3 className="warning">GUNAKAN ATAS RISIKO SENDIRI!!!!</h3>
               </div>
             </div>
           </div>
 
-          {/* Divider */}
+          {/* Pemisah */}
           <hr className="module-divider" />
 
-          {/* Whitelist Management Module */}
+          {/* Modul pengelolaan whitelist */}
           <div className="whitelist-module">
             <WhitelistManager
               whitelistedUsers={whitelistedUsers}
@@ -126,10 +128,10 @@ export const SettingMenu = ({
             />
           </div>
 
-          {/* Action Buttons */}
+          {/* Tombol aksi */}
           <div className="btn-container">
-            <button className="btn" type="button" onClick={() => setSettingState(false)}>Cancel</button>
-            <button className="btn" type="submit">Save</button>
+            <button className="btn" type="button" onClick={() => setSettingState(false)}>Batal</button>
+            <button className="btn" type="submit">Simpan</button>
           </div>
         </div>
       </div>

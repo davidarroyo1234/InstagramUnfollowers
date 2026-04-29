@@ -7,9 +7,12 @@ interface ToastProps {
     onClose?: () => void;
 }
 
+/**
+ * Komponen toast sederhana untuk menampilkan informasi singkat (mis. saat tool menunggu/delay).
+ */
 export const Toast = ({ show = false, style = 'info', message, onClose }: ToastProps) => (
     <div className={`toast ${show ? 'show' : ''} ${style}`} role='alert'>
         <p className='toast__message'>{message}</p>
-        <button className='toast__close-button' onClick={onClose} title='close'>&times;</button>
+        <button className='toast__close-button' onClick={onClose} title='tutup'>&times;</button>
     </div>
 );

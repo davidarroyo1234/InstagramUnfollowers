@@ -16,6 +16,16 @@ export interface SearchingProps {
   UserUncheckIcon: React.FC;
 }
 
+/**
+ * Halaman "Scanning" (setelah tombol MULAI ditekan).
+ *
+ * Fitur utama di layar ini:
+ * - Filter hasil (non-followers, followers, verified, private, tanpa foto).
+ * - Pilih user untuk antrian berhenti mengikuti (checkbox).
+ * - Whitelist: user yang di-whitelist tidak akan tampil di tab non-whitelist, dan bisa kamu lindungi dari berhenti mengikuti.
+ * - Pagination supaya daftar tidak terlalu panjang.
+ * - Tombol berhenti mengikuti: bisa proses yang dipilih, atau semua yang sedang ditampilkan (sesuai filter & tab).
+ */
 export const Searching = ({
   state,
   setState,
@@ -57,7 +67,7 @@ export const Searching = ({
                 checked={state.filter.showNonFollowers}
                 onChange={handleScanFilter}
               />
-              &nbsp;Non-Followers
+              &nbsp;Tidak Follow Balik
             </label>
             <label className="badge m-small">
               <input
@@ -66,7 +76,7 @@ export const Searching = ({
                 checked={state.filter.showFollowers}
                 onChange={handleScanFilter}
               />
-              &nbsp;Followers
+              &nbsp;Mengikuti Kamu (Saling Follow)
             </label>
             <label className="badge m-small">
               <input
@@ -75,7 +85,7 @@ export const Searching = ({
                 checked={state.filter.showVerified}
                 onChange={handleScanFilter}
               />
-              &nbsp;Verified
+              &nbsp;Terverifikasi
             </label>
             <label className="badge m-small">
               <input
@@ -84,7 +94,7 @@ export const Searching = ({
                 checked={state.filter.showPrivate}
                 onChange={handleScanFilter}
               />
-              &nbsp;Private
+              &nbsp;Privat
             </label>
             <label className="badge m-small">
               <input
@@ -93,10 +103,11 @@ export const Searching = ({
                 checked={state.filter.showWithOutProfilePicture}
                 onChange={handleScanFilter}
               />
-              &nbsp;No Pic
+              &nbsp;Tanpa Foto
             </label>
           </menu>
 
+          {/* Tombol cepat untuk memilih user berdasarkan kategori tertentu (sesuai yang sedang ditampilkan). */}
           <div className="sidebar-buttons-grid">
             <button
               className="button-secondary"
@@ -107,7 +118,7 @@ export const Searching = ({
                 setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
               }}
             >
-              Verified
+              Pilih Terverifikasi
             </button>
             <button
               className="button-secondary"
@@ -118,7 +129,7 @@ export const Searching = ({
                 setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
               }}
             >
-              Private
+              Pilih Privat
             </button>
             <button
               className="button-secondary"
@@ -129,37 +140,37 @@ export const Searching = ({
                 setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
               }}
             >
-              No Pic
+              Pilih Tanpa Foto
             </button>
             <button
               className="button-secondary danger-text"
               onClick={() => setState({ ...state, selectedResults: [] })}
             >
-              Clear
+              Kosongkan Pilihan
             </button>
           </div>
           <div className="sidebar-stats">
-            <p>Displayed: {usersForDisplay.length}</p>
-            <p>Total Scanned: {state.results.length}</p>
+            <p>Ditampilkan: {usersForDisplay.length}</p>
+            <p>Total Dipindai: {state.results.length}</p>
             <p className="whitelist-counter">
-              <span className="whitelist-badge">★</span> Whitelisted: {state.whitelistedResults.length}
+              <span className="whitelist-badge">★</span> Whitelist: {state.whitelistedResults.length}
             </p>
           </div>
 
           {state.percentage === 100 && (
             <div className="sidebar-summary">
-              <h4>Scan Summary</h4>
+              <h4>Ringkasan Pemindaian</h4>
               <div className="summary-grid">
                 <div className="summary-item">
-                  <span>Non-Followers</span>
+                  <span>Tidak Follow Balik</span>
                   <strong>{state.results.filter(u => !u.follows_viewer).length}</strong>
                 </div>
                 <div className="summary-item">
-                  <span>Verified</span>
+                  <span>Terverifikasi</span>
                   <strong>{state.results.filter(u => u.is_verified).length}</strong>
                 </div>
                 <div className="summary-item">
-                  <span>Private</span>
+                  <span>Privat</span>
                   <strong>{state.results.filter(u => u.is_private).length}</strong>
                 </div>
               </div>
@@ -170,7 +181,7 @@ export const Searching = ({
               className="button-control button-pause"
               onClick={pauseScan}
             >
-              {scanningPaused ? "Resume" : "Pause"}
+              {scanningPaused ? "Lanjutkan" : "Jeda"}
             </button>
             <div className="sidebar-pagination">
               <div className="pagination-controls">
@@ -206,20 +217,21 @@ export const Searching = ({
           </div>
         </div>
         <div className="unfollow-actions">
+          {/* Berhenti mengikuti semua user yang sedang ditampilkan (sesuai tab + filter + pencarian). */}
           <button
             className="unfollow"
             disabled={state.percentage < 100 || usersForDisplay.length === 0}
             onClick={() => {
-              const tabLabel = state.currentTab === "whitelisted" ? "WHITELISTED" : "NON-WHITELISTED";
-              if (!confirm(`Unfollow ALL displayed users in ${tabLabel} tab (${usersForDisplay.length})?`)) {
+              const tabLabel = state.currentTab === "whitelisted" ? "WHITELIST" : "BUKAN WHITELIST";
+              if (!confirm(`Yakin ingin berhenti mengikuti SEMUA user yang ditampilkan di tab ${tabLabel} (${usersForDisplay.length} user)?`)) {
                 return;
               }
               if (state.currentTab === "whitelisted") {
-                if (!confirm("WARNING: You are on the WHITELISTED tab. This will unfollow users you have whitelisted. Continue?")) {
+                if (!confirm("PERINGATAN: Kamu sedang berada di tab WHITELIST. Ini akan berhenti mengikuti user yang kamu whitelist. Lanjutkan?")) {
                   return;
                 }
               }
-              // TODO TEMP until types are properly fixed
+              // TODO: sementara sampai typing State dirapikan
               // @ts-ignore
               setState(prevState => {
                 if (prevState.status !== "scanning") {
@@ -233,7 +245,7 @@ export const Searching = ({
                   prevState.filter,
                 );
                 if (allDisplayedUsers.length === 0) {
-                  alert("No users to unfollow with current filters");
+                  alert("Tidak ada user untuk berhenti diikuti dengan filter saat ini.");
                   return prevState;
                 }
                 const newState: State = {
@@ -251,22 +263,23 @@ export const Searching = ({
               });
             }}
           >
-            UNFOLLOW ALL ({usersForDisplay.length})
+            BERHENTI MENGIKUTI SEMUA ({usersForDisplay.length})
           </button>
+          {/* Berhenti mengikuti hanya user yang kamu centang (selectedResults). */}
           <button
             className="unfollow"
             onClick={() => {
-              if (!confirm("Are you sure?")) {
+              if (!confirm("Yakin ingin mulai berhenti mengikuti?")) {
                 return;
               }
-              //TODO TEMP until types are properly fixed
+              // TODO: sementara sampai typing State dirapikan
               // @ts-ignore
               setState(prevState => {
                 if (prevState.status !== "scanning") {
                   return prevState;
                 }
                 if (prevState.selectedResults.length === 0) {
-                  alert("Must select at least a single user to unfollow");
+                  alert("Pilih minimal 1 user untuk berhenti diikuti.");
                   return prevState;
                 }
                 const newState: State = {
@@ -283,7 +296,7 @@ export const Searching = ({
               });
             }}
           >
-            UNFOLLOW ({state.selectedResults.length})
+            BERHENTI MENGIKUTI DIPILIH ({state.selectedResults.length})
           </button>
         </div>
       </aside>
@@ -302,7 +315,7 @@ export const Searching = ({
               });
             }}
           >
-            Non-Whitelisted
+            Bukan Whitelist
           </div>
           <div
             className={`tab ${state.currentTab === "whitelisted" ? "tab-active" : ""}`}
@@ -317,7 +330,7 @@ export const Searching = ({
               });
             }}
           >
-            Whitelisted
+            Whitelist
           </div>
         </nav>
         {getCurrentPageUnfollowers(usersForDisplay, state.page).map(user => {
@@ -330,7 +343,7 @@ export const Searching = ({
                   <div
                     className="avatar-container"
                     onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-                      // Prevent selecting result when trying to add to whitelist.
+                      // Cegah item terpilih saat user berniat menambah/menghapus whitelist via klik avatar.
                       e.preventDefault();
                       e.stopPropagation();
                       let whitelistedResults: readonly UserNode[] = [];
@@ -385,11 +398,12 @@ export const Searching = ({
                   {user.is_verified && <div className="verified-badge">✔</div>}
                   {user.is_private && (
                     <div className="flex justify-center w-100">
-                      <span className="private-indicator">Private</span>
+                      <span className="private-indicator">Privat</span>
                     </div>
                   )}
                 </div>
                 <div className="flex align-center gap-small">
+                  {/* Tombol bintang: tambah/hapus user ke whitelist. */}
                   <button
                     className={`whitelist-star-button ${state.currentTab === "whitelisted" ? "active" : ""}`}
                     onClick={(e) => {
@@ -397,10 +411,10 @@ export const Searching = ({
                       e.stopPropagation();
                       let whitelistedResults: readonly UserNode[] = [];
                       if (state.whitelistedResults.some(r => r.id === user.id)) {
-                        // Remove from whitelist
+                        // Hapus dari whitelist
                         whitelistedResults = state.whitelistedResults.filter(r => r.id !== user.id);
                       } else {
-                        // Add to whitelist
+                        // Tambahkan ke whitelist
                         whitelistedResults = [...state.whitelistedResults, user];
                       }
                       
@@ -410,10 +424,11 @@ export const Searching = ({
                       );
                       setState({ ...state, whitelistedResults });
                     }}
-                    title={state.whitelistedResults.some(r => r.id === user.id) ? "Remove from whitelist" : "Add to whitelist"}
+                    title={state.whitelistedResults.some(r => r.id === user.id) ? "Hapus dari whitelist" : "Tambahkan ke whitelist"}
                   >
                     ★
                   </button>
+                  {/* Checkbox untuk memasukkan user ke antrian berhenti mengikuti. */}
                   <input
                     className="account-checkbox"
                     type="checkbox"

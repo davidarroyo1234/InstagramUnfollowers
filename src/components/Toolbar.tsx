@@ -31,10 +31,12 @@ export const Toolbar = ({
   onWhitelistUpdate,
 }: ToolBarProps) => {
 
+  // Menu pengaturan (timings + whitelist). Dibuka hanya saat status masih "initial".
   const [setingMenu, setSettingMenu] = useState(false);
 
   return (
     <header className="app-header">
+      {/* Progress bar atas: muncul saat proses scan/berhenti mengikuti berjalan. */}
       {isActiveProcess && (
         <div 
           className="progressbar" 
@@ -42,16 +44,17 @@ export const Toolbar = ({
         />
       )}
       <div className="app-header-content">
+        {/* Logo + judul. Klik untuk reset UI (kalau proses tidak sedang berjalan). */}
         <div
           className="logo"
           onClick={() => {
             if (isActiveProcess) {
-              // Avoid resetting state while active process.
+              // Hindari reset state saat proses masih berjalan.
               return;
             }
             switch (state.status) {
               case "initial":
-                if (confirm("Go back to Instagram?")) {
+                if (confirm("Kembali ke Instagram?")) {
                   location.reload();
                 }
                 break;
@@ -67,9 +70,10 @@ export const Toolbar = ({
           <Logo />
           <div className="logo-text">
             <span>Instagram</span>
-            <span>Unfollowers</span>
+            <span>Tidak Follow Balik</span>
           </div>
         </div>
+        {/* Salin daftar username (sesuai filter/tab/search) ke clipboard. */}
         <button
           className="copy-list"
           onClick={() => {
@@ -93,11 +97,12 @@ export const Toolbar = ({
           }}
           disabled={state.status === "initial"}
         >
-          Copy List
+          Salin Daftar
         </button>
+        {/* Ekspor hasil yang tampil ke file JSON/CSV. */}
         <button
           className="copy-list"
-          title="Export to JSON"
+          title="Ekspor ke JSON"
           onClick={() => {
             if (state.status === "scanning") {
               exportToJSON(getUsersForDisplay(state.results, state.whitelistedResults, state.currentTab, state.searchTerm, state.filter));
@@ -109,7 +114,7 @@ export const Toolbar = ({
         </button>
         <button
           className="copy-list"
-          title="Export to CSV"
+          title="Ekspor ke CSV"
           onClick={() => {
             if (state.status === "scanning") {
               exportToCSV(getUsersForDisplay(state.results, state.whitelistedResults, state.currentTab, state.searchTerm, state.filter));
@@ -120,12 +125,13 @@ export const Toolbar = ({
           CSV
         </button>
         {
+          // Ikon settings hanya muncul di layar awal.
           state.status === "initial" && <SettingIcon onClickLogo={() => { setSettingMenu(true); }} />
         }
         <input
           type="text"
           className="search-bar"
-          placeholder="Search..."
+          placeholder="Cari..."
           disabled={state.status === "initial"}
           value={state.status === "initial" ? "" : state.searchTerm}
           onChange={e => {
@@ -149,32 +155,29 @@ export const Toolbar = ({
         />
         {state.status === "scanning" && (
           <input
-            title="Select all on this page"
+            title="Pilih semua di halaman ini"
             type="checkbox"
-            // Avoid allowing to select all before scan completed to avoid confusion
-            // regarding what exactly is selected while scanning in progress.
+            // Jangan izinkan "pilih semua" sebelum scan selesai, agar tidak membingungkan
+            // (karena daftar masih bertambah saat proses scan berjalan).
             disabled={state.percentage < 100}
             checked={
               (() => {
                 const displayed = getUsersForDisplay(state.results, state.whitelistedResults, state.currentTab, state.searchTerm, state.filter);
                 const pageUsers = getCurrentPageUnfollowers(displayed, state.page);
-                // Fix: Check if pageUsers is not empty and all are selected
-                // Previous logic didn't account for empty page or partial selections correctly
+                // Pastikan halaman tidak kosong dan semua user di halaman ini memang terpilih.
                 return pageUsers.length > 0 && pageUsers.every(u => state.selectedResults.some(s => s.id === u.id));
               })()
             }
             className="toggle-all-checkbox"
-            // Fix: Changed from onClick to onChange for proper React checkbox handling
-            // onClick doesn't trigger reliably for controlled checkboxes
+            // Gunakan onChange untuk checkbox controlled React.
             onChange={toggleCurrentePageUsers}
           />
         )}
         {state.status === "scanning" && (
           <input
-            title="Select all"
+            title="Pilih semua"
             type="checkbox"
-            // Avoid allowing to select all before scan completed to avoid confusion
-            // regarding what exactly is selected while scanning in progress.
+            // Jangan izinkan "pilih semua" sebelum scan selesai, agar tidak membingungkan.
             disabled={state.percentage < 100}
             checked={
               state.selectedResults.length ===
@@ -187,13 +190,13 @@ export const Toolbar = ({
               ).length
             }
             className="toggle-all-checkbox"
-            // Fix: Changed from onClick to onChange for proper React checkbox handling
-            // onClick doesn't trigger reliably for controlled checkboxes
+            // Gunakan onChange untuk checkbox controlled React.
             onChange={toggleAllUsers}
           />
         )}
       </div>
       {(setingMenu) &&
+        // Komponen settings: mengatur delay + whitelist (disimpan di localStorage).
         <SettingMenu
           setSettingState={setSettingMenu}
           currentTimings={currentTimings}

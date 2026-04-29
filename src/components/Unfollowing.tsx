@@ -8,6 +8,13 @@ interface UnfollowingProps {
 
 }
 
+/**
+ * Halaman "Unfollowing" (setelah user menekan tombol berhenti mengikuti).
+ *
+ * Fitur utama:
+ * - Menampilkan log hasil berhenti mengikuti (berhasil/gagal).
+ * - Filter log (tampilkan yang berhasil/gagal).
+ */
 export const Unfollowing = (
   {
     state,
@@ -30,7 +37,7 @@ export const Unfollowing = (
               checked={state.filter.showSucceeded}
               onChange={handleUnfollowFilter}
             />
-            &nbsp;Succeeded
+            &nbsp;Berhasil
           </label>
           <label className="badge m-small">
             <input
@@ -39,7 +46,7 @@ export const Unfollowing = (
               checked={state.filter.showFailed}
               onChange={handleUnfollowFilter}
             />
-            &nbsp;Failed
+            &nbsp;Gagal
           </label>
         </menu>
       </aside>
@@ -47,7 +54,7 @@ export const Unfollowing = (
         {state.unfollowLog.length === state.selectedResults.length && (
           <>
             <hr />
-            <div className="fs-large p-medium clr-green">All DONE!</div>
+            <div className="fs-large p-medium clr-green">Selesai Semua!</div>
             <hr />
           </>
         )}
@@ -55,7 +62,7 @@ export const Unfollowing = (
           (entry, index) =>
             entry.unfollowedSuccessfully ? (
               <div className="p-medium" key={entry.user.id}>
-                Unfollowed
+                Berhasil berhenti mengikuti
                 <a
                   className="clr-inherit"
                   target="_blank"
@@ -70,7 +77,7 @@ export const Unfollowing = (
               </div>
             ) : (
               <div className="p-medium clr-red" key={entry.user.id}>
-                Failed to unfollow {entry.user.username} [{index + 1}/
+                Gagal berhenti mengikuti {entry.user.username} [{index + 1}/
                 {state.selectedResults.length}]
               </div>
             ),

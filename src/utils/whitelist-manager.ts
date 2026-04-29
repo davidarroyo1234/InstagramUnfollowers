@@ -3,11 +3,11 @@ import { Timings } from "../model/timings";
 import { WHITELISTED_RESULTS_STORAGE_KEY, TIMINGS_STORAGE_KEY } from "../constants/constants";
 
 /**
- * Export whitelist to a JSON file
+ * Ekspor whitelist ke file JSON.
  */
 export const exportWhitelist = (whitelistedUsers: readonly UserNode[]): void => {
   if (whitelistedUsers.length === 0) {
-    alert("No users in whitelist to export");
+    alert("Tidak ada user di whitelist untuk diekspor");
     return;
   }
 
@@ -26,7 +26,7 @@ export const exportWhitelist = (whitelistedUsers: readonly UserNode[]): void => 
 };
 
 /**
- * Import whitelist from a JSON file
+ * Impor whitelist dari file JSON.
  */
 export const importWhitelist = (
   file: File,
@@ -40,13 +40,13 @@ export const importWhitelist = (
       const content = e.target?.result as string;
       const importedUsers = JSON.parse(content) as UserNode[];
       
-      // Validate the imported data
+      // Validasi data hasil impor
       if (!Array.isArray(importedUsers)) {
-        onError("Invalid file format: Expected an array of users");
+        onError("Format file tidak valid: seharusnya berupa array user");
         return;
       }
       
-      // Basic validation of user structure
+      // Validasi struktur dasar user
       const isValid = importedUsers.every(user => 
         user.id && 
         user.username && 
@@ -55,28 +55,28 @@ export const importWhitelist = (
       );
       
       if (!isValid) {
-        onError("Invalid file format: Users missing required fields (id, username)");
+        onError("Format file tidak valid: ada user yang tidak punya field wajib (id, username)");
         return;
       }
       
       onSuccess(importedUsers);
     } catch (error) {
-      onError(`Failed to parse JSON file: ${error instanceof Error ? error.message : "Unknown error"}`);
+      onError(`Gagal membaca JSON: ${error instanceof Error ? error.message : "Error tidak diketahui"}`);
     }
   };
   
   reader.onerror = () => {
-    onError("Failed to read file");
+    onError("Gagal membaca file");
   };
   
   reader.readAsText(file);
 };
 
 /**
- * Clear all whitelist data
+ * Hapus semua data whitelist.
  */
 export const clearWhitelist = (): void => {
-  if (!confirm("Are you sure you want to clear the entire whitelist? This action cannot be undone.")) {
+  if (!confirm("Yakin ingin mengosongkan whitelist? Aksi ini tidak bisa dibatalkan.")) {
     return;
   }
   
@@ -84,7 +84,7 @@ export const clearWhitelist = (): void => {
 };
 
 /**
- * Load whitelist from localStorage
+ * Muat whitelist dari localStorage.
  */
 export const loadWhitelist = (): readonly UserNode[] => {
   const whitelistedResultsFromStorage = localStorage.getItem(WHITELISTED_RESULTS_STORAGE_KEY);
@@ -92,14 +92,14 @@ export const loadWhitelist = (): readonly UserNode[] => {
 };
 
 /**
- * Save whitelist to localStorage
+ * Simpan whitelist ke localStorage.
  */
 export const saveWhitelist = (whitelistedUsers: readonly UserNode[]): void => {
   localStorage.setItem(WHITELISTED_RESULTS_STORAGE_KEY, JSON.stringify(whitelistedUsers));
 };
 
 /**
- * Merge imported whitelist with existing whitelist (avoiding duplicates)
+ * Gabungkan whitelist hasil impor dengan whitelist yang sudah ada (tanpa duplikat).
  */
 export const mergeWhitelists = (
   existing: readonly UserNode[],
@@ -119,7 +119,7 @@ const isTimings = (value: unknown): value is Timings => {
 };
 
 /**
- * Load timings from localStorage
+ * Muat timings dari localStorage.
  */
 export const loadTimings = (): Timings | null => {
   const timingsFromStorage = localStorage.getItem(TIMINGS_STORAGE_KEY);
@@ -137,7 +137,7 @@ export const loadTimings = (): Timings | null => {
 };
 
 /**
- * Save timings to localStorage
+ * Simpan timings ke localStorage.
  */
 export const saveTimings = (timings: Timings): void => {
   localStorage.setItem(TIMINGS_STORAGE_KEY, JSON.stringify(timings));

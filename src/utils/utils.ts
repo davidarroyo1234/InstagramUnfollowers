@@ -6,6 +6,7 @@ import { UnfollowLogEntry } from "../model/unfollow-log-entry";
 import { UnfollowFilter } from "../model/unfollow-filter";
 
 export async function copyListToClipboard(nonFollowersList: readonly UserNode[]): Promise<void> {
+  // Salin daftar username (urut A-Z) ke clipboard agar mudah ditempel ke tempat lain.
   const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
 
   let output = '';
@@ -14,10 +15,11 @@ export async function copyListToClipboard(nonFollowersList: readonly UserNode[])
   });
 
   await navigator.clipboard.writeText(output);
-  alert('List copied to clipboard!');
+  alert('Daftar berhasil disalin ke clipboard!');
 }
 
 export function exportToJSON(users: readonly UserNode[]) {
+  // Ekspor daftar user yang sedang ditampilkan ke file JSON.
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(users, null, 2));
   const downloadAnchorNode = document.createElement('a');
   downloadAnchorNode.setAttribute("href",     dataStr);
@@ -28,6 +30,7 @@ export function exportToJSON(users: readonly UserNode[]) {
 }
 
 export function exportToCSV(users: readonly UserNode[]) {
+  // Ekspor daftar user yang sedang ditampilkan ke file CSV (bisa dibuka di Excel/Google Sheets).
   const headers = ['id', 'username', 'full_name', 'is_verified', 'is_private', 'profile_pic_url'];
   const rows = users.map(user => [
     user.id,
@@ -134,15 +137,16 @@ export function getUnfollowLogForDisplay(log: readonly UnfollowLogEntry[], searc
 }
 
 /**
- * When writing a switch-case with a finite number of cases, use this function in the
- * `default` clause of switch-case statements for exhaustive checking. This will make
- * TS complain until ALL cases are handled. For example, if we have a switch-case
- * in-which we evaluate every possible status of a component's state, if we add this
- * to the default clause and then add a new status to the state type, TS will complain
- * and force us to handle it as well, thus avoiding forgetting it.
+ * Jika kamu membuat switch-case dengan jumlah case yang terbatas, gunakan fungsi ini di
+ * clause `default` untuk memastikan semua case ditangani (exhaustive checking).
+ *
+ * Manfaatnya:
+ * - Saat kamu menambah nilai baru di tipe (mis. status baru), TypeScript akan memaksa
+ *   kamu untuk menambah case-nya juga.
+ * - Ini mencegah bug karena ada case yang lupa ditangani.
  */
 export function assertUnreachable(_value: never): never {
-  throw new Error('Statement should be unreachable');
+  throw new Error('Kode seharusnya tidak pernah mencapai bagian ini');
 }
 
 export function sleep(ms: number): Promise<any> {
@@ -152,6 +156,7 @@ export function sleep(ms: number): Promise<any> {
 }
 
 export function getCookie(name: string): string | null {
+  // Baca nilai cookie dari `document.cookie` (format: "a=1; b=2; ...").
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length !== 2) {
@@ -161,14 +166,17 @@ export function getCookie(name: string): string | null {
 }
 
 export function urlGenerator(nextCode?: string): string {
+  // Endpoint GraphQL Instagram yang dipakai untuk mengambil daftar akun yang kamu follow.
+  // Catatan: `query_hash` bisa berubah sewaktu-waktu dari pihak Instagram, jadi tool ini bisa tiba-tiba tidak bekerja.
   const ds_user_id = getCookie('ds_user_id');
   if (nextCode === undefined) {
-    // First url
+    // URL pertama (fetch awal).
     return `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24"}`;
   }
   return `https://www.instagram.com/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables={"id":"${ds_user_id}","include_reel":"true","fetch_mutual":"false","first":"24","after":"${nextCode}"}`;
 }
 
 export function unfollowUserUrlGenerator(idToUnfollow: string): string {
+  // Endpoint web untuk berhenti mengikuti user tertentu.
   return `https://www.instagram.com/web/friendships/${idToUnfollow}/unfollow/`;
 }

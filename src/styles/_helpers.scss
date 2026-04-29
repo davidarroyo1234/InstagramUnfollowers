@@ -161,7 +161,7 @@
   overflow-y: auto;
   border-radius: 12px;
 
-  // Scrollbar styling
+  // Styling scrollbar
   &::-webkit-scrollbar {
     width: 8px;
   }
@@ -180,7 +180,7 @@
   }
 }
 
-// Settings Module
+// Modul pengaturan
 .settings-module {
   display: flex;
   flex-direction: column;
@@ -221,13 +221,13 @@
   }
 }
 
-// Whitelist Module
+// Modul whitelist
 .whitelist-module {
   display: flex;
   flex-direction: column;
 }
 
-// Module Divider
+// Garis pemisah modul
 .module-divider {
   margin: 1.2rem 0;
   border: none;
@@ -235,7 +235,7 @@
   opacity: 1;
 }
 
-// Row styling for settings inputs
+// Styling baris untuk input pengaturan
 .row {
   display: flex;
   flex-wrap: wrap;
@@ -444,7 +444,6 @@
     font-size: 0.88rem !important;
   }
 }
-
 
 
 

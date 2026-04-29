@@ -7,18 +7,30 @@ interface WhitelistManagerProps {
   onWhitelistUpdate: (users: readonly UserNode[]) => void;
 }
 
+/**
+ * Modul untuk mengelola whitelist (daftar akun yang "dilindungi").
+ *
+ * Konsep whitelist di tool ini:
+ * - Kalau sebuah akun ada di whitelist, kamu bisa memisahkannya ke tab "Whitelist".
+ * - Tujuannya agar akun penting (teman/keluarga/klien, dll) tidak ikut berhenti kamu ikuti tanpa sengaja.
+ * - Data whitelist disimpan di `localStorage`, jadi tetap ada walau refresh browser.
+ */
 export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate }: WhitelistManagerProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Mode import:
+  // - "merge": gabungkan dengan whitelist saat ini (duplikasi di-skip)
+  // - "replace": timpa whitelist dengan isi file
   const [importMode, setImportMode] = useState<"replace" | "merge">("merge");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const handleExport = () => {
     exportWhitelist(whitelistedUsers);
-    setMessage({ type: "success", text: `Exported ${whitelistedUsers.length} users successfully` });
+    setMessage({ type: "success", text: `Berhasil mengekspor ${whitelistedUsers.length} user` });
     setTimeout(() => setMessage(null), 3000);
   };
 
   const handleImportClick = () => {
+    // Trigger file picker (input type="file" disembunyikan).
     fileInputRef.current?.click();
   };
 
@@ -26,6 +38,7 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate }: Whitel
     const file = event.currentTarget.files?.[0];
     if (!file) return;
 
+    // Baca dan validasi file JSON, lalu update whitelist sesuai mode import.
     importWhitelist(
       file,
       (importedUsers) => {
@@ -36,13 +49,13 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate }: Whitel
           const newUsersCount = finalUsers.length - whitelistedUsers.length;
           setMessage({ 
             type: "success", 
-            text: `Merged successfully! Added ${newUsersCount} new users (${importedUsers.length} imported, ${importedUsers.length - newUsersCount} duplicates skipped)` 
+            text: `Berhasil digabung! Menambahkan ${newUsersCount} user baru (${importedUsers.length} diimpor, ${importedUsers.length - newUsersCount} duplikat dilewati)` 
           });
         } else {
           finalUsers = importedUsers;
           setMessage({ 
             type: "success", 
-            text: `Replaced whitelist with ${importedUsers.length} users` 
+            text: `Whitelist diganti dengan ${importedUsers.length} user` 
           });
         }
         
@@ -55,23 +68,23 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate }: Whitel
       }
     );
 
-    // Reset file input
+    // Reset input file (agar bisa memilih file yang sama lagi kalau perlu)
     event.currentTarget.value = "";
   };
 
   const handleClear = () => {
     clearWhitelist();
     onWhitelistUpdate([]);
-    setMessage({ type: "success", text: "Whitelist cleared successfully" });
+    setMessage({ type: "success", text: "Whitelist berhasil dikosongkan" });
     setTimeout(() => setMessage(null), 3000);
   };
 
   return (
     <div className="whitelist-manager">
       <div className="whitelist-header">
-        <h4>Whitelist Management</h4>
+        <h4>Kelola Whitelist</h4>
         <span className="whitelist-count">
-          {whitelistedUsers.length} {whitelistedUsers.length === 1 ? "user" : "users"}
+          {whitelistedUsers.length} {whitelistedUsers.length === 1 ? "user" : "user"}
         </span>
       </div>
 
@@ -86,9 +99,9 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate }: Whitel
           className="btn btn-export" 
           onClick={handleExport}
           disabled={whitelistedUsers.length === 0}
-          title={whitelistedUsers.length === 0 ? "No users to export" : "Export whitelist to JSON file"}
+          title={whitelistedUsers.length === 0 ? "Tidak ada user untuk diekspor" : "Ekspor whitelist ke file JSON"}
         >
-          📥 Export Whitelist
+          📥 Ekspor Whitelist
         </button>
 
         <div className="import-section">
@@ -101,7 +114,7 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate }: Whitel
                 checked={importMode === "merge"}
                 onChange={() => setImportMode("merge")}
               />
-              Merge (add to existing)
+              Gabungkan (tambah ke yang sudah ada)
             </label>
             <label>
               <input
@@ -111,16 +124,16 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate }: Whitel
                 checked={importMode === "replace"}
                 onChange={() => setImportMode("replace")}
               />
-              Replace (overwrite)
+              Ganti (timpa)
             </label>
           </div>
 
           <button 
             className="btn btn-import" 
             onClick={handleImportClick}
-            title="Import whitelist from JSON file"
+            title="Impor whitelist dari file JSON"
           >
-            📤 Import Whitelist
+            📤 Impor Whitelist
           </button>
           <input
             ref={fileInputRef}
@@ -135,16 +148,16 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate }: Whitel
           className="btn btn-clear" 
           onClick={handleClear}
           disabled={whitelistedUsers.length === 0}
-          title={whitelistedUsers.length === 0 ? "Whitelist is empty" : "Clear all whitelist data"}
+          title={whitelistedUsers.length === 0 ? "Whitelist kosong" : "Hapus semua data whitelist"}
         >
-          🗑️ Clear Whitelist
+          🗑️ Kosongkan Whitelist
         </button>
       </div>
 
       <div className="whitelist-info">
         <p className="info-text">
-          <strong>💡 Tip:</strong> Export your whitelist to save it as a backup. 
-          You can import it later to restore your saved users.
+          <strong>💡 Tips:</strong> Ekspor whitelist untuk menyimpan cadangan.
+          Nanti kamu bisa impor lagi untuk mengembalikan daftar user.
         </p>
       </div>
     </div>

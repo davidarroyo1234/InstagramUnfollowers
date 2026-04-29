@@ -9,7 +9,7 @@ export const SettingIcon: FC<SettingIconProps> = (
     onClickLogo,
   },
 ) => {
-  //THANKS TO https://www.svgrepo.com/svg/13688/settings for the SVG :)
+  // Terima kasih ke https://www.svgrepo.com/svg/13688/settings untuk SVG ini :)
   return (
     <svg
       style={{ cursor: "pointer" }}
