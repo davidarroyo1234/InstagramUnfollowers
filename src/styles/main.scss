@@ -1207,6 +1207,15 @@ html .iu .drawer-header {
         font-size: 1.05rem !important;
         box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.35);
     }
+
+    // Keep toasts clear of the fixed unfollow bar.
+    .toast {
+        left: 0.7rem;
+        right: 0.7rem;
+        bottom: 5rem;
+        width: auto;
+        max-width: none;
+    }
 }
 .gap-small { gap: 4px; }
 .button-secondary { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #efefef; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; text-align: left; transition: all 0.2s ease; }
