@@ -41,6 +41,9 @@ function App() {
     show: false,
   });
 
+  // Controls the off-canvas controls drawer used on mobile / narrow screens.
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const [timings, setTimings] = useState<Timings>(() => {
     const storedTimings = loadTimings();
     return storedTimings ?? {
@@ -55,6 +58,19 @@ function App() {
   useEffect(() => {
     saveTimings(timings);
   }, [timings]);
+
+  // Close the mobile drawer whenever the app moves to a different status.
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [state.status]);
+
+  // Prevent the page behind the drawer from scrolling while it is open.
+  useEffect(() => {
+    document.body.style.overflow = isSidebarOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isSidebarOpen]);
 
 
   let isActiveProcess: boolean;
@@ -408,6 +424,8 @@ function App() {
         scanningPaused={scanningPaused}
         UserCheckIcon={UserCheckIcon}
         UserUncheckIcon={UserUncheckIcon}
+        isSidebarOpen={isSidebarOpen}
+        onCloseSidebar={() => setIsSidebarOpen(false)}
       ></Searching>;
       break;
     }
@@ -416,6 +434,8 @@ function App() {
       markup = <Unfollowing
         state={state}
         handleUnfollowFilter={handleUnfollowFilter}
+        isSidebarOpen={isSidebarOpen}
+        onCloseSidebar={() => setIsSidebarOpen(false)}
       ></Unfollowing>;
       break;
 
@@ -436,6 +456,7 @@ function App() {
           currentTimings={timings}
           whitelistedUsers={state.status === "scanning" ? state.whitelistedResults : loadWhitelist()}
           onWhitelistUpdate={onWhitelistUpdate}
+          onToggleSidebar={() => setIsSidebarOpen(open => !open)}
         ></Toolbar>
 
         {markup}

@@ -52,11 +52,27 @@ This version utilizes the Instagram API for better performance.
 
 ## 📱 Mobile Usage
 
+### 🤖 Android
+
 For Android users who want to use it on mobile:
 
 1. Download the latest version of [Eruda Android Browser](https://github.com/liriliri/eruda-android/releases/)
 2. Open Instagram web through the Eruda browser
 3. Follow the same steps as desktop (the console will be automatically available when clicking the eruda icon)
+
+### 🍏 iPhone (Mac + iCloud bookmarklet)
+
+iPhone Safari has no developer console and won't let you create a JavaScript bookmarklet on its own. The workaround is to create the bookmarklet on a Mac and let iCloud sync it to your iPhone:
+
+1. On your **Mac**, open **Safari** and visit the [InstagramUnfollowers Tool](https://davidarroyo1234.github.io/InstagramUnfollowers/)
+2. Show the Favorites bar if it's hidden: menu bar → `View` → `Show Favorites Bar`
+3. Drag the **"Bookmarklet"** button from the page onto your Favorites bar to save it as a bookmark
+4. Make sure **iCloud Safari sync** is enabled on both devices so the bookmark syncs automatically:
+   - Mac: `System Settings` → Apple ID → `iCloud` → enable **Safari**
+   - iPhone: `Settings` → tap your name → `iCloud` → enable **Safari**
+5. On your **iPhone**, open **Safari** and log in to the Instagram website
+6. Tap the **Bookmarks** icon (open book), open your **Favorites**, and tap the synced **Bookmarklet**
+7. The tool launches right on the Instagram page — no console needed
 
 ## ⚡ Performance Notes
 

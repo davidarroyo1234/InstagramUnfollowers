@@ -14,6 +14,8 @@ export interface SearchingProps {
   toggleUser: (checked: boolean, user: UserNode) => void;
   UserCheckIcon: React.FC;
   UserUncheckIcon: React.FC;
+  isSidebarOpen: boolean;
+  onCloseSidebar: () => void;
 }
 
 export const Searching = ({
@@ -25,6 +27,8 @@ export const Searching = ({
   toggleUser,
   UserCheckIcon,
   UserUncheckIcon,
+  isSidebarOpen,
+  onCloseSidebar,
 }: SearchingProps) => {
   if (state.status !== "scanning") {
     return null;
@@ -44,9 +48,51 @@ export const Searching = ({
     return <div className="alphabet-character">{currentLetter}</div>;
   };
 
+  const startUnfollow = () => {
+    if (!confirm("Are you sure?")) {
+      return;
+    }
+    //TODO TEMP until types are properly fixed
+    // @ts-ignore
+    setState(prevState => {
+      if (prevState.status !== "scanning") {
+        return prevState;
+      }
+      if (prevState.selectedResults.length === 0) {
+        alert("Must select at least a single user to unfollow");
+        return prevState;
+      }
+      const newState: State = {
+        ...prevState,
+        status: "unfollowing",
+        percentage: 0,
+        unfollowLog: [],
+        filter: {
+          showSucceeded: true,
+          showFailed: true,
+        },
+      };
+      return newState;
+    });
+  };
+
   return (
     <section className="flex">
-      <aside className="app-sidebar">
+      <div
+        className={`sidebar-backdrop${isSidebarOpen ? " is-open" : ""}`}
+        onClick={onCloseSidebar}
+      />
+      <aside className={`app-sidebar${isSidebarOpen ? " is-open" : ""}`}>
+        <div className="drawer-header">
+          <span>Filters &amp; Controls</span>
+          <button
+            className="drawer-close"
+            onClick={onCloseSidebar}
+            aria-label="Close controls"
+          >
+            ✕
+          </button>
+        </div>
         <div className="sidebar-content">
           <menu className="sidebar-filters-grid">
             <p>Filter</p>
@@ -205,36 +251,7 @@ export const Searching = ({
             </div>
           </div>
         </div>
-        <button
-          className="unfollow"
-          onClick={() => {
-            if (!confirm("Are you sure?")) {
-              return;
-            }
-            //TODO TEMP until types are properly fixed
-            // @ts-ignore
-            setState(prevState => {
-              if (prevState.status !== "scanning") {
-                return prevState;
-              }
-              if (prevState.selectedResults.length === 0) {
-                alert("Must select at least a single user to unfollow");
-                return prevState;
-              }
-              const newState: State = {
-                ...prevState,
-                status: "unfollowing",
-                percentage: 0,
-                unfollowLog: [],
-                filter: {
-                  showSucceeded: true,
-                  showFailed: true,
-                },
-              };
-              return newState;
-            });
-          }}
-        >
+        <button className="unfollow unfollow-desktop" onClick={startUnfollow}>
           UNFOLLOW ({state.selectedResults.length})
         </button>
       </aside>
@@ -377,6 +394,9 @@ export const Searching = ({
           );
         })}
       </article>
+      <button className="unfollow unfollow-mobile" onClick={startUnfollow}>
+        UNFOLLOW ({state.selectedResults.length})
+      </button>
     </section>
   );
 };

@@ -17,6 +17,7 @@ interface ToolBarProps {
   setTimings: (timings: Timings) => void;
   whitelistedUsers: readonly UserNode[];
   onWhitelistUpdate: (users: readonly UserNode[]) => void;
+  onToggleSidebar: () => void;
 }
 
 export const Toolbar = ({
@@ -29,6 +30,7 @@ export const Toolbar = ({
   setTimings,
   whitelistedUsers,
   onWhitelistUpdate,
+  onToggleSidebar,
 }: ToolBarProps) => {
 
   const [setingMenu, setSettingMenu] = useState(false);
@@ -42,6 +44,20 @@ export const Toolbar = ({
         />
       )}
       <div className="app-header-content">
+        {state.status !== "initial" && (
+          <button
+            className="sidebar-toggle"
+            onClick={onToggleSidebar}
+            aria-label="Toggle filters and controls"
+            title="Filters & controls"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="2.4" rx="1.2" />
+              <rect x="3" y="10.8" width="18" height="2.4" rx="1.2" />
+              <rect x="3" y="16.6" width="18" height="2.4" rx="1.2" />
+            </svg>
+          </button>
+        )}
         <div
           className="logo"
           onClick={() => {
