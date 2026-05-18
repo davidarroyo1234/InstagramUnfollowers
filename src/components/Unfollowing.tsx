@@ -5,13 +5,16 @@ import { State } from "../model/state";
 interface UnfollowingProps {
   state: State;
   handleUnfollowFilter: (e: React.ChangeEvent<HTMLInputElement>) => void;
-
+  isSidebarOpen: boolean;
+  onCloseSidebar: () => void;
 }
 
 export const Unfollowing = (
   {
     state,
     handleUnfollowFilter,
+    isSidebarOpen,
+    onCloseSidebar,
   }: UnfollowingProps) => {
 
   if (state.status !== "unfollowing") {
@@ -20,7 +23,21 @@ export const Unfollowing = (
 
   return (
     <section className="flex">
-      <aside className="app-sidebar">
+      <div
+        className={`sidebar-backdrop${isSidebarOpen ? " is-open" : ""}`}
+        onClick={onCloseSidebar}
+      />
+      <aside className={`app-sidebar${isSidebarOpen ? " is-open" : ""}`}>
+        <div className="drawer-header">
+          <span>Filters</span>
+          <button
+            className="drawer-close"
+            onClick={onCloseSidebar}
+            aria-label="Close filters"
+          >
+            ✕
+          </button>
+        </div>
         <menu className="flex column grow m-clear p-clear">
           <p>Filter</p>
           <label className="badge m-small">
