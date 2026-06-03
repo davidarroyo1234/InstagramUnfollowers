@@ -161,6 +161,18 @@ html {
                     justify-content: center;
                 }
             }
+
+            .sidebar-whitelist-action {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                margin: 0 0 0.8rem 0;
+                text-align: center;
+                background: rgba(224, 163, 58, 0.16);
+                border-color: rgba(224, 163, 58, 0.32);
+                color: #f5d38a;
+            }
         }
 
 

@@ -44,6 +44,42 @@ export const Searching = ({
     return <div className="alphabet-character">{currentLetter}</div>;
   };
 
+  const handleSelectedWhitelistAction = () => {
+    if (state.selectedResults.length === 0) {
+      return;
+    }
+
+    let whitelistedResults: readonly UserNode[] = [];
+
+    switch (state.currentTab) {
+      case "non_whitelisted": {
+        const existingIds = new Set(state.whitelistedResults.map(user => user.id));
+        const usersToAdd = state.selectedResults.filter(user => !existingIds.has(user.id));
+        whitelistedResults = [...state.whitelistedResults, ...usersToAdd];
+        break;
+      }
+
+      case "whitelisted": {
+        const selectedIds = new Set(state.selectedResults.map(user => user.id));
+        whitelistedResults = state.whitelistedResults.filter(user => !selectedIds.has(user.id));
+        break;
+      }
+
+      default:
+        assertUnreachable(state.currentTab);
+    }
+
+    localStorage.setItem(
+      WHITELISTED_RESULTS_STORAGE_KEY,
+      JSON.stringify(whitelistedResults),
+    );
+    setState({
+      ...state,
+      whitelistedResults,
+      selectedResults: [],
+    });
+  };
+
   return (
     <section className="workspace-layout">
       <aside className="app-sidebar">
@@ -142,6 +178,14 @@ export const Searching = ({
               Clear
             </button>
           </div>
+          {state.selectedResults.length > 0 && (
+            <button
+              className="button-secondary sidebar-whitelist-action"
+              onClick={handleSelectedWhitelistAction}
+            >
+              {state.currentTab === "non_whitelisted" ? "Whitelist" : "Unwhitelist"} Selected ({state.selectedResults.length})
+            </button>
+          )}
           <div className="sidebar-stats metric-stack">
             <p><span>Displayed</span><strong>{usersForDisplay.length}</strong></p>
             <p><span>Total scanned</span><strong>{state.results.length}</strong></p>
