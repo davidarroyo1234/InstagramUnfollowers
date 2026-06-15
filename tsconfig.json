@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "jsx": "react",
+        "strict": true,
+        "noImplicitAny": true,
+        "noEmitOnError": true,
+        "noUnusedParameters": true,
+        "noUnusedLocals": true,
+        "noImplicitReturns": true,
+        "allowUnreachableCode": false,
+        "forceConsistentCasingInFileNames": true,
+        "removeComments": false,
+        "esModuleInterop": true,
+        "sourceMap": false,
+        "baseUrl": "src/",
+        "target": "es5",
+        "outDir": "dist",
+        "lib": ["dom", "scripthost", "es2015"],
+        "paths": {
+            "react": ["../node_modules/preact/compat"],
+            "react-dom": ["../node_modules/preact/compat"]
+        }
+    },
+    "include": ["src/**/*"]
+}
