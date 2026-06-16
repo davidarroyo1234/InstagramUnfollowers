@@ -50,11 +50,13 @@ This version utilizes the Instagram API for better performance.
 
     <img src="./assets/settings.png" alt="Settings screen" />
 
-## 📭 Cancelar Solicitudes Pendientes
+## 📭 Manage Pending Follow Requests
 
-1. Exporta `pending_follow_requests.json` desde tu data export de Instagram (`connections/followers_and_following`)
-2. Arrastralo al área "Cancel pending requests" junto a RUN
-3. Escanea y selecciona cuáles cancelar / dejar de seguir
+1. Export `pending_follow_requests.json` from your Instagram data export (`connections/followers_and_following`)
+2. Drop it on the "Cancel pending requests" area next to RUN
+3. Scan and select which requests to manage
+
+    <img src="./assets/pending_requests.png" alt="Pending requests screen" /> 
 
 ## 📱 Mobile Usage
 
@@ -74,7 +76,7 @@ For Android users who want to use it on mobile:
 ## ✨ Features
 
 - 🔍 Scan and identify users who don't follow you back
-- 📭 Bulk-cancel pending follow requests from your Instagram data export
+- 📭 Manage pending follow requests from your Instagram data export
 - 🤍 Whitelist system to protect specific accounts from unfollowing
 - 💾 Export/Import whitelist functionality for backup and transfer
 - ⚙️ Customizable timing settings to avoid rate limits
