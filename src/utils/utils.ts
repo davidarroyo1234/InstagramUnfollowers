@@ -1,9 +1,10 @@
 import { UserNode } from "../model/user";
-import { UNFOLLOWERS_PER_PAGE, WITHOUT_PROFILE_PICTURE_URL_IDS } from "../constants/constants";
+import { IG_APP_ID, UNFOLLOWERS_PER_PAGE, WITHOUT_PROFILE_PICTURE_URL_IDS } from "../constants/constants";
 import { ScanningTab } from "../model/scanning-tab";
 import { ScanningFilter } from "../model/scanning-filter";
 import { UnfollowLogEntry } from "../model/unfollow-log-entry";
 import { UnfollowFilter } from "../model/unfollow-filter";
+import { LastPostInfo } from "../model/last-post";
 
 export async function copyListToClipboard(nonFollowersList: readonly UserNode[]): Promise<void> {
   const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
@@ -171,4 +172,50 @@ export function urlGenerator(nextCode?: string): string {
 
 export function unfollowUserUrlGenerator(idToUnfollow: string): string {
   return `https://www.instagram.com/web/friendships/${idToUnfollow}/unfollow/`;
+}
+
+export function profileInfoUrlGenerator(username: string): string {
+  return `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`;
+}
+
+/** Compact relative age of a post timestamp (seconds), e.g. "3d ago", "8mo ago". */
+export function formatPostAge(timestampSeconds: number): string {
+  const days = Math.floor((Date.now() - timestampSeconds * 1000) / 86_400_000);
+  if (days < 1) return "today";
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
+}
+
+interface MediaEdge { readonly node: { readonly shortcode: string; readonly taken_at_timestamp: number } }
+
+/**
+ * Fetch newest-post info via the same public endpoint IG web hits on a profile
+ * visit. Picks the max timestamp across returned edges (so a pinned-old post
+ * can't win), flags private / no-posts, and never throws (failures → `error`).
+ */
+export async function fetchLastPostInfo(username: string): Promise<LastPostInfo> {
+  try {
+    const res = await fetch(profileInfoUrlGenerator(username), {
+      headers: { "x-ig-app-id": IG_APP_ID },
+      credentials: "include",
+    });
+    const json = await res.json();
+    const user = json?.data?.user;
+    if (!user) {
+      // Endpoint shape unverified live — log the real payload on first repro (GS26).
+      console.warn("lastpost.fetch.shape", username, res.status, typeof json, JSON.stringify(json)?.slice(0, 300));
+      return { status: "error", ageText: null, shortcode: null };
+    }
+    const edges: MediaEdge[] = user.edge_owner_to_timeline_media?.edges ?? [];
+    if (edges.length === 0) {
+      return { status: "loaded", ageText: user.is_private ? "private" : "no posts", shortcode: null };
+    }
+    const latest = edges.reduce((a, b) => (b.node.taken_at_timestamp > a.node.taken_at_timestamp ? b : a)).node;
+    return { status: "loaded", ageText: formatPostAge(latest.taken_at_timestamp), shortcode: latest.shortcode };
+  } catch (e) {
+    console.error("lastpost.fetch", username, e);
+    return { status: "error", ageText: null, shortcode: null };
+  }
 }

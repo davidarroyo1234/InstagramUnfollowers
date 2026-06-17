@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { assertUnreachable, getCurrentPageUnfollowers, getMaxPage, getUsersForDisplay, isWithoutProfilePicture } from "../utils/utils";
 import { State } from "../model/state";
 import { UserNode } from "../model/user";
+import { FeatureSettings, LastPostInfo } from "../model/last-post";
 import { WHITELISTED_RESULTS_STORAGE_KEY } from "../constants/constants";
 
 
@@ -14,6 +15,10 @@ export interface SearchingProps {
   toggleUser: (checked: boolean, user: UserNode) => void;
   UserCheckIcon: React.FC;
   UserUncheckIcon: React.FC;
+  featureSettings: FeatureSettings;
+  lastPostInfos: Record<string, LastPostInfo>;
+  lastPostFetchAllowed: boolean;
+  requestLastPost: (user: UserNode) => void;
 }
 
 export const Searching = ({
@@ -25,10 +30,91 @@ export const Searching = ({
   toggleUser,
   UserCheckIcon,
   UserUncheckIcon,
+  featureSettings,
+  lastPostInfos,
+  lastPostFetchAllowed,
+  requestLastPost,
 }: SearchingProps) => {
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const elementUserMap = useRef(new Map<Element, UserNode>());
+
+  // Tear down the observer when the component unmounts.
+  useEffect(
+    () => () => {
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+      elementUserMap.current.clear();
+    },
+    [],
+  );
+
   if (state.status !== "scanning") {
     return null;
   }
+
+  const autoActive =
+    featureSettings.lastPostBadgeEnabled &&
+    featureSettings.lastPostMode === "auto" &&
+    lastPostFetchAllowed;
+
+  // ref-callback attached to each result card. In auto mode it registers the
+  // card with a shared IntersectionObserver so its last post is fetched only
+  // once it actually scrolls into view.
+  const cardRef = (el: HTMLElement | null, user: UserNode) => {
+    if (!autoActive || el === null) {
+      return;
+    }
+    if (observerRef.current === null) {
+      observerRef.current = new IntersectionObserver(
+        entries => {
+          entries.forEach(entry => {
+            if (!entry.isIntersecting) {
+              return;
+            }
+            const observedUser = elementUserMap.current.get(entry.target);
+            if (observedUser !== undefined) {
+              requestLastPost(observedUser);
+            }
+            observerRef.current?.unobserve(entry.target);
+            elementUserMap.current.delete(entry.target);
+          });
+        },
+        { rootMargin: "100px" },
+      );
+    }
+    elementUserMap.current.set(el, user);
+    observerRef.current.observe(el);
+  };
+
+  const renderLastPostBadge = (user: UserNode): React.JSX.Element | null => {
+    if (!featureSettings.lastPostBadgeEnabled) {
+      return null;
+    }
+    const info: LastPostInfo | undefined = lastPostInfos[user.id];
+    // Not requested yet: manual mode offers a button, auto mode waits for the observer.
+    if (info === undefined) {
+      return featureSettings.lastPostMode === "manual" ? (
+        <button
+          type="button"
+          className="last-post-button"
+          disabled={!lastPostFetchAllowed}
+          title={lastPostFetchAllowed ? "Fetch last post age" : "Available when the scan is finished or paused"}
+          onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.preventDefault(); e.stopPropagation(); requestLastPost(user); }}
+        >
+          last post?
+        </button>
+      ) : <span className="last-post-badge muted">…</span>;
+    }
+    if (info.status === "loaded") {
+      return info.shortcode !== null ? (
+        <a className="last-post-badge" target="_blank" rel="noreferrer" href={`/p/${info.shortcode}`}
+          onClick={(e: React.MouseEvent<HTMLAnchorElement>) => e.stopPropagation()}>
+          last post {info.ageText}
+        </a>
+      ) : <span className="last-post-badge muted">{info.ageText}</span>;
+    }
+    return <span className="last-post-badge muted">{info.status === "loading" ? "loading…" : "fetch failed"}</span>;
+  };
 
   const usersForDisplay = getUsersForDisplay(
     state.results,
@@ -282,7 +368,7 @@ export const Searching = ({
           return (
             <>
               {firstLetter !== currentLetter && onNewLetter(firstLetter)}
-              <label className="result-item">
+              <label className="result-item" ref={(el: HTMLElement | null) => cardRef(el, user)}>
                 <div className="flex grow align-center">
                   <div
                     className="avatar-container"
@@ -335,6 +421,7 @@ export const Searching = ({
                       {user.username}
                     </a>
                     <span className="fs-medium">{user.full_name}</span>
+                    {renderLastPostBadge(user)}
                   </div>
                   {user.is_verified && <div className="verified-badge">✔</div>}
                   {user.is_private && (

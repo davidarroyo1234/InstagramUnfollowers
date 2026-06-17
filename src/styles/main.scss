@@ -1676,6 +1676,41 @@ html .iu button.run-scan:hover {
     font-size: 0.88rem;
 }
 
+.iu .results-container .result-item .last-post-badge {
+    display: inline-block;
+    margin-top: 0.2rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--cyan);
+    text-decoration: none;
+    width: fit-content;
+}
+
+.iu .results-container .result-item .last-post-badge.muted {
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.iu .results-container .result-item .last-post-button {
+    margin-top: 0.2rem;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--cyan);
+    background: transparent;
+    border: 1px solid var(--cyan);
+    border-radius: 0.4rem;
+    cursor: pointer;
+    width: fit-content;
+}
+
+.iu .results-container .result-item .last-post-button:disabled {
+    color: var(--muted);
+    border-color: var(--muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 .iu .verified-badge {
     display: inline-flex;
     align-items: center;

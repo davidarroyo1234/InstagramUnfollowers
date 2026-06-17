@@ -4,6 +4,7 @@ import { assertUnreachable, copyListToClipboard, exportToCSV, exportToJSON, getC
 import { SettingMenu } from "./SettingMenu";
 import { SettingIcon } from "./icons/SettingIcon";
 import { Timings } from "../model/timings";
+import { FeatureSettings } from "../model/last-post";
 import { Logo } from "./icons/Logo";
 import { UserNode } from "../model/user";
 
@@ -15,6 +16,8 @@ interface ToolBarProps {
   toggleCurrentePageUsers: (e: ChangeEvent<HTMLInputElement>) => void;
   currentTimings: Timings;
   setTimings: (timings: Timings) => void;
+  featureSettings: FeatureSettings;
+  setFeatureSettings: (settings: FeatureSettings) => void;
   whitelistedUsers: readonly UserNode[];
   onWhitelistUpdate: (users: readonly UserNode[]) => void;
 }
@@ -27,6 +30,8 @@ export const Toolbar = ({
   toggleCurrentePageUsers,
   currentTimings,
   setTimings,
+  featureSettings,
+  setFeatureSettings,
   whitelistedUsers,
   onWhitelistUpdate,
 }: ToolBarProps) => {
@@ -207,6 +212,8 @@ export const Toolbar = ({
           setSettingState={setSettingMenu}
           currentTimings={currentTimings}
           setTimings={setTimings}
+          featureSettings={featureSettings}
+          setFeatureSettings={setFeatureSettings}
           whitelistedUsers={whitelistedUsers}
           onWhitelistUpdate={onWhitelistUpdate}
         ></SettingMenu>

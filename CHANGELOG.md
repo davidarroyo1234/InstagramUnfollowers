@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-06-17
+
+### Added
+- **Last-Post Age Badge:** Optional per-account badge showing how old the account's most recent post is (e.g. "last post 8mo ago"), to help identify inactive accounts. Off by default; enable in Settings with a Manual (on click) or Auto (visible cards) fetch mode. Fetches only when the scan is finished or paused, one account at a time, and caches each result in `localStorage` to minimize requests and avoid rate limits.
+
 ## [1.2.0] - 2026-04-04
 
 ### Added
