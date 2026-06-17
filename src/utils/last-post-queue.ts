@@ -20,7 +20,7 @@ const load = (): Cache => {
 
 const cache: Cache = load();
 const inFlight = new Set<string>();
-const queue: { id: string; username: string; cb: (info: LastPostInfo) => void }[] = [];
+const queue: { id: string; isPrivate: boolean; cb: (info: LastPostInfo) => void }[] = [];
 let processing = false;
 let gate: () => boolean = () => true;
 
@@ -32,16 +32,16 @@ async function run(): Promise<void> {
   processing = true;
   while (queue.length > 0) {
     while (!gate()) await sleep(1000);
-    const { id, username, cb } = queue.shift()!;
+    const { id, isPrivate, cb } = queue.shift()!;
     try {
-      const info = await fetchLastPostInfo(username);
+      const info = await fetchLastPostInfo(id, isPrivate);
       if (info.status === "loaded") {
         cache[id] = info;
         try { localStorage.setItem(LAST_POST_CACHE_STORAGE_KEY, JSON.stringify(cache)); } catch (e) { console.error("lastpost.persist", e); }
       }
       cb(info);
     } catch (e) {
-      console.error("lastpost.queue", username, e);
+      console.error("lastpost.queue", id, e);
       cb({ status: "error", ageText: null, shortcode: null });
     } finally {
       inFlight.delete(id);
@@ -52,11 +52,11 @@ async function run(): Promise<void> {
 }
 
 /** Serve from cache, dedup in-flight, else enqueue. Emits `loading` first. */
-export function enqueueLastPost(id: string, username: string, cb: (info: LastPostInfo) => void): void {
+export function enqueueLastPost(id: string, isPrivate: boolean, cb: (info: LastPostInfo) => void): void {
   if (cache[id]?.status === "loaded") { cb(cache[id]); return; }
   if (inFlight.has(id)) return;
   inFlight.add(id);
   cb({ status: "loading", ageText: null, shortcode: null });
-  queue.push({ id, username, cb });
+  queue.push({ id, isPrivate, cb });
   void run();
 }

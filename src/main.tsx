@@ -144,7 +144,7 @@ function App() {
 
   const requestLastPost = (user: UserNode) => {
     if (featureSettings.lastPostBadgeEnabled && lastPostFetchAllowed && lastPostInfos[user.id]?.status !== "loaded") {
-      enqueueLastPost(user.id, user.username, info => setLastPostInfos(prev => ({ ...prev, [user.id]: info })));
+      enqueueLastPost(user.id, user.is_private, info => setLastPostInfos(prev => ({ ...prev, [user.id]: info })));
     }
   };
 
