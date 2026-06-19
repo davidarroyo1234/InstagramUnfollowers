@@ -1,0 +1,260 @@
+﻿// Styles for the Pending Requests flow.
+// Reuses the existing editorial theme variables (--amber/--cyan/--rose/--green/--muted/--line/--text)
+// defined on `html .iu`, so it matches the original look without introducing a new palette.
+
+// Hidden native file input behind the upload button.
+.iu .hidden-file-input {
+    display: none;
+}
+
+// Secondary call-to-action on the launch screen, next to the amber "Run Scan".
+.iu button.load-requests {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(98, 214, 208, 0.5);
+    border-radius: 7px;
+    background: rgba(98, 214, 208, 0.1);
+    color: var(--text);
+    padding: 0.95rem 1.35rem;
+    font-size: 1rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+
+    &:hover {
+        background: rgba(98, 214, 208, 0.18);
+        border-color: rgba(98, 214, 208, 0.72);
+        transform: translateY(-1px);
+    }
+}
+
+// Status pill shown on each request row.
+.iu .cr-status {
+    margin-left: auto;
+    padding: 0.28rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.iu .cr-status-pending {
+    color: var(--amber);
+    border-color: rgba(224, 163, 58, 0.45);
+    background: rgba(224, 163, 58, 0.1);
+}
+
+.iu .cr-status-running {
+    color: var(--cyan);
+    border-color: rgba(98, 214, 208, 0.45);
+    background: rgba(98, 214, 208, 0.1);
+}
+
+.iu .cr-status-done {
+    color: #bdedb0;
+    border-color: rgba(140, 207, 126, 0.5);
+    background: rgba(140, 207, 126, 0.12);
+}
+
+.iu .cr-status-failed {
+    color: #ff9b93;
+    border-color: rgba(239, 106, 98, 0.5);
+    background: rgba(239, 106, 98, 0.12);
+}
+
+// Accepted = resolved, nothing to do → keep the neutral/muted base style (no override needed).
+
+// Following = request was accepted and you currently follow them (actionable → unfollow).
+.iu .cr-status-following {
+    color: #c9b6f0;
+    border-color: rgba(201, 182, 240, 0.5);
+    background: rgba(201, 182, 240, 0.12);
+}
+
+// "unverified", "accepted", "skipped" and "ghost" keep the neutral/muted base style.
+
+// Scan controls (batch sizes + scan/stop button).
+.iu .cr-scan-controls {
+    margin: 0.2rem 0 0.7rem;
+}
+
+.iu .cr-section-label {
+    margin: 0 0 0.4rem;
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.iu .cr-batch-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.iu .cr-batch-grid .button-secondary {
+    padding: 0.45rem 0.2rem;
+    text-align: center;
+}
+
+.iu .cr-batch-active {
+    border-color: rgba(98, 214, 208, 0.6) !important;
+    background: rgba(98, 214, 208, 0.16) !important;
+    color: var(--text) !important;
+}
+
+.iu button.cr-scan-button {
+    width: 100%;
+    border: 1px solid rgba(98, 214, 208, 0.4) !important;
+    border-radius: 7px;
+    background: rgba(98, 214, 208, 0.14) !important;
+    color: var(--text) !important;
+    padding: 0.6rem !important;
+    font-size: 0.85rem !important;
+    font-weight: 800 !important;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.iu button.cr-scan-button:hover {
+    background: rgba(98, 214, 208, 0.24) !important;
+    border-color: rgba(98, 214, 208, 0.7) !important;
+}
+
+.iu button.cr-scan-button.cr-scan-stop {
+    border-color: rgba(239, 106, 98, 0.6) !important;
+    background: var(--rose) !important;
+    color: #1c0d0b !important;
+}
+
+.iu button.cr-scan-button.cr-scan-stop:hover {
+    background: #f2796f !important;
+}
+
+// Empty state for the results list.
+.iu .cr-empty {
+    margin: 2rem 1.25rem;
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+// Drag & drop zone on the launch screen, sitting next to the "Run Scan" button.
+.iu .cr-dropzone {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.1rem;
+    max-width: 360px;
+    padding: 0.4rem 1.1rem;
+    border: 1.5px dashed rgba(98, 214, 208, 0.5);
+    border-radius: 8px;
+    background: rgba(98, 214, 208, 0.06);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.iu .cr-dropzone:hover {
+    background: rgba(98, 214, 208, 0.12);
+    border-color: rgba(98, 214, 208, 0.8);
+}
+
+.iu .cr-dropzone.cr-dropzone-active {
+    background: rgba(98, 214, 208, 0.2);
+    border-color: var(--cyan);
+    transform: translateY(-2px);
+}
+
+.iu .cr-dropzone strong {
+    font-size: 0.92rem;
+    font-weight: 900;
+    color: var(--text);
+}
+
+.iu .cr-dropzone span {
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.iu .cr-dropzone code {
+    color: var(--cyan);
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+
+// Mobile: stack dropzone below "Run Scan", centered and more compact.
+@media (max-width: 620px) {
+    .iu .launch-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .iu .cr-dropzone {
+        max-width: 100%;
+        min-height: 3.4rem; // match the "Run Scan" button height so both actions are equal
+        box-sizing: border-box;
+        align-items: center;
+        text-align: center;
+        padding: 0.5rem 0.8rem;
+
+        strong { font-size: 0.82rem; }
+        span   { font-size: 0.72rem; }
+    }
+}
+
+// Submodule label under the "Instagram / Unfollowers" logo text (e.g. "Pending Requests").
+.iu .logo-text .logo-submodule {
+    margin-top: 0.15rem;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber, #e0a33a);
+}
+
+// ♻️ global recycle button (Whitelisted tab): one button recycles every selected pending account.
+// CSS-driven hover/disabled states instead of inline styles + JS mouse handlers.
+.iu .cr-recycle-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.6rem 1rem 0;
+}
+
+.iu .cr-recycle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--line, rgba(247, 241, 232, 0.14));
+    border-radius: 7px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text, #f7f1e8);
+    background: rgba(224, 163, 58, 0.1);
+    cursor: pointer;
+    transition: background 0.2s ease, opacity 0.2s ease;
+
+    &:hover:not(:disabled) { background: rgba(224, 163, 58, 0.22); }
+    &:disabled { cursor: default; opacity: 0.4; }
+    &.is-running { cursor: default; }
+
+    .cr-recycle-count {
+        min-width: 1.2rem;
+        padding: 0 0.35rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-align: center;
+        color: #16130d;
+        background: var(--amber, #e0a33a);
+    }
+}
+
+// Launch screen: make "Run Scan" and the dropzone share the same height. Overrides David's
+// `align-items: center` from main.scss (this file loads after it), so we don't edit main.scss.
+.iu .launch-actions {
+    align-items: stretch;
+}

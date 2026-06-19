@@ -50,6 +50,14 @@ This version utilizes the Instagram API for better performance.
 
     <img src="./assets/settings.png" alt="Settings screen" />
 
+## 📭 Manage Pending Follow Requests
+
+1. Export `pending_follow_requests.json` from your Instagram data export (`connections/followers_and_following`)
+2. Drop it on the "Manage pending requests" area next to RUN
+3. Scan and select which requests to manage
+
+    <img src="./assets/pending_requests.png" alt="Pending requests screen" /> 
+
 ## 📱 Mobile Usage
 
 For Android users who want to use it on mobile:
@@ -68,6 +76,7 @@ For Android users who want to use it on mobile:
 ## ✨ Features
 
 - 🔍 Scan and identify users who don't follow you back
+- 📭 Manage pending follow requests from your Instagram data export
 - 🤍 Whitelist system to protect specific accounts from unfollowing
 - 💾 Export/Import whitelist functionality for backup and transfer
 - ⚙️ Customizable timing settings to avoid rate limits

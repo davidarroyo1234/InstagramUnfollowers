@@ -21,6 +21,8 @@ import { State } from "./model/state";
 import { Searching } from "./components/Searching";
 import { Toolbar } from "./components/Toolbar";
 import { Unfollowing } from "./components/Unfollowing";
+import { CancelRequests } from "./components/CancelRequests";
+import { CancelRequest } from "./model/cancel-request";
 import { Timings } from "./model/timings";
 import { loadWhitelist, saveWhitelist, loadTimings, saveTimings } from "./utils/whitelist-manager";
 
@@ -137,6 +139,9 @@ function App() {
     case "unfollowing":
       isActiveProcess = state.percentage < 100;
       break;
+    case "cancelling":
+      isActiveProcess = false; // CancelRequests manages its own active-process / beforeunload guard
+      break;
     default:
       assertUnreachable(state);
   }
@@ -184,6 +189,11 @@ function App() {
         showWithOutProfilePicture: true,
       },
     });
+  };
+
+  // Pending Requests: a parsed pending_follow_requests.json moves the app into the cancelling state.
+  const onLoadRequests = (requests: readonly CancelRequest[]) => {
+    setState({ status: "cancelling", requests });
   };
 
   const handleScanFilter = (e: ChangeEvent<HTMLInputElement>) => {
@@ -495,7 +505,7 @@ function App() {
   let markup: React.JSX.Element;
   switch (state.status) {
     case "initial":
-      markup = <NotSearching onScan={onScan}></NotSearching>;
+      markup = <NotSearching onScan={onScan} onLoadRequests={onLoadRequests}></NotSearching>;
       break;
 
     case "scanning": {
@@ -519,6 +529,10 @@ function App() {
       ></Unfollowing>;
       break;
 
+    case "cancelling":
+      markup = <CancelRequests state={state} setState={setState}></CancelRequests>;
+      break;
+
     default:
       assertUnreachable(state);
   }
@@ -526,17 +540,19 @@ function App() {
   return (
     <main id="main" role="main" className="iu">
       <section className="overlay">
-        <Toolbar
-          state={state}
-          setState={setState}
-          isActiveProcess={isActiveProcess}
-          toggleAllUsers={toggleAllUsers}
-          toggleCurrentePageUsers={toggleCurrentePageUsers}
-          setTimings={setTimings}
-          currentTimings={timings}
-          whitelistedUsers={state.status === "scanning" ? state.whitelistedResults : loadWhitelist()}
-          onWhitelistUpdate={onWhitelistUpdate}
-        ></Toolbar>
+        {state.status !== "cancelling" && (
+          <Toolbar
+            state={state}
+            setState={setState}
+            isActiveProcess={isActiveProcess}
+            toggleAllUsers={toggleAllUsers}
+            toggleCurrentePageUsers={toggleCurrentePageUsers}
+            setTimings={setTimings}
+            currentTimings={timings}
+            whitelistedUsers={state.status === "scanning" ? state.whitelistedResults : loadWhitelist()}
+            onWhitelistUpdate={onWhitelistUpdate}
+          ></Toolbar>
+        )}
 
         {markup}
 

@@ -3,6 +3,7 @@ import { ScanningTab } from "./scanning-tab";
 import { ScanningFilter } from "./scanning-filter";
 import { UnfollowLogEntry } from "./unfollow-log-entry";
 import { UnfollowFilter } from "./unfollow-filter";
+import { CancelRequest } from "./cancel-request";
 
 type ScanningState = {
   readonly status: 'scanning';
@@ -25,5 +26,11 @@ type UnfollowingState = {
   readonly filter: UnfollowFilter;
 };
 
+// Pending Requests feature: holds the parsed pending requests being managed.
+type CancellingState = {
+  readonly status: 'cancelling';
+  readonly requests: readonly CancelRequest[];
+};
+
 //TODO THIS TYPE OF MULTIPLE STATE NEEDS TO BE SEPARETED IN DIFFERENT FILES ASAP (Global state,unfollowing state, scanning state etc...)
-export type State = { readonly status: 'initial' } | ScanningState | UnfollowingState;
+export type State = { readonly status: 'initial' } | ScanningState | UnfollowingState | CancellingState;

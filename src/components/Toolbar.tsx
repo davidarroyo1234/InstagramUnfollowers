@@ -33,6 +33,12 @@ export const Toolbar = ({
 
   const [setingMenu, setSettingMenu] = useState(false);
 
+  // The Pending Requests module renders its own header, so this Toolbar isn't shown in that state
+  // (main.tsx already hides it). The early return also narrows `state` so the rest stays type-safe.
+  if (state.status === "cancelling") {
+    return null;
+  }
+
   return (
     <header className="app-header">
       {isActiveProcess && (

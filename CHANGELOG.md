@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-06-16
+
+### Added
+- **Pending Requests Management:** Upload the `pending_follow_requests.json` export to scan and cancel the ones you have sent.
+- **Batch Scanning:** Scan in batches (20 / 50 / 100 / All) with "Stop", "Pause" and "Resume".
+- **Anti-Rate-Limit Pacing:** Randomized delays, periodic pauses, and a cooldown after a `429` to avoid temporary blocks.
+- **Whitelist & Export:** Per-account whitelist plus full-list export to JSON, CSV or the clipboard.
+- **CSP-Safe Avatars:** Inline SVG initials fallback (`data:` URL) when no profile picture is available, so no images load from external services.
+
 ## [1.2.0] - 2026-04-04
 
 ### Added
@@ -55,6 +64,15 @@ All notable changes to this project will be documented in this file.
 # Historial de Cambios (Spanish)
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
+
+## [1.3.0] - 2026-06-16
+
+### Añadido
+- **Gestión de Solicitudes Pendientes:** Sube el export `pending_follow_requests.json` para escanear y cancelar las que has enviado.
+- **Escaneo por Tandas:** Escanea por lotes (20 / 50 / 100 / All) con "Stop", "Pause" y "Resume".
+- **Ritmo Anti-Bloqueo:** Retardos aleatorios, pausas periódicas y un enfriamiento tras un `429` para evitar bloqueos temporales.
+- **Whitelist y Exportación:** Lista blanca por cuenta y exportación de toda la lista a JSON, CSV o el portapapeles.
+- **Avatares CSP-Safe:** Iniciales en SVG en línea (`data:` URL) cuando no hay foto de perfil, sin cargar imágenes de servicios externos.
 
 ## [1.2.0] - 2026-04-04
 
