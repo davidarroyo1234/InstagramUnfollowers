@@ -373,7 +373,11 @@ function App() {
             ...prevState,
             // Fix: Changed from Math.floor to Math.round to ensure progress reaches 100%
             // Math.floor would leave progress at 99% when near completion
-            percentage: Math.round((currentFollowedUsersCount / totalFollowedUsersCount) * 100),
+            //
+            // Also capped at 100 — totalFollowedUsersCount can be lower than the real
+            // count, so this ratio can pass 100% before hasNext goes false, which
+            // enables "Select all" before all results are in.
+            percentage: Math.min(100, Math.round((currentFollowedUsersCount / totalFollowedUsersCount) * 100)),
             results,
           };
           return newState;
