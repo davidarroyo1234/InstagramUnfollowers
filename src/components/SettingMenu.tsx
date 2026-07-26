@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Timings } from "../model/timings";
+import { FeatureSettings, LastPostMode } from "../model/last-post";
 import { UserNode } from "../model/user";
 import { WhitelistManager } from "./WhitelistManager";
 
@@ -7,6 +8,8 @@ interface SettingMenuProps {
   setSettingState: (state: boolean) => void;
   currentTimings: Timings;
   setTimings: (timings: Timings) => void;
+  featureSettings: FeatureSettings;
+  setFeatureSettings: (settings: FeatureSettings) => void;
   whitelistedUsers: readonly UserNode[];
   onWhitelistUpdate: (users: readonly UserNode[]) => void;
 }
@@ -15,6 +18,8 @@ export const SettingMenu = ({
   setSettingState,
   currentTimings,
   setTimings,
+  featureSettings,
+  setFeatureSettings,
   whitelistedUsers,
   onWhitelistUpdate,
 }: SettingMenuProps) => {
@@ -22,6 +27,8 @@ export const SettingMenu = ({
   const [timeToWaitAfterFiveSearchCycles, setTimeToWaitAfterFiveSearchCycles] = useState(currentTimings.timeToWaitAfterFiveSearchCycles);
   const [timeBetweenUnfollows, setTimeBetweenUnfollows] = useState(currentTimings.timeBetweenUnfollows);
   const [timeToWaitAfterFiveUnfollows, setTimeToWaitAfterFiveUnfollows] = useState(currentTimings.timeToWaitAfterFiveUnfollows);
+  const [lastPostBadgeEnabled, setLastPostBadgeEnabled] = useState(featureSettings.lastPostBadgeEnabled);
+  const [lastPostMode, setLastPostMode] = useState<LastPostMode>(featureSettings.lastPostMode);
 
   const handleSave = (event: any) => {
     event.preventDefault();
@@ -30,6 +37,10 @@ export const SettingMenu = ({
       timeToWaitAfterFiveSearchCycles,
       timeBetweenUnfollows,
       timeToWaitAfterFiveUnfollows,
+    });
+    setFeatureSettings({
+      lastPostBadgeEnabled,
+      lastPostMode,
     });
     setSettingState(false);
   };
@@ -112,6 +123,33 @@ export const SettingMenu = ({
                 <h3 className="warning"><b>WARNING:</b> Modifying these settings can lead to your account being banned.</h3>
                 <h3 className="warning">USE IT AT YOUR OWN RISK!!!!</h3>
               </div>
+
+              <div className="row">
+                <label className="minimun-width">Show last-post age</label>
+                <input
+                  type="checkbox"
+                  id="lastPostBadgeEnabled"
+                  name="lastPostBadgeEnabled"
+                  checked={lastPostBadgeEnabled}
+                  onChange={(e) => setLastPostBadgeEnabled(e.currentTarget.checked)}
+                />
+              </div>
+
+              {lastPostBadgeEnabled && (
+                <>
+                  <div className="row">
+                    {(["manual", "auto"] as const).map(mode => (
+                      <label key={mode} className="margin-between-input-and-label">
+                        <input type="radio" name="lastPostMode" value={mode} checked={lastPostMode === mode} onChange={() => setLastPostMode(mode)} />
+                        &nbsp;{mode === "manual" ? "Manual (on click)" : "Auto (visible cards)"}
+                      </label>
+                    ))}
+                  </div>
+                  <p className="margin-between-input-and-label">
+                    Only fetches when the scan is finished or paused, one account at a time, and caches each result.
+                  </p>
+                </>
+              )}
             </div>
           </div>
 

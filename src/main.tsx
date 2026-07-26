@@ -22,7 +22,9 @@ import { Searching } from "./components/Searching";
 import { Toolbar } from "./components/Toolbar";
 import { Unfollowing } from "./components/Unfollowing";
 import { Timings } from "./model/timings";
-import { loadWhitelist, saveWhitelist, loadTimings, saveTimings } from "./utils/whitelist-manager";
+import { FeatureSettings, LastPostInfo } from "./model/last-post";
+import { loadWhitelist, saveWhitelist, loadTimings, saveTimings, loadFeatureSettings, saveFeatureSettings } from "./utils/whitelist-manager";
+import { enqueueLastPost, getCachedLastPostInfos, setLastPostGate } from "./utils/last-post-queue";
 
 const LOCAL_PREVIEW_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 const isLocalPreview = LOCAL_PREVIEW_HOSTS.has(location.hostname);
@@ -126,6 +128,25 @@ function App() {
   useEffect(() => {
     saveTimings(timings);
   }, [timings]);
+
+  const [featureSettings, setFeatureSettings] = useState<FeatureSettings>(() => loadFeatureSettings());
+  useEffect(() => saveFeatureSettings(featureSettings), [featureSettings]);
+
+  // Per-account last-post info, kept outside `state` so `results` stays readonly.
+  // Seeded from the localStorage cache so already-known accounts render instantly.
+  const [lastPostInfos, setLastPostInfos] = useState<Record<string, LastPostInfo>>(() => getCachedLastPostInfos());
+
+  // Fetching is only allowed when the scan is finished or paused, so last-post
+  // requests never compete with the scan's own request budget. The gate closure
+  // reads `scanningPaused` (a module-level flag) live; re-set on state change.
+  const lastPostFetchAllowed = (state.status === "scanning" && state.percentage === 100) || scanningPaused;
+  useEffect(() => setLastPostGate(() => (state.status === "scanning" && state.percentage === 100) || scanningPaused), [state]);
+
+  const requestLastPost = (user: UserNode) => {
+    if (featureSettings.lastPostBadgeEnabled && lastPostFetchAllowed && lastPostInfos[user.id]?.status !== "loaded") {
+      enqueueLastPost(user.id, user.is_private, info => setLastPostInfos(prev => ({ ...prev, [user.id]: info })));
+    }
+  };
 
 
   let isActiveProcess: boolean;
@@ -518,6 +539,10 @@ function App() {
         scanningPaused={scanningPaused}
         UserCheckIcon={UserCheckIcon}
         UserUncheckIcon={UserUncheckIcon}
+        featureSettings={featureSettings}
+        lastPostInfos={lastPostInfos}
+        lastPostFetchAllowed={lastPostFetchAllowed}
+        requestLastPost={requestLastPost}
       ></Searching>;
       break;
     }
@@ -544,6 +569,8 @@ function App() {
           toggleCurrentePageUsers={toggleCurrentePageUsers}
           setTimings={setTimings}
           currentTimings={timings}
+          featureSettings={featureSettings}
+          setFeatureSettings={setFeatureSettings}
           whitelistedUsers={state.status === "scanning" ? state.whitelistedResults : loadWhitelist()}
           onWhitelistUpdate={onWhitelistUpdate}
         ></Toolbar>

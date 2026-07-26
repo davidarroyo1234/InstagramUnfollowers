@@ -1,6 +1,7 @@
 import { UserNode } from "../model/user";
 import { Timings } from "../model/timings";
-import { WHITELISTED_RESULTS_STORAGE_KEY, TIMINGS_STORAGE_KEY } from "../constants/constants";
+import { DEFAULT_FEATURE_SETTINGS, FeatureSettings } from "../model/last-post";
+import { WHITELISTED_RESULTS_STORAGE_KEY, TIMINGS_STORAGE_KEY, FEATURE_SETTINGS_STORAGE_KEY } from "../constants/constants";
 
 /**
  * Export whitelist to a JSON file
@@ -142,3 +143,19 @@ export const loadTimings = (): Timings | null => {
 export const saveTimings = (timings: Timings): void => {
   localStorage.setItem(TIMINGS_STORAGE_KEY, JSON.stringify(timings));
 };
+
+/** Load feature settings, merged over defaults so new keys always have a value. */
+export const loadFeatureSettings = (): FeatureSettings => {
+  try {
+    const raw = localStorage.getItem(FEATURE_SETTINGS_STORAGE_KEY);
+    const parsed: unknown = raw === null ? null : JSON.parse(raw);
+    return typeof parsed === "object" && parsed !== null
+      ? { ...DEFAULT_FEATURE_SETTINGS, ...(parsed as Partial<FeatureSettings>) }
+      : DEFAULT_FEATURE_SETTINGS;
+  } catch {
+    return DEFAULT_FEATURE_SETTINGS;
+  }
+};
+
+export const saveFeatureSettings = (settings: FeatureSettings): void =>
+  localStorage.setItem(FEATURE_SETTINGS_STORAGE_KEY, JSON.stringify(settings));

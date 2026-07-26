@@ -1,9 +1,10 @@
 import { UserNode } from "../model/user";
-import { UNFOLLOWERS_PER_PAGE, WITHOUT_PROFILE_PICTURE_URL_IDS } from "../constants/constants";
+import { IG_APP_ID, UNFOLLOWERS_PER_PAGE, WITHOUT_PROFILE_PICTURE_URL_IDS } from "../constants/constants";
 import { ScanningTab } from "../model/scanning-tab";
 import { ScanningFilter } from "../model/scanning-filter";
 import { UnfollowLogEntry } from "../model/unfollow-log-entry";
 import { UnfollowFilter } from "../model/unfollow-filter";
+import { LastPostInfo } from "../model/last-post";
 
 export async function copyListToClipboard(nonFollowersList: readonly UserNode[]): Promise<void> {
   const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
@@ -171,4 +172,55 @@ export function urlGenerator(nextCode?: string): string {
 
 export function unfollowUserUrlGenerator(idToUnfollow: string): string {
   return `https://www.instagram.com/web/friendships/${idToUnfollow}/unfollow/`;
+}
+
+export function userFeedUrlGenerator(userId: string): string {
+  // web_profile_info no longer returns post nodes (only a count), so use the
+  // user feed endpoint, which returns real items with timestamps. count=3 lets
+  // us take the newest even if a pinned (older) post sorts first.
+  return `https://www.instagram.com/api/v1/feed/user/${userId}/?count=3`;
+}
+
+/** Compact relative age of a post timestamp (seconds), e.g. "3d ago", "8mo ago". */
+export function formatPostAge(timestampSeconds: number): string {
+  const days = Math.floor((Date.now() - timestampSeconds * 1000) / 86_400_000);
+  if (days < 1) return "today";
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
+}
+
+interface FeedItem { readonly taken_at: number; readonly code: string }
+
+/**
+ * Fetch newest-post info from the user feed endpoint. Picks the max timestamp
+ * across the few returned items (so a pinned-old post can't win), flags
+ * private / no-posts on an empty feed, and never throws (failures → `error`).
+ */
+export async function fetchLastPostInfo(userId: string, isPrivate: boolean): Promise<LastPostInfo> {
+  try {
+    const res = await fetch(userFeedUrlGenerator(userId), {
+      headers: { "x-ig-app-id": IG_APP_ID },
+      credentials: "include",
+    });
+    const json = await res.json();
+    const items: FeedItem[] = json?.items ?? [];
+    if (items.length === 0) {
+      // Empty feed: private (no access) or genuinely no posts. Log only anomalous
+      // (non-ok) payloads so expected empties don't spam the console (GS26).
+      if (json?.status !== "ok") {
+        console.warn("lastpost.fetch.shape", userId, res.status, json?.status, JSON.stringify(json)?.slice(0, 200));
+      }
+      return { status: "loaded", ageText: isPrivate ? "private" : "no posts", shortcode: null };
+    }
+    const latest = items.reduce((a, b) => (b.taken_at > a.taken_at ? b : a));
+    // Some items expose a long internal code instead of the URL shortcode; only
+    // link when it actually looks like a shortcode, else show the age alone.
+    const shortcode = /^[A-Za-z0-9_-]{8,15}$/.test(latest.code) ? latest.code : null;
+    return { status: "loaded", ageText: formatPostAge(latest.taken_at), shortcode };
+  } catch (e) {
+    console.error("lastpost.fetch", userId, e);
+    return { status: "error", ageText: null, shortcode: null };
+  }
 }
