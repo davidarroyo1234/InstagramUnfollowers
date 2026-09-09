@@ -6,13 +6,15 @@ import { Typename, UserNode } from "./model/user";
 import { Toast } from "./components/Toast";
 import { UserCheckIcon } from "./components/icons/UserCheckIcon";
 import { UserUncheckIcon } from "./components/icons/UserUncheckIcon";
-import { DEFAULT_TIME_BETWEEN_SEARCH_CYCLES,
+import {
+  DEFAULT_TIME_BETWEEN_SEARCH_CYCLES,
   DEFAULT_TIME_BETWEEN_UNFOLLOWS,
   DEFAULT_TIME_TO_WAIT_AFTER_FIVE_SEARCH_CYCLES,
   DEFAULT_TIME_TO_WAIT_AFTER_FIVE_UNFOLLOWS,
   FOLLOWERS_PAGE_SAFETY_LIMIT,
   FOLLOWING_PAGE_SAFETY_LIMIT,
-  INSTAGRAM_HOSTNAME } from "./constants/constants";
+  INSTAGRAM_HOSTNAME,
+} from "./constants/constants";
 import {
   assertUnreachable,
   fetchFriendshipsPage,
@@ -31,7 +33,7 @@ import { Searching } from "./components/Searching";
 import { Toolbar } from "./components/Toolbar";
 import { Unfollowing } from "./components/Unfollowing";
 import { Timings } from "./model/timings";
-import { loadWhitelist, saveWhitelist, loadTimings, saveTimings } from "./utils/whitelist-manager";
+import { loadTimings, loadWhitelist, saveTimings, saveWhitelist } from "./utils/whitelist-manager";
 
 const LOCAL_PREVIEW_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 const isLocalPreview = LOCAL_PREVIEW_HOSTS.has(location.hostname);
@@ -363,11 +365,12 @@ function App() {
       pageSafetyLimit: number,
       progressRangeStart: number,
       progressRangeEnd: number,
-    ): Promise<readonly RawFriendshipUser[]> => {
-      let users: readonly RawFriendshipUser[] = [];
+      onPageUsers: (pageUsers: readonly RawFriendshipUser[]) => void,
+    ): Promise<boolean> => {
       let maxId: string | undefined;
       let pagesFetched = 0;
       let scrollCycle = 0;
+      let totalUsersFetched = 0;
 
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (true) {
@@ -376,11 +379,12 @@ function App() {
           page = await fetchFriendshipsPage(kind, maxId);
         } catch (e) {
           console.error(`Stopping ${kind} scan early:`, e);
-          break;
+          return false;
         }
 
         const pageUsers = page.users ?? [];
-        users = users.concat(pageUsers);
+        totalUsersFetched += pageUsers.length;
+        onPageUsers(pageUsers);
 
         setState(prevState => {
           if (prevState.status !== "scanning") {
@@ -389,19 +393,19 @@ function App() {
           const rangeSize = progressRangeEnd - progressRangeStart;
           return {
             ...prevState,
-            percentage: Math.round(progressRangeStart + estimatePhaseProgress(users.length) * (rangeSize / 100)),
+            percentage: Math.round(progressRangeStart + estimatePhaseProgress(totalUsersFetched) * (rangeSize / 100)),
           };
         });
 
-        const hasMore = page.has_more !== false && page.next_max_id !== undefined;
+        const hasMore = Boolean(page.next_max_id) && page.has_more !== false;
         if (!hasMore || pageUsers.length === 0) {
           break;
         }
 
         pagesFetched += 1;
         if (pagesFetched >= pageSafetyLimit) {
-          console.error(`Stopping ${kind} scan early: hit the safety cap of ${pageSafetyLimit} pages with ${users.length} users fetched.`);
-          break;
+          console.error(`Stopping ${kind} scan early: hit the safety cap of ${pageSafetyLimit} pages with ${totalUsersFetched} users fetched.`);
+          return false;
         }
         maxId = page.next_max_id;
 
@@ -426,13 +430,26 @@ function App() {
             0,
             timings.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000), // +/- 5 seconds
           );
-          setToast({ show: true, text: `Sleeping ${Math.round(longSleepVar / 1000)} seconds to prevent getting temp blocked` });
+          setToast({
+            show: true,
+            text: `Sleeping ${Math.round(longSleepVar / 1000)} seconds to prevent getting temp blocked`,
+          });
           await sleep(longSleepVar);
         }
         setToast({ show: false });
       }
 
-      return users;
+      setState(prevState => {
+        if (prevState.status !== "scanning") {
+          return prevState;
+        }
+        return {
+          ...prevState,
+          percentage: progressRangeEnd,
+        };
+      });
+
+      return true;
     };
 
     const scan = async () => {
@@ -440,31 +457,74 @@ function App() {
         return;
       }
 
-      // Two lists are needed because these REST endpoints don't tell us,
-      // per followed account, whether that account follows us back (unlike
-      // the old GraphQL edge this app used to read `follows_viewer` from) —
-      // so it's computed here by diffing who you follow against who
-      // follows you.
-      const followingUsers = await fetchList('following', FOLLOWING_PAGE_SAFETY_LIMIT, 0, 45);
-      const followerUsers = await fetchList('followers', FOLLOWERS_PAGE_SAFETY_LIMIT, 45, 95);
+      // 1. Fetch all accounts you follow.
+      // We push directly into followingUsers to avoid allocating new arrays on every page.
+      const followingUsers: RawFriendshipUser[] = [];
+      const followingCompleted = await fetchList(
+        "following",
+        FOLLOWING_PAGE_SAFETY_LIMIT,
+        0,
+        45,
+        pageUsers => {
+          followingUsers.push(...pageUsers);
+        },
+      );
 
-      const followerIds = new Set(followerUsers.map(user => user.pk));
+      // If following failed completely on the first attempt, don't waste network requests on followers.
+      if (!followingCompleted && followingUsers.length === 0) {
+        setToast({
+          show: true,
+          text: "Scan failed: could not load your following list from Instagram.",
+        });
+        return;
+      }
+
+      // 2. Fetch follower IDs only.
+      // We only store IDs in a Set<string> and discard the rest of the follower objects
+      // immediately to minimize memory usage.
+      const followerIds = new Set<string>();
+      const followersCompleted = await fetchList(
+        "followers",
+        FOLLOWERS_PAGE_SAFETY_LIMIT,
+        45,
+        95,
+        pageUsers => {
+          for (const user of pageUsers) {
+            followerIds.add(String(user.pk_id ?? user.pk));
+          }
+        },
+      );
+
+      const allCompleted = followingCompleted && followersCompleted;
+
       const results: UserNode[] = followingUsers.map(user =>
-        rawFriendshipUserToUserNode(user, followerIds.has(user.pk)),
+        rawFriendshipUserToUserNode(user, followerIds.has(String(user.pk_id ?? user.pk))),
       );
 
       setState(prevState => {
-        if (prevState.status !== 'scanning') {
+        if (prevState.status !== "scanning") {
           return prevState;
         }
-        const newState: State = {
+        return {
           ...prevState,
-          percentage: 100,
+          percentage: allCompleted ? 100 : prevState.percentage,
           results,
         };
-        return newState;
       });
-      setToast({ show: true, text: "Scanning completed!" });
+
+      let toastMessage = "Scanning completed!";
+      if (!followingCompleted && !followersCompleted) {
+        toastMessage = `Partial scan: loaded ${followingUsers.length} accounts, but scan was interrupted.`;
+      } else if (!followersCompleted) {
+        toastMessage = "Warning: Followers list was interrupted. Accounts that follow you may appear as non-followers.";
+      } else if (!followingCompleted) {
+        toastMessage = `Partial scan: loaded ${followingUsers.length} followed accounts before scan stopped.`;
+      }
+
+      setToast({
+        show: true,
+        text: toastMessage,
+      });
     };
     scan();
     // Dependency array not entirely legit, but works this way. TODO: Find a way to fix.
@@ -540,7 +600,10 @@ function App() {
         await sleep(Math.floor(Math.random() * (timings.timeBetweenUnfollows * 1.2 - timings.timeBetweenUnfollows)) + timings.timeBetweenUnfollows);
 
         if (counter % 5 === 0) {
-          setToast({ show: true, text: `Sleeping ${timings.timeToWaitAfterFiveUnfollows / 60000 } minutes to prevent getting temp blocked` });
+          setToast({
+            show: true,
+            text: `Sleeping ${timings.timeToWaitAfterFiveUnfollows / 60000} minutes to prevent getting temp blocked`,
+          });
           await sleep(timings.timeToWaitAfterFiveUnfollows);
         }
         setToast({ show: false });

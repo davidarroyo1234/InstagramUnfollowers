@@ -178,7 +178,8 @@ export type FriendshipsListKind = 'following' | 'followers';
  * error, so the old code had no way to detect the failure.
  */
 export interface RawFriendshipUser {
-  readonly pk: string;
+  readonly pk: string | number;
+  readonly pk_id?: string;
   readonly username: string;
   readonly full_name?: string;
   readonly profile_pic_url: string;
@@ -213,7 +214,7 @@ export async function fetchFriendshipsPage(kind: FriendshipsListKind, maxId?: st
 
 export function rawFriendshipUserToUserNode(raw: RawFriendshipUser, followsViewer: boolean): UserNode {
   return {
-    id: raw.pk,
+    id: String(raw.pk_id ?? raw.pk),
     username: raw.username,
     full_name: raw.full_name ?? '',
     profile_pic_url: raw.profile_pic_url,
