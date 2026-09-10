@@ -5,11 +5,7 @@
 A nifty tool that lets you see who doesn't follow you back on Instagram.  
 <u>Browser-based and requires no downloads or installations!</u>
 
-## ⚠️ WARNING
-
-This version utilizes the Instagram API for better performance.  
-
-> **Note on scanning:** Due to Instagram API requirements, accounts will not appear immediately when you start scanning. The tool first retrieves following and followers data to accurately identify who doesn't follow you back; all accounts will appear once the scan reaches or nears completion. Please be patient while the scan is running!  
+> ⚠️ **Note on scanning:** Due to Instagram API requirements, accounts will not appear immediately when you start scanning. The tool first retrieves following and followers data to accurately identify who doesn't follow you back; all accounts will appear once the scan reaches or nears completion. Please be patient while the scan is running!  
 
 ## 🖥️ Desktop Usage
 
