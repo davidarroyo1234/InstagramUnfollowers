@@ -3,4 +3,5 @@ export interface Timings {
   timeToWaitAfterFiveSearchCycles: number;
   timeBetweenUnfollows: number;
   timeToWaitAfterFiveUnfollows: number;
+  usersPerSearchCycle?: number;
 }
