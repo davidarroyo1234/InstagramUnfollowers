@@ -59,3 +59,67 @@
   position: relative;
   margin-left: 5px;
 }
+
+/* Scan warning banner */
+.iu {
+  --header-height: 4.5rem;
+
+  &.has-scan-warning {
+    --header-height: calc(4.5rem + 28px);
+
+    .app-header {
+      height: auto !important;
+      min-height: var(--header-height) !important;
+    }
+
+    .progressbar {
+      top: 28px !important;
+    }
+
+    .app-sidebar {
+      padding-top: calc(var(--header-height) + 1rem) !important;
+    }
+
+    .results-container,
+    .unfollow-log-container {
+      padding-top: var(--header-height) !important;
+    }
+
+    .tabs-container {
+      top: var(--header-height) !important;
+    }
+  }
+
+  .app-header {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .app-header-content {
+    height: 4.5rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .scan-warning-banner {
+    width: 100%;
+    min-height: 32px;
+    background: rgba(245, 158, 11, 0.15);
+    border-bottom: 1px solid rgba(245, 158, 11, 0.35);
+    color: #fbbf24;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    letter-spacing: 0.01em;
+    padding: 4px 1rem;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    text-align: center;
+    line-height: 1.2;
+  }
+}
+

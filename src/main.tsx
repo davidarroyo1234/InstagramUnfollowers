@@ -11,6 +11,7 @@ import {
   DEFAULT_TIME_BETWEEN_UNFOLLOWS,
   DEFAULT_TIME_TO_WAIT_AFTER_FIVE_SEARCH_CYCLES,
   DEFAULT_TIME_TO_WAIT_AFTER_FIVE_UNFOLLOWS,
+  DEFAULT_USERS_PER_SEARCH_CYCLE,
   FOLLOWERS_PAGE_SAFETY_LIMIT,
   FOLLOWING_PAGE_SAFETY_LIMIT,
   INSTAGRAM_HOSTNAME,
@@ -125,11 +126,12 @@ function App() {
 
   const [timings, setTimings] = useState<Timings>(() => {
     const storedTimings = loadTimings();
-    return storedTimings ?? {
-      timeBetweenSearchCycles: DEFAULT_TIME_BETWEEN_SEARCH_CYCLES,
-      timeToWaitAfterFiveSearchCycles: DEFAULT_TIME_TO_WAIT_AFTER_FIVE_SEARCH_CYCLES,
-      timeBetweenUnfollows: DEFAULT_TIME_BETWEEN_UNFOLLOWS,
-      timeToWaitAfterFiveUnfollows: DEFAULT_TIME_TO_WAIT_AFTER_FIVE_UNFOLLOWS,
+    return {
+      timeBetweenSearchCycles: storedTimings?.timeBetweenSearchCycles ?? DEFAULT_TIME_BETWEEN_SEARCH_CYCLES,
+      timeToWaitAfterFiveSearchCycles: storedTimings?.timeToWaitAfterFiveSearchCycles ?? DEFAULT_TIME_TO_WAIT_AFTER_FIVE_SEARCH_CYCLES,
+      timeBetweenUnfollows: storedTimings?.timeBetweenUnfollows ?? DEFAULT_TIME_BETWEEN_UNFOLLOWS,
+      timeToWaitAfterFiveUnfollows: storedTimings?.timeToWaitAfterFiveUnfollows ?? DEFAULT_TIME_TO_WAIT_AFTER_FIVE_UNFOLLOWS,
+      usersPerSearchCycle: storedTimings?.usersPerSearchCycle ?? DEFAULT_USERS_PER_SEARCH_CYCLE,
     };
   });
 
@@ -376,7 +378,7 @@ function App() {
       while (true) {
         let page;
         try {
-          page = await fetchFriendshipsPage(kind, maxId);
+          page = await fetchFriendshipsPage(kind, maxId, timings.usersPerSearchCycle);
         } catch (e) {
           console.error(`Stopping ${kind} scan early:`, e);
           return false;
@@ -645,8 +647,10 @@ function App() {
       assertUnreachable(state);
   }
 
+  const showScanWarning = state.status === "scanning" && state.results.length === 0;
+
   return (
-    <main id="main" role="main" className="iu">
+    <main id="main" role="main" className={`iu ${showScanWarning ? "has-scan-warning" : ""}`}>
       <section className="overlay">
         <Toolbar
           state={state}

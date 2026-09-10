@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Timings } from "../model/timings";
 import { UserNode } from "../model/user";
 import { WhitelistManager } from "./WhitelistManager";
+import { DEFAULT_USERS_PER_SEARCH_CYCLE } from "../constants/constants";
 
 interface SettingMenuProps {
   setSettingState: (state: boolean) => void;
@@ -22,6 +23,7 @@ export const SettingMenu = ({
   const [timeToWaitAfterFiveSearchCycles, setTimeToWaitAfterFiveSearchCycles] = useState(currentTimings.timeToWaitAfterFiveSearchCycles);
   const [timeBetweenUnfollows, setTimeBetweenUnfollows] = useState(currentTimings.timeBetweenUnfollows);
   const [timeToWaitAfterFiveUnfollows, setTimeToWaitAfterFiveUnfollows] = useState(currentTimings.timeToWaitAfterFiveUnfollows);
+  const [usersPerSearchCycle, setUsersPerSearchCycle] = useState(currentTimings.usersPerSearchCycle ?? DEFAULT_USERS_PER_SEARCH_CYCLE);
 
   const handleSave = (event: any) => {
     event.preventDefault();
@@ -30,6 +32,7 @@ export const SettingMenu = ({
       timeToWaitAfterFiveSearchCycles,
       timeBetweenUnfollows,
       timeToWaitAfterFiveUnfollows,
+      usersPerSearchCycle,
     });
     setSettingState(false);
   };
@@ -106,6 +109,20 @@ export const SettingMenu = ({
                   onChange={(e) => handleInputChange(e, setTimeToWaitAfterFiveUnfollows)}
                 />
                 <label className="margin-between-input-and-label">(ms)</label>
+              </div>
+
+              <div className="row">
+                <label className="minimun-width">Users fetched per request (count)</label>
+                <input
+                  type="number"
+                  id="usersPerSearchCycle"
+                  name="usersPerSearchCycle"
+                  min={1}
+                  max={200}
+                  value={usersPerSearchCycle}
+                  onChange={(e) => handleInputChange(e, setUsersPerSearchCycle)}
+                />
+                <label className="margin-between-input-and-label">(users)</label>
               </div>
 
               <div className="warning-container">

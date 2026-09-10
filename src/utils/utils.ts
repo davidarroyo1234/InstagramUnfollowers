@@ -1,5 +1,5 @@
 import { UserNode } from "../model/user";
-import { INSTAGRAM_WEB_APP_ID, UNFOLLOWERS_PER_PAGE, WITHOUT_PROFILE_PICTURE_URL_IDS } from "../constants/constants";
+import { DEFAULT_USERS_PER_SEARCH_CYCLE, INSTAGRAM_WEB_APP_ID, UNFOLLOWERS_PER_PAGE, WITHOUT_PROFILE_PICTURE_URL_IDS } from "../constants/constants";
 import { ScanningTab } from "../model/scanning-tab";
 import { ScanningFilter } from "../model/scanning-filter";
 import { UnfollowLogEntry } from "../model/unfollow-log-entry";
@@ -195,14 +195,14 @@ export interface FriendshipsPage {
   readonly has_more?: boolean;
 }
 
-export function friendshipsUrlGenerator(kind: FriendshipsListKind, maxId?: string): string {
+export function friendshipsUrlGenerator(kind: FriendshipsListKind, maxId?: string, count: number = DEFAULT_USERS_PER_SEARCH_CYCLE): string {
   const viewerId = getCookie('ds_user_id');
-  const base = `https://www.instagram.com/api/v1/friendships/${viewerId}/${kind}/?count=200`;
+  const base = `https://www.instagram.com/api/v1/friendships/${viewerId}/${kind}/?count=${count}`;
   return maxId === undefined ? base : `${base}&max_id=${encodeURIComponent(maxId)}`;
 }
 
-export async function fetchFriendshipsPage(kind: FriendshipsListKind, maxId?: string): Promise<FriendshipsPage> {
-  const response = await fetch(friendshipsUrlGenerator(kind, maxId), {
+export async function fetchFriendshipsPage(kind: FriendshipsListKind, maxId?: string, count?: number): Promise<FriendshipsPage> {
+  const response = await fetch(friendshipsUrlGenerator(kind, maxId, count), {
     credentials: 'same-origin',
     headers: { 'X-IG-App-ID': INSTAGRAM_WEB_APP_ID },
   });
