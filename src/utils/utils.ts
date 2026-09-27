@@ -1,11 +1,11 @@
 import { UserNode } from "../model/user";
-import { DEFAULT_USERS_PER_SEARCH_CYCLE, INSTAGRAM_WEB_APP_ID, UNFOLLOWERS_PER_PAGE, WITHOUT_PROFILE_PICTURE_URL_IDS } from "../constants/constants";
+import { DEFAULT_USERS_PER_SEARCH_CYCLE, INSTAGRAM_ASBD_ID, INSTAGRAM_WEB_APP_ID, UNFOLLOWERS_PER_PAGE, WITHOUT_PROFILE_PICTURE_URL_IDS } from "../constants/constants";
 import { ScanningTab } from "../model/scanning-tab";
 import { ScanningFilter } from "../model/scanning-filter";
 import { UnfollowLogEntry } from "../model/unfollow-log-entry";
 import { UnfollowFilter } from "../model/unfollow-filter";
 
-export async function copyListToClipboard(nonFollowersList: readonly UserNode[]): Promise<void> {
+export async function copyListToClipboard(nonFollowersList: readonly UserNode[], alertMessage: string = 'List copied to clipboard!'): Promise<void> {
   const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
 
   let output = '';
@@ -14,7 +14,7 @@ export async function copyListToClipboard(nonFollowersList: readonly UserNode[])
   });
 
   await navigator.clipboard.writeText(output);
-  alert('List copied to clipboard!');
+  alert(alertMessage);
 }
 
 export function exportToJSON(users: readonly UserNode[]) {
@@ -201,13 +201,33 @@ export function friendshipsUrlGenerator(kind: FriendshipsListKind, maxId?: strin
   return maxId === undefined ? base : `${base}&max_id=${encodeURIComponent(maxId)}`;
 }
 
+export class InstagramApiError extends Error {
+  readonly status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'InstagramApiError';
+    this.status = status;
+  }
+}
+
 export async function fetchFriendshipsPage(kind: FriendshipsListKind, maxId?: string, count?: number): Promise<FriendshipsPage> {
+  const csrftoken = getCookie('csrftoken') || '';
+  const headers: Record<string, string> = {
+    'X-IG-App-ID': INSTAGRAM_WEB_APP_ID,
+    'X-ASBD-ID': INSTAGRAM_ASBD_ID,
+    'X-Requested-With': 'XMLHttpRequest',
+    'Accept': '*/*',
+  };
+  if (csrftoken) {
+    headers['X-CSRFToken'] = csrftoken;
+  }
+
   const response = await fetch(friendshipsUrlGenerator(kind, maxId, count), {
     credentials: 'same-origin',
-    headers: { 'X-IG-App-ID': INSTAGRAM_WEB_APP_ID },
+    headers,
   });
   if (!response.ok) {
-    throw new Error(`Instagram returned HTTP ${response.status} while fetching ${kind}`);
+    throw new InstagramApiError(response.status, `Instagram returned HTTP ${response.status} while fetching ${kind}`);
   }
   return response.json() as Promise<FriendshipsPage>;
 }
