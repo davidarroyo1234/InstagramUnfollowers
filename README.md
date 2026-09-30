@@ -34,6 +34,7 @@ A nifty tool that lets you see who doesn't follow you back on Instagram.
 10. 💾 **Manage your whitelist** via Settings:
     - Export: Save your whitelist as a JSON backup file
     - Import: Restore or merge whitelisted users from a file
+    - Paste: Bulk-paste usernames directly into your protected whitelist
     - Clear: Remove all users from whitelist
     <br/><img src="./assets/settings_whitelist.png" alt="Settings screen" />
 11. ✅ **Select users** to unfollow using the checkboxes.
@@ -54,9 +55,10 @@ For Android users who want to use it on mobile:
 - ⚡ **Instant Local Cache (0ms load)**: Re-open and review previously completed audits instantly without re-scraping from scratch.
 - 🌐 **Bilingual (EN / ES)**: Native English and Spanish support with instant switching.
 - 🛡️ **Anti-Ban & Session Protection**: Uses full Instagram Web headers (`X-ASBD-ID`, `X-CSRFToken`, `XMLHttpRequest`) to prevent forced logouts and suspicious activity flags.
+- 🛡️ **Action-Block Guard**: Double-checks unfollow API responses to prevent ghost unfollows; halts the queue automatically if Instagram returns `feedback_required` to protect your account.
 - ⏳ **Smart Rate-Limit & Soft-Block Backoff**: Automatically pauses and retries if Instagram returns HTTP 429 or HTTP 400 (`feedback_required`) with exponential cooldowns instead of failing.
 - ⚠️ **Wrong-Detect Guard**: Expanded page limits supporting accounts with tens of thousands of followers, with safe lock preventing accidental unfollows if a scan is interrupted.
-- 🤍 **Persistent Whitelist**: Protect specific accounts with local persistence, plus JSON export and import.
+- 🤍 **Persistent & Bulk Whitelist**: Protect specific accounts with local persistence, JSON export/import, and direct username list pasting.
 - ⚙️ **Customizable Timings**: Control request pacing to match your account safety preferences.
 - 🎨 **Apple-inspired UI**: Clean, responsive, and minimalist interface.
 - 🔒 **100% Client-Side Privacy**: All data is processed locally in your browser. No credentials or data are sent to external servers.
@@ -90,6 +92,7 @@ Una herramienta práctica y ligera que te permite ver quién no te sigue de vuel
 10. 💾 **Administra tu lista blanca** desde Ajustes:
     - Exportar: Guarda tu lista blanca como respaldo en un archivo JSON.
     - Importar: Restaura o combina cuentas desde un archivo de respaldo.
+    - Pegar: Pega listas de nombres de usuario para protegerlos directamente.
     - Borrar: Limpia la lista blanca cuando lo desees.
     <br/><img src="./assets/settings_whitelist.png" alt="Pantalla de ajustes de lista blanca" />
 11. ✅ **Selecciona los usuarios** que deseas dejar de seguir usando las casillas de verificación.
@@ -110,9 +113,10 @@ Para usuarios de Android que quieran utilizarlo desde el móvil:
 - ⚡ **Caché local instantáneo (0ms)**: Carga escaneos anteriores con un solo clic desde la pantalla inicial sin hacer peticiones innecesarias.
 - 🌐 **Soporte Bilingüe (Español / Inglés)**: Interfaz completamente en español e inglés con cambio instantáneo.
 - 🛡️ **Protección antibloqueo y anti-cierre de sesión**: Envía cabeceras completas de Instagram Web (`X-ASBD-ID`, `X-CSRFToken`, `XMLHttpRequest`) para evitar alertas de actividad sospechosa y cierres de sesión forzados.
+- 🛡️ **Protección contra bloqueos de acción (Action Block)**: Verifica la respuesta real de la API de Instagram al dejar de seguir evitando falsos éxitos ("ghost unfollows"); detiene la cola automáticamente ante `feedback_required` para proteger tu cuenta de suspensiones.
 - ⏳ **Manejo inteligente de Rate Limit y bloqueos suaves**: Pausa y reintenta automáticamente con pausas exponenciales ante respuestas HTTP 429 o HTTP 400 (`feedback_required`) evitando que el escaneo falle.
 - ⚠️ **Protección contra falsos no-seguidores**: Límites de páginas ampliados para cuentas con decenas de miles de seguidores, y bloqueo de seguridad del unfollow si el escaneo se interrumpió.
-- 🤍 **Lista blanca persistente**: Protege a tus amigos y familiares con guardado local y opción de exportar/importar en JSON.
+- 🤍 **Lista blanca persistente y masiva**: Protege a tus amigos y familiares con guardado local, exportación/importación en JSON y opción de pegar nombres de usuario directamente.
 - ⚙️ **Tiempos configurables**: Ajusta los intervalos entre peticiones para mayor seguridad.
 - 🎨 **Diseño limpio y moderno**: Interfaz minimalista y responsiva inspirada en el diseño de Apple.
 - 🔒 **Privacidad total**: Todo se ejecuta localmente en tu navegador. Tus datos y contraseñas nunca salen de tu sesión ni van a servidores externos.

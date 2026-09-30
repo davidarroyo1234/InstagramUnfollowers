@@ -163,6 +163,8 @@ function App() {
       isActiveProcess = false;
       break;
     case "scanning":
+      isActiveProcess = Boolean(state.isScanningActive);
+      break;
     case "unfollowing":
       isActiveProcess = state.percentage < 100;
       break;
@@ -181,6 +183,7 @@ function App() {
       searchTerm: "",
       currentTab: "non_whitelisted",
       percentage: 100,
+      isScanningActive: false,
       results: cachedScan.results,
       selectedResults: [],
       whitelistedResults,
@@ -210,6 +213,7 @@ function App() {
         searchTerm: "",
         currentTab: "non_whitelisted",
         percentage: 100,
+        isScanningActive: false,
         results: previewUsers,
         selectedResults: previewUsers.slice(0, 3),
         whitelistedResults: previewUsers.slice(10, 12),
@@ -230,6 +234,7 @@ function App() {
       searchTerm: "",
       currentTab: "non_whitelisted",
       percentage: 0,
+      isScanningActive: true,
       results: [],
       selectedResults: [],
       whitelistedResults,
@@ -562,6 +567,9 @@ function App() {
 
       // If following failed completely on the first attempt, don't waste network requests on followers.
       if (!followingCompleted && followingUsers.length === 0) {
+        setState(prevState =>
+          prevState.status === "scanning" ? { ...prevState, isScanningActive: false } : prevState,
+        );
         setToast({
           show: true,
           text: t(lang, "scanFailedFollowing"),
@@ -618,8 +626,9 @@ function App() {
         }
         return {
           ...prevState,
-          percentage: allCompleted ? 100 : prevState.percentage,
+          percentage: 100,
           scanIncomplete: !followersCompleted,
+          isScanningActive: false,
           results,
         };
       });
@@ -672,9 +681,17 @@ function App() {
             method: "POST",
             credentials: "same-origin",
           });
-          const success = res.ok;
+          const data = (await res.json().catch(() => null)) as any;
+          const isActionBlocked =
+            res.status === 429 ||
+            res.status === 400 ||
+            data?.status === "fail" ||
+            data?.spam === true ||
+            /feedback_required|checkpoint|action_blocked|block/i.test(data?.message ?? "");
+
+          const success = res.ok && data?.status !== "fail" && !isActionBlocked;
           if (!success) {
-            console.warn(`Unfollow for ${user.username} returned HTTP ${res.status}`);
+            console.warn(`Unfollow for ${user.username} failed (HTTP ${res.status}):`, data);
           }
           setState(prevState => {
             if (prevState.status !== "unfollowing") {
@@ -692,6 +709,14 @@ function App() {
               ],
             };
           });
+
+          if (isActionBlocked) {
+            setToast({
+              show: true,
+              text: t(lang, "actionBlockedWarning"),
+            });
+            break;
+          }
         } catch (e) {
           console.error(e);
           setState(prevState => {

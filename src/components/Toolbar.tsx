@@ -180,8 +180,8 @@ export const Toolbar = ({
               <input
                 title={t(lang, "selectPage")}
                 type="checkbox"
-                // Avoid allowing selection while the scan is incomplete and the visible result set is still moving.
-                disabled={state.percentage < 100}
+                // Avoid allowing selection only while the scan is actively fetching
+                disabled={Boolean(state.isScanningActive)}
                 checked={
                   (() => {
                     const displayed = getUsersForDisplay(state.results, state.whitelistedResults, state.currentTab, state.searchTerm, state.filter);
@@ -200,8 +200,8 @@ export const Toolbar = ({
               <input
                 title={t(lang, "selectAll")}
                 type="checkbox"
-                // Avoid allowing selection while the scan is incomplete and the visible result set is still moving.
-                disabled={state.percentage < 100}
+                // Avoid allowing selection only while the scan is actively fetching
+                disabled={Boolean(state.isScanningActive)}
                 checked={
                   (() => {
                     const displayed = getUsersForDisplay(

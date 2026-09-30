@@ -677,6 +677,15 @@ html {
             }
         }
 
+        .btn-paste {
+            background: #5856d6;
+            color: #ffffff;
+
+            &:hover {
+                background: #4745b8;
+            }
+        }
+
         .btn-clear {
             background: #ff3b30;
             color: #ffffff;
@@ -716,6 +725,49 @@ html {
                         accent-color: #007aff;
                     }
                 }
+            }
+        }
+    }
+
+    .paste-whitelist-box {
+        margin-top: 0.8rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        padding: 0.8rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+
+        .paste-whitelist-textarea {
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            color: variables.$clr-white;
+            font-size: 0.88rem;
+            padding: 0.6rem 0.8rem;
+            resize: vertical;
+            min-height: 4rem;
+
+            &:focus {
+                outline: none;
+                border-color: #5856d6;
+            }
+        }
+
+        .btn-paste-submit {
+            align-self: flex-end;
+            background: #5856d6;
+            color: #ffffff;
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+
+            &:hover {
+                background: #4745b8;
             }
         }
     }

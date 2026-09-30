@@ -93,6 +93,11 @@ export const translations = {
     mergeWhitelist: "Merge (add to existing)",
     replaceWhitelist: "Replace (overwrite)",
     whitelistTip: "Export your whitelist to save it as a backup. You can import it later to restore your saved users.",
+    pasteWhitelist: "Paste Usernames",
+    pasteWhitelistPlaceholder: "Paste usernames here (separated by commas, spaces, or newlines)...",
+    addPastedToWhitelist: "Add to Whitelist",
+    pastedUsersAdded: "Added %s new users to whitelist!",
+    noValidUsernamesFound: "No valid usernames found.",
 
     // Unfollowing Queue
     unfollowQueue: "Unfollow Queue",
@@ -109,6 +114,7 @@ export const translations = {
     rateLimitPause: "Instagram cooldown active. Pausing for %s seconds before retrying...",
     sleepingSafety: "Sleeping %s seconds to prevent getting temp blocked",
     loadedFromCache: "Loaded %s accounts from cache!",
+    actionBlockedWarning: "⚠️ Instagram Action Block detected (feedback_required). Unfollow queue stopped to protect your account.",
   },
   es: {
     // Launch Screen
@@ -200,6 +206,11 @@ export const translations = {
     mergeWhitelist: "Combinar (añadir)",
     replaceWhitelist: "Reemplazar (sobrescribir)",
     whitelistTip: "Exporta tu lista blanca para guardarla como copia de seguridad. Puedes importarla después para restaurar tus usuarios guardados.",
+    pasteWhitelist: "Pegar Usuarios",
+    pasteWhitelistPlaceholder: "Pega nombres de usuario aquí (separados por comas, espacios o saltos de línea)...",
+    addPastedToWhitelist: "Añadir a Lista Blanca",
+    pastedUsersAdded: "¡Se añadieron %s nuevos usuarios a la lista blanca!",
+    noValidUsernamesFound: "No se encontraron nombres de usuario válidos.",
 
     // Unfollowing Queue
     unfollowQueue: "Cola de Unfollow",
@@ -216,6 +227,7 @@ export const translations = {
     rateLimitPause: "Enfriamiento de Instagram activo. Pausando %s segundos antes de reintentar...",
     sleepingSafety: "Esperando %s segundos para prevenir bloqueos temporales",
     loadedFromCache: "¡Se cargaron %s cuentas del historial!",
+    actionBlockedWarning: "⚠️ Bloqueo de acción de Instagram detectado (feedback_required). La cola se detuvo para proteger tu cuenta.",
   },
 } as const;
 
