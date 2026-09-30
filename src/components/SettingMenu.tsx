@@ -149,7 +149,7 @@ export const SettingMenu = ({
               </div>
 
               <div className="warning-container">
-                <h3 className="warning"><b>{lang === "es" ? "ADVERTENCIA:" : "WARNING:"}</b> {t(lang, "settingsWarning1")}</h3>
+                <h3 className="warning"><b>{t(lang, "warningPrefix")}</b> {t(lang, "settingsWarning1")}</h3>
                 <h3 className="warning">{t(lang, "settingsWarning2")}</h3>
               </div>
             </div>
@@ -170,10 +170,10 @@ export const SettingMenu = ({
           {/* Action Buttons */}
           <div className="btn-container">
             <button className="btn" type="button" onClick={() => setSettingState(false)}>
-              {lang === "es" ? "Cancelar" : "Cancel"}
+              {t(lang, "cancel")}
             </button>
             <button className="btn" type="submit">
-              {lang === "es" ? "Guardar" : "Save"}
+              {t(lang, "save")}
             </button>
           </div>
         </div>
