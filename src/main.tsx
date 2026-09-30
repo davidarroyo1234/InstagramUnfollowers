@@ -14,7 +14,10 @@ import {
   DEFAULT_USERS_PER_SEARCH_CYCLE,
   FOLLOWERS_PAGE_SAFETY_LIMIT,
   FOLLOWING_PAGE_SAFETY_LIMIT,
+  INSTAGRAM_ASBD_ID,
   INSTAGRAM_HOSTNAME,
+  INSTAGRAM_WEB_APP_ID,
+  RATE_LIMIT_COOLDOWN_SECONDS,
 } from "./constants/constants";
 import {
   assertUnreachable,
@@ -23,6 +26,7 @@ import {
   getCookie,
   getCurrentPageUnfollowers,
   getUsersForDisplay,
+  InstagramApiError,
   RawFriendshipUser,
   rawFriendshipUserToUserNode,
   sleep,
@@ -35,6 +39,7 @@ import { Toolbar } from "./components/Toolbar";
 import { Unfollowing } from "./components/Unfollowing";
 import { Timings } from "./model/timings";
 import { loadTimings, loadWhitelist, saveTimings, saveWhitelist } from "./utils/whitelist-manager";
+import { getInitialLanguage, Language, saveLanguage, t } from "./utils/i18n";
 
 const LOCAL_PREVIEW_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 const isLocalPreview = LOCAL_PREVIEW_HOSTS.has(location.hostname);
@@ -139,6 +144,13 @@ function App() {
   useEffect(() => {
     saveTimings(timings);
   }, [timings]);
+
+  const [lang, setLang] = useState<Language>(() => getInitialLanguage());
+
+  const handleLanguageChange = (newLang: Language) => {
+    setLang(newLang);
+    saveLanguage(newLang);
+  };
 
 
   let isActiveProcess: boolean;
@@ -377,10 +389,30 @@ function App() {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (true) {
         let page;
-        try {
-          page = await fetchFriendshipsPage(kind, maxId, timings.usersPerSearchCycle);
-        } catch (e) {
-          console.error(`Stopping ${kind} scan early:`, e);
+        let retries = 0;
+        const maxRetries = 3;
+        while (retries <= maxRetries) {
+          try {
+            page = await fetchFriendshipsPage(kind, maxId, timings.usersPerSearchCycle);
+            break;
+          } catch (e: any) {
+            if (e instanceof InstagramApiError && e.status === 429 && retries < maxRetries) {
+              retries++;
+              const waitSeconds = RATE_LIMIT_COOLDOWN_SECONDS * retries;
+              setToast({
+                show: true,
+                text: t(lang, "rateLimitPause", waitSeconds),
+              });
+              await sleep(waitSeconds * 1000);
+              setToast({ show: false });
+              continue;
+            }
+            console.error(`Stopping ${kind} scan early:`, e);
+            return false;
+          }
+        }
+
+        if (!page) {
           return false;
         }
 
@@ -434,7 +466,7 @@ function App() {
           );
           setToast({
             show: true,
-            text: `Sleeping ${Math.round(longSleepVar / 1000)} seconds to prevent getting temp blocked`,
+            text: t(lang, "sleepingSafety", Math.round(longSleepVar / 1000)),
           });
           await sleep(longSleepVar);
         }
@@ -476,7 +508,7 @@ function App() {
       if (!followingCompleted && followingUsers.length === 0) {
         setToast({
           show: true,
-          text: "Scan failed: could not load your following list from Instagram.",
+          text: t(lang, "scanFailedFollowing"),
         });
         return;
       }
@@ -510,17 +542,18 @@ function App() {
         return {
           ...prevState,
           percentage: allCompleted ? 100 : prevState.percentage,
+          scanIncomplete: !followersCompleted,
           results,
         };
       });
 
-      let toastMessage = "Scanning completed!";
+      let toastMessage = t(lang, "scanCompleted");
       if (!followingCompleted && !followersCompleted) {
-        toastMessage = `Partial scan: loaded ${followingUsers.length} accounts, but scan was interrupted.`;
+        toastMessage = t(lang, "partialScanInterrupted", followingUsers.length);
       } else if (!followersCompleted) {
-        toastMessage = "Warning: Followers list was interrupted. Accounts that follow you may appear as non-followers.";
+        toastMessage = t(lang, "partialScanWarning");
       } else if (!followingCompleted) {
-        toastMessage = `Partial scan: loaded ${followingUsers.length} followed accounts before scan stopped.`;
+        toastMessage = t(lang, "partialScanInterrupted", followingUsers.length);
       }
 
       setToast({
@@ -551,15 +584,21 @@ function App() {
         // Math.floor would leave progress at 99% when near completion
         const percentage = Math.round((counter / state.selectedResults.length) * 100);
         try {
-          await fetch(unfollowUserUrlGenerator(user.id), {
+          const res = await fetch(unfollowUserUrlGenerator(user.id), {
             headers: {
               "content-type": "application/x-www-form-urlencoded",
               "x-csrftoken": csrftoken,
+              "x-ig-app-id": INSTAGRAM_WEB_APP_ID,
+              "x-asbd-id": INSTAGRAM_ASBD_ID,
+              "x-requested-with": "XMLHttpRequest",
             },
             method: "POST",
-            mode: "cors",
-            credentials: "include",
+            credentials: "same-origin",
           });
+          const success = res.ok;
+          if (!success) {
+            console.warn(`Unfollow for ${user.username} returned HTTP ${res.status}`);
+          }
           setState(prevState => {
             if (prevState.status !== "unfollowing") {
               return prevState;
@@ -571,7 +610,7 @@ function App() {
                 ...prevState.unfollowLog,
                 {
                   user,
-                  unfollowedSuccessfully: true,
+                  unfollowedSuccessfully: success,
                 },
               ],
             };
@@ -604,7 +643,7 @@ function App() {
         if (counter % 5 === 0) {
           setToast({
             show: true,
-            text: `Sleeping ${timings.timeToWaitAfterFiveUnfollows / 60000} minutes to prevent getting temp blocked`,
+            text: t(lang, "sleepingSafety", `${Math.round(timings.timeToWaitAfterFiveUnfollows / 60000)}m`),
           });
           await sleep(timings.timeToWaitAfterFiveUnfollows);
         }
@@ -619,7 +658,7 @@ function App() {
   let markup: React.JSX.Element;
   switch (state.status) {
     case "initial":
-      markup = <NotSearching onScan={onScan}></NotSearching>;
+      markup = <NotSearching onScan={onScan} lang={lang}></NotSearching>;
       break;
 
     case "scanning": {
@@ -632,6 +671,7 @@ function App() {
         scanningPaused={scanningPaused}
         UserCheckIcon={UserCheckIcon}
         UserUncheckIcon={UserUncheckIcon}
+        lang={lang}
       ></Searching>;
       break;
     }
@@ -640,6 +680,7 @@ function App() {
       markup = <Unfollowing
         state={state}
         handleUnfollowFilter={handleUnfollowFilter}
+        lang={lang}
       ></Unfollowing>;
       break;
 
@@ -662,6 +703,8 @@ function App() {
           currentTimings={timings}
           whitelistedUsers={state.status === "scanning" ? state.whitelistedResults : loadWhitelist()}
           onWhitelistUpdate={onWhitelistUpdate}
+          lang={lang}
+          onLanguageChange={handleLanguageChange}
         ></Toolbar>
 
         {markup}

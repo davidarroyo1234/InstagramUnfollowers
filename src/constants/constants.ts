@@ -6,6 +6,7 @@ export const UNFOLLOWERS_PER_PAGE = 50;
 // endpoints behave inconsistently; it is not a secret, just an identifier
 // for "the instagram.com web client" and is safe to keep public.
 export const INSTAGRAM_WEB_APP_ID = "936619743392459";
+export const INSTAGRAM_ASBD_ID = "129477";
 
 // Page-count safety caps for the following/followers scan (see
 // utils/utils.ts fetchAllFriendships and main.tsx). Instagram serves the
@@ -13,8 +14,9 @@ export const INSTAGRAM_WEB_APP_ID = "936619743392459";
 // users/page, ignoring the `count` we request) rather than the larger
 // chunks it gives for the following list, so followers needs a much higher
 // cap to be able to finish a full scan.
-export const FOLLOWING_PAGE_SAFETY_LIMIT = 60;
-export const FOLLOWERS_PAGE_SAFETY_LIMIT = 250;
+export const FOLLOWING_PAGE_SAFETY_LIMIT = 250;
+export const FOLLOWERS_PAGE_SAFETY_LIMIT = 1500;
+export const RATE_LIMIT_COOLDOWN_SECONDS = 30;
 export const WHITELISTED_RESULTS_STORAGE_KEY = "iu_whitelisted-results";
 export const TIMINGS_STORAGE_KEY = "iu_timings";
 
