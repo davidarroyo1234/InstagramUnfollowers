@@ -1353,6 +1353,30 @@ html .iu button.run-scan:hover {
     background: #f0b44b;
 }
 
+html .iu button.load-cached-scan {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: static;
+    transform: none;
+    width: auto;
+    height: auto;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-bright);
+    padding: 0.95rem 1.35rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+html .iu button.load-cached-scan:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
 .iu .launch-note {
     color: var(--muted);
     font-size: 0.9rem;

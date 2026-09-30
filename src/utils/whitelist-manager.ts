@@ -1,6 +1,6 @@
 import { UserNode } from "../model/user";
 import { Timings } from "../model/timings";
-import { WHITELISTED_RESULTS_STORAGE_KEY, TIMINGS_STORAGE_KEY } from "../constants/constants";
+import { WHITELISTED_RESULTS_STORAGE_KEY, TIMINGS_STORAGE_KEY, LAST_SCAN_RESULTS_STORAGE_KEY, LAST_SCAN_TIMESTAMP_STORAGE_KEY } from "../constants/constants";
 
 /**
  * Export whitelist to a JSON file
@@ -141,4 +141,39 @@ export const loadTimings = (): Timings | null => {
  */
 export const saveTimings = (timings: Timings): void => {
   localStorage.setItem(TIMINGS_STORAGE_KEY, JSON.stringify(timings));
+};
+
+/**
+ * Cache completed scan results locally for instant recall
+ */
+export const saveCachedScanResults = (results: readonly UserNode[]): void => {
+  try {
+    localStorage.setItem(LAST_SCAN_RESULTS_STORAGE_KEY, JSON.stringify(results));
+    localStorage.setItem(LAST_SCAN_TIMESTAMP_STORAGE_KEY, String(Date.now()));
+  } catch (e) {
+    console.warn("Could not cache scan results:", e);
+  }
+};
+
+/**
+ * Load cached scan results from localStorage
+ */
+export const loadCachedScanResults = (): { results: readonly UserNode[]; timestamp: number } | null => {
+  try {
+    const raw = localStorage.getItem(LAST_SCAN_RESULTS_STORAGE_KEY);
+    const time = localStorage.getItem(LAST_SCAN_TIMESTAMP_STORAGE_KEY);
+    if (!raw || !time) {
+      return null;
+    }
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return null;
+    }
+    return {
+      results: parsed as readonly UserNode[],
+      timestamp: Number(time),
+    };
+  } catch {
+    return null;
+  }
 };

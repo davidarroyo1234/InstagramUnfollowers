@@ -1,12 +1,15 @@
 import React from 'react';
 import { Language, t } from '../utils/i18n';
+import { UserNode } from '../model/user';
 
 interface NotSearchingProps {
   onScan?: () => void;
   lang: Language;
+  cachedScan?: { readonly results: readonly UserNode[]; readonly timestamp: number } | null;
+  onLoadCached?: () => void;
 }
 
-export const NotSearching = ({onScan, lang}: NotSearchingProps) => (
+export const NotSearching = ({onScan, lang, cachedScan, onLoadCached}: NotSearchingProps) => (
   <section className="launch-screen">
     <div className="launch-copy">
       <span className="eyebrow">{t(lang, "localAccountAudit")}</span>
@@ -18,6 +21,11 @@ export const NotSearching = ({onScan, lang}: NotSearchingProps) => (
         <button className="run-scan" onClick={onScan}>
           {t(lang, "runScan")}
         </button>
+        {cachedScan && cachedScan.results.length > 0 && onLoadCached && (
+          <button type="button" className="load-cached-scan" onClick={onLoadCached}>
+            ⚡ {t(lang, "loadCachedScan", cachedScan.results.length)}
+          </button>
+        )}
         <span className="launch-note">{t(lang, "runsInBrowserOnly")}</span>
       </div>
     </div>
@@ -29,7 +37,7 @@ export const NotSearching = ({onScan, lang}: NotSearchingProps) => (
       </div>
       <div className="signal-card primary">
         <span>{t(lang, "ready")}</span>
-        <strong>0%</strong>
+        <strong>{cachedScan ? `${cachedScan.results.length}` : "0%"}</strong>
       </div>
       <div className="signal-card">
         <span>{t(lang, "protected")}</span>

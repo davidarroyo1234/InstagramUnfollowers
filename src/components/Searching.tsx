@@ -258,8 +258,14 @@ export const Searching = ({
         </div>
         <button
           className="unfollow"
-          disabled={state.scanIncomplete}
-          title={state.scanIncomplete ? t(lang, "unfollowDisabledPartialScan") : undefined}
+          disabled={state.scanIncomplete || state.percentage < 100}
+          title={
+            state.percentage < 100
+              ? t(lang, "scanInProgressWait")
+              : state.scanIncomplete
+              ? t(lang, "unfollowDisabledPartialScan")
+              : undefined
+          }
           onClick={() => {
             if (state.scanIncomplete) {
               alert(t(lang, "unfollowDisabledPartialScan"));
@@ -405,7 +411,8 @@ export const Searching = ({
                   <input
                     className="account-checkbox"
                     type="checkbox"
-                    checked={state.selectedResults.indexOf(user) !== -1}
+                    disabled={state.percentage < 100}
+                    checked={state.selectedResults.some(result => result.id === user.id)}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => toggleUser(e.currentTarget.checked, user)}
                   />
                 </div>
