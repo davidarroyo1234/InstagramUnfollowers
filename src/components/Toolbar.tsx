@@ -134,7 +134,7 @@ export const Toolbar = ({
           <button
             className="copy-list"
             type="button"
-            title={lang === "en" ? "Cambiar a Español" : "Switch to English"}
+            title={lang === "en" ? t(lang, "switchToSpanish") : t(lang, "switchToEnglish")}
             onClick={() => onLanguageChange(lang === "en" ? "es" : "en")}
             style={{ fontWeight: "bold" }}
           >

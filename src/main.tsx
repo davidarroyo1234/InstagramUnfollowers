@@ -396,14 +396,16 @@ function App() {
             page = await fetchFriendshipsPage(kind, maxId, timings.usersPerSearchCycle);
             break;
           } catch (e: any) {
-            if (e instanceof InstagramApiError && e.status === 429 && retries < maxRetries) {
+            if ((e instanceof InstagramApiError || e?.name === 'InstagramApiError') && e?.status === 429 && retries < maxRetries) {
               retries++;
               const waitSeconds = RATE_LIMIT_COOLDOWN_SECONDS * retries;
-              setToast({
-                show: true,
-                text: t(lang, "rateLimitPause", waitSeconds),
-              });
-              await sleep(waitSeconds * 1000);
+              for (let sec = waitSeconds; sec > 0; sec--) {
+                setToast({
+                  show: true,
+                  text: t(lang, "rateLimitPause", sec),
+                });
+                await sleep(1000);
+              }
               setToast({ show: false });
               continue;
             }

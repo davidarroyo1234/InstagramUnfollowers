@@ -136,7 +136,7 @@ export const Searching = ({
                 checked={state.filter.showWithOutProfilePicture}
                 onChange={handleScanFilter}
               />
-              &nbsp;{lang === "es" ? "Sin Foto" : "No Pic"}
+              &nbsp;{t(lang, "noPic")}
             </label>
           </menu>
 
@@ -172,13 +172,13 @@ export const Searching = ({
                 setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
               }}
             >
-              {lang === "es" ? "Sin Foto" : "No Pic"}
+              {t(lang, "noPic")}
             </button>
             <button
               className="button-secondary danger-text"
               onClick={() => setState({ ...state, selectedResults: [] })}
             >
-              {lang === "es" ? "Limpiar" : "Clear"}
+              {t(lang, "clear")}
             </button>
           </div>
           {state.selectedResults.length > 0 && (
@@ -190,8 +190,8 @@ export const Searching = ({
             </button>
           )}
           <div className="sidebar-stats metric-stack">
-            <p><span>{lang === "es" ? "Mostrados" : "Displayed"}</span><strong>{usersForDisplay.length}</strong></p>
-            <p><span>{lang === "es" ? "Total escaneados" : "Total scanned"}</span><strong>{state.results.length}</strong></p>
+            <p><span>{t(lang, "displayed")}</span><strong>{usersForDisplay.length}</strong></p>
+            <p><span>{t(lang, "totalScanned")}</span><strong>{state.results.length}</strong></p>
             <p className="whitelist-counter">
               <span>{t(lang, "whitelist")}</span><strong>★ {state.whitelistedResults.length}</strong>
             </p>
@@ -199,7 +199,7 @@ export const Searching = ({
 
           {state.percentage === 100 && (
             <div className="sidebar-summary">
-              <h4>{lang === "es" ? "Resumen" : "Scan Summary"}</h4>
+              <h4>{t(lang, "scanSummary")}</h4>
               <div className="summary-grid">
                 <div className="summary-item">
                   <span>{t(lang, "nonFollowers")}</span>
@@ -265,7 +265,7 @@ export const Searching = ({
               alert(t(lang, "unfollowDisabledPartialScan"));
               return;
             }
-            if (!confirm(lang === "es" ? "¿Estás seguro de dejar de seguir a las cuentas seleccionadas?" : "Are you sure?")) {
+            if (!confirm(t(lang, "unfollowConfirm"))) {
               return;
             }
             //TODO TEMP until types are properly fixed
@@ -275,7 +275,7 @@ export const Searching = ({
                 return prevState;
               }
               if (prevState.selectedResults.length === 0) {
-                alert(lang === "es" ? "Debes seleccionar al menos un usuario" : "Must select at least a single user to unfollow");
+                alert(t(lang, "selectAtLeastOneUser"));
                 return prevState;
               }
               const newState: State = {
@@ -292,12 +292,12 @@ export const Searching = ({
             });
           }}
         >
-          {lang === "es" ? "Dejar de Seguir" : "Unfollow"} ({state.selectedResults.length})
+          {t(lang, "unfollowCount", state.selectedResults.length)}
         </button>
       </aside>
       <article className="results-container">
         {state.scanIncomplete && (
-          <div className="scan-warning-banner" role="alert" style={{ background: "rgba(239, 68, 68, 0.2)", borderColor: "rgba(239, 68, 68, 0.4)", color: "#fca5a5", marginBottom: "1rem" }}>
+          <div className="scan-warning-banner scan-incomplete-banner" role="alert">
             <span>{t(lang, "partialScanWarning")}</span>
           </div>
         )}

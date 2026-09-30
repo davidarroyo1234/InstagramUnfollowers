@@ -28,6 +28,8 @@ export const translations = {
     goBackConfirm: "Go back to Instagram?",
     copiedToClipboard: "List copied to clipboard!",
     unfollowDisabledPartialScan: "Unfollow disabled: follower scan did not finish completely.",
+    switchToSpanish: "Cambiar a Español",
+    switchToEnglish: "Switch to English",
 
     // Scanner / Filters
     scanner: "Scanner",
@@ -50,6 +52,14 @@ export const translations = {
     pause: "Pause",
     resume: "Resume",
     partialScanWarning: "⚠️ Incomplete scan: Followers list was interrupted. Accounts that follow you may appear here. Mass unfollow is disabled to protect your account.",
+    noPic: "No Pic",
+    clear: "Clear",
+    displayed: "Displayed",
+    totalScanned: "Total scanned",
+    scanSummary: "Scan Summary",
+    unfollowCount: "Unfollow (%s)",
+    unfollowConfirm: "Are you sure you want to unfollow the selected accounts?",
+    selectAtLeastOneUser: "Must select at least a single user to unfollow",
 
     // Settings
     settingsTitle: "Settings",
@@ -62,6 +72,9 @@ export const translations = {
     settingsWarning1: "WARNING: Modifying these settings can lead to your account being banned.",
     settingsWarning2: "USE IT AT YOUR OWN RISK!!!!",
     saveSettings: "Save Settings",
+    cancel: "Cancel",
+    save: "Save",
+    warningPrefix: "WARNING:",
 
     // Whitelist Manager
     whitelistTitle: "Whitelist Management",
@@ -73,6 +86,11 @@ export const translations = {
     whitelistExported: "Whitelist exported successfully!",
     whitelistImported: "Whitelist imported successfully!",
     whitelistCleared: "Whitelist cleared!",
+    userSingular: "user",
+    userPlural: "users",
+    mergeWhitelist: "Merge (add to existing)",
+    replaceWhitelist: "Replace (overwrite)",
+    whitelistTip: "Export your whitelist to save it as a backup. You can import it later to restore your saved users.",
 
     // Unfollowing Queue
     unfollowQueue: "Unfollow Queue",
@@ -114,6 +132,8 @@ export const translations = {
     goBackConfirm: "¿Deseas volver a Instagram?",
     copiedToClipboard: "¡Lista copiada al portapapeles!",
     unfollowDisabledPartialScan: "Unfollow desactivado: el escaneo de seguidores no finalizó por completo.",
+    switchToSpanish: "Cambiar a Español",
+    switchToEnglish: "Switch to English",
 
     // Scanner / Filters
     scanner: "Escáner",
@@ -136,6 +156,14 @@ export const translations = {
     pause: "Pausar",
     resume: "Reanudar",
     partialScanWarning: "⚠️ Escaneo incompleto: la lista de seguidores se interrumpió. Cuentas que te siguen podrían aparecer aquí. El unfollow masivo ha sido desactivado por seguridad.",
+    noPic: "Sin foto",
+    clear: "Limpiar",
+    displayed: "Mostrados",
+    totalScanned: "Total escaneados",
+    scanSummary: "Resumen",
+    unfollowCount: "Dejar de Seguir (%s)",
+    unfollowConfirm: "¿Estás seguro de dejar de seguir a las cuentas seleccionadas?",
+    selectAtLeastOneUser: "Debes seleccionar al menos un usuario",
 
     // Settings
     settingsTitle: "Configuración",
@@ -148,6 +176,9 @@ export const translations = {
     settingsWarning1: "ADVERTENCIA: Modificar estos valores puede provocar bloqueos en tu cuenta.",
     settingsWarning2: "¡ÚSALO BAJO TU PROPIO RIESGO!",
     saveSettings: "Guardar Ajustes",
+    cancel: "Cancelar",
+    save: "Guardar",
+    warningPrefix: "ADVERTENCIA:",
 
     // Whitelist Manager
     whitelistTitle: "Gestión de Lista Blanca",
@@ -159,6 +190,11 @@ export const translations = {
     whitelistExported: "¡Lista blanca exportada correctamente!",
     whitelistImported: "¡Lista blanca importada correctamente!",
     whitelistCleared: "¡Lista blanca borrada!",
+    userSingular: "usuario",
+    userPlural: "usuarios",
+    mergeWhitelist: "Combinar (añadir)",
+    replaceWhitelist: "Reemplazar (sobrescribir)",
+    whitelistTip: "Exporta tu lista blanca para guardarla como copia de seguridad. Puedes importarla después para restaurar tus usuarios guardados.",
 
     // Unfollowing Queue
     unfollowQueue: "Cola de Unfollow",

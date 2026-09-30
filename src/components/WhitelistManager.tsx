@@ -76,7 +76,7 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate, lang }: 
       <div className="whitelist-header">
         <h4>{t(lang, "whitelistTitle")}</h4>
         <span className="whitelist-count">
-          {whitelistedUsers.length} {whitelistedUsers.length === 1 ? (lang === "es" ? "usuario" : "user") : (lang === "es" ? "usuarios" : "users")}
+          {whitelistedUsers.length} {whitelistedUsers.length === 1 ? t(lang, "userSingular") : t(lang, "userPlural")}
         </span>
       </div>
 
@@ -106,7 +106,7 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate, lang }: 
                 checked={importMode === "merge"}
                 onChange={() => setImportMode("merge")}
               />
-              {lang === "es" ? "Combinar (añadir)" : "Merge (add to existing)"}
+              {t(lang, "mergeWhitelist")}
             </label>
             <label>
               <input
@@ -116,7 +116,7 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate, lang }: 
                 checked={importMode === "replace"}
                 onChange={() => setImportMode("replace")}
               />
-              {lang === "es" ? "Reemplazar (sobrescribir)" : "Replace (overwrite)"}
+              {t(lang, "replaceWhitelist")}
             </label>
           </div>
 
@@ -148,7 +148,7 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate, lang }: 
 
       <div className="whitelist-info">
         <p className="info-text">
-          <strong>💡 Tip:</strong> {lang === "es" ? "Exporta tu lista blanca para guardarla como copia de seguridad. Puedes importarla después para restaurar tus usuarios guardados." : "Export your whitelist to save it as a backup. You can import it later to restore your saved users."}
+          <strong>💡 Tip:</strong> {t(lang, "whitelistTip")}
         </p>
       </div>
     </div>

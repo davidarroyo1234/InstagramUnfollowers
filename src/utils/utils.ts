@@ -205,6 +205,7 @@ export class InstagramApiError extends Error {
   readonly status: number;
   constructor(status: number, message: string) {
     super(message);
+    Object.setPrototypeOf(this, InstagramApiError.prototype);
     this.name = 'InstagramApiError';
     this.status = status;
   }
