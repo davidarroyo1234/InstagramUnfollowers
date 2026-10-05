@@ -98,6 +98,7 @@ export const translations = {
     addPastedToWhitelist: "Add to Whitelist",
     pastedUsersAdded: "Added %s new users to whitelist!",
     noValidUsernamesFound: "No valid usernames found.",
+    pastedUsersAlreadyExist: "All pasted users are already in the whitelist.",
 
     // Unfollowing Queue
     unfollowQueue: "Unfollow Queue",
@@ -211,6 +212,7 @@ export const translations = {
     addPastedToWhitelist: "Añadir a Lista Blanca",
     pastedUsersAdded: "¡Se añadieron %s nuevos usuarios a la lista blanca!",
     noValidUsernamesFound: "No se encontraron nombres de usuario válidos.",
+    pastedUsersAlreadyExist: "Todos los usuarios pegados ya están en la lista blanca.",
 
     // Unfollowing Queue
     unfollowQueue: "Cola de Unfollow",

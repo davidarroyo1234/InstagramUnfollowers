@@ -437,7 +437,7 @@ function App() {
             const message = String(e?.message ?? "");
             const isRateLimitOrSoftBlock =
               (e instanceof InstagramApiError || e?.name === "InstagramApiError") &&
-              (status === 429 || status === 400 || /feedback_required|checkpoint|rate limit|please wait/i.test(message));
+              (status === 429 || /feedback_required|checkpoint|rate limit|please wait/i.test(message));
             const isNetworkError = e instanceof TypeError || /fetch|network/i.test(message);
 
             if ((isRateLimitOrSoftBlock || isNetworkError) && retries < maxRetries) {
@@ -684,10 +684,9 @@ function App() {
           const data = (await res.json().catch(() => null)) as any;
           const isActionBlocked =
             res.status === 429 ||
-            res.status === 400 ||
             data?.status === "fail" ||
             data?.spam === true ||
-            /feedback_required|checkpoint|action_blocked|block/i.test(data?.message ?? "");
+            /feedback_required|checkpoint|action_blocked/i.test(data?.message ?? "");
 
           const success = res.ok && data?.status !== "fail" && !isActionBlocked;
           if (!success) {
