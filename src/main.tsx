@@ -14,7 +14,6 @@ import {
   DEFAULT_USERS_PER_SEARCH_CYCLE,
   FOLLOWING_PAGE_SAFETY_LIMIT,
   FOLLOW_CHECK_PAGE_SIZE,
-  FOLLOWING_LIST_PROGRESS_END,
   CHECKS_BEFORE_LONG_SLEEP,
   INSTAGRAM_ASBD_ID,
   INSTAGRAM_HOSTNAME,
@@ -392,10 +391,9 @@ function App() {
   }, [isActiveProcess, state]);
 
   useEffect(() => {
-    // The following endpoint doesn't expose a total count up front, so while
-    // loading the viewer's own following list we can't compute an exact
-    // percentage. This gives a smooth, ever-increasing estimate within that
-    // phase's share of the progress bar without ever overselling 100%.
+    // Neither endpoint exposes a total count up front, so we can't compute an
+    // exact percentage. This gives a smooth, ever-increasing estimate based on
+    // the number of accounts checked so far, without ever overselling 100%.
     const estimatePhaseProgress = (usersFetchedSoFar: number): number =>
       100 * (1 - 1 / (1 + usersFetchedSoFar / 150));
 
@@ -444,97 +442,72 @@ function App() {
       }
     };
 
-    // Fetches every page of the viewer's own following list and reports
-    // progress within [progressRangeStart, progressRangeEnd].
+    let requestsSinceLongSleep = 0;
+    const paceRequest = async () => {
+      // Pause scanning if user requested so.
+      while (scanningPaused) {
+        await sleep(1000);
+        console.info("Scan paused");
+      }
+
+      await sleep(Math.floor(Math.random() * 700) + 300);
+      await sleep(Math.floor(Math.random() * (timings.timeBetweenSearchCycles - timings.timeBetweenSearchCycles * 0.7)) + timings.timeBetweenSearchCycles);
+
+      requestsSinceLongSleep++;
+      if (requestsSinceLongSleep >= CHECKS_BEFORE_LONG_SLEEP) {
+        requestsSinceLongSleep = 0;
+        const longSleepVar = Math.max(
+          0,
+          timings.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000), // +/- 5 seconds
+        );
+        setToast({
+          show: true,
+          text: t(lang, "sleepingSafety", Math.round(longSleepVar / 1000)),
+        });
+        await sleep(longSleepVar);
+      }
+      setToast({ show: false });
+    };
+
+    // Walks the viewer's own following list page by page. `onPageUsers` is
+    // awaited for each page before the next one is requested and returns
+    // false to stop the walk early. Resolves true only if the whole list was
+    // walked.
     const fetchList = async (
       pageSafetyLimit: number,
-      progressRangeStart: number,
-      progressRangeEnd: number,
-      onPageUsers: (pageUsers: readonly RawFriendshipUser[]) => void,
+      onPageUsers: (pageUsers: readonly RawFriendshipUser[]) => Promise<boolean>,
     ): Promise<boolean> => {
-      const kind = "following";
       let maxId: string | undefined;
       let pagesFetched = 0;
-      let scrollCycle = 0;
-      let totalUsersFetched = 0;
 
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (true) {
         const result = await fetchPageWithRetry(maxId, timings.usersPerSearchCycle);
         if (!result.ok) {
-          console.error(`Stopping ${kind} scan early.`);
+          console.error("Stopping following scan early.");
           return false;
         }
         const page = result.page;
-
         const pageUsers = page.users ?? [];
-        totalUsersFetched += pageUsers.length;
-        onPageUsers(pageUsers);
 
-        setState(prevState => {
-          if (prevState.status !== "scanning") {
-            return prevState;
-          }
-          const rangeSize = progressRangeEnd - progressRangeStart;
-          return {
-            ...prevState,
-            percentage: Math.round(progressRangeStart + estimatePhaseProgress(totalUsersFetched) * (rangeSize / 100)),
-          };
-        });
+        if (!(await onPageUsers(pageUsers))) {
+          return false;
+        }
 
         const hasMore = Boolean(page.next_max_id) && page.has_more !== false;
         if (!hasMore || pageUsers.length === 0) {
-          break;
+          return true;
         }
 
         pagesFetched += 1;
         if (pagesFetched >= pageSafetyLimit) {
-          console.error(`Stopping ${kind} scan early: hit the safety cap of ${pageSafetyLimit} pages with ${totalUsersFetched} users fetched.`);
+          console.error(`Stopping following scan early: hit the safety cap of ${pageSafetyLimit} pages.`);
           return false;
         }
         maxId = page.next_max_id;
 
-        // Pause scanning if user requested so.
-        while (scanningPaused) {
-          await sleep(1000);
-          console.info("Scan paused");
-        }
-
-        // Human-like behavior: Micro-pause between fetching chunks
-        const microPause = Math.floor(Math.random() * 1500) + 500; // 500ms - 2000ms
-        await sleep(microPause);
-
-        // Standard delay between cycles
-        await sleep(Math.floor(Math.random() * (timings.timeBetweenSearchCycles - timings.timeBetweenSearchCycles * 0.7)) + timings.timeBetweenSearchCycles);
-
-        scrollCycle++;
-        if (scrollCycle > 6) {
-          scrollCycle = 0;
-          // Variable long sleep to avoid patterns
-          const longSleepVar = Math.max(
-            0,
-            timings.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000), // +/- 5 seconds
-          );
-          setToast({
-            show: true,
-            text: t(lang, "sleepingSafety", Math.round(longSleepVar / 1000)),
-          });
-          await sleep(longSleepVar);
-        }
-        setToast({ show: false });
+        await paceRequest();
       }
-
-      setState(prevState => {
-        if (prevState.status !== "scanning") {
-          return prevState;
-        }
-        return {
-          ...prevState,
-          percentage: progressRangeEnd,
-        };
-      });
-
-      return true;
     };
 
     const scan = async () => {
@@ -554,20 +527,56 @@ function App() {
         return;
       }
 
-      // 1. Load the list of accounts you follow. Nothing is shown yet: an
-      // account only appears in the results once we've verified it doesn't
-      // follow you back.
-      const followingUsers: RawFriendshipUser[] = [];
-      const followingCompleted = await fetchList(
-        FOLLOWING_PAGE_SAFETY_LIMIT,
-        0,
-        FOLLOWING_LIST_PROGRESS_END,
-        pageUsers => {
-          followingUsers.push(...pageUsers);
-        },
-      );
+      // For every page of accounts you follow, read the first page of *their*
+      // following list. Instagram puts the logged-in viewer at the top of it
+      // when the account follows the viewer, so if we show up there they
+      // follow us back; otherwise we assume they don't and list them as a
+      // non-follower. Accounts only appear in the results once checked.
+      const nonFollowers: UserNode[] = [];
+      let checkedCount = 0;
+      let interrupted = false;
 
-      if (!followingCompleted && followingUsers.length === 0) {
+      const checkPage = async (pageUsers: readonly RawFriendshipUser[]): Promise<boolean> => {
+        for (const user of pageUsers) {
+          const userId = String(user.pk_id ?? user.pk);
+          const result = await fetchPageWithRetry(undefined, FOLLOW_CHECK_PAGE_SIZE, userId);
+          if (!result.ok && result.blocked) {
+            interrupted = true;
+            return false;
+          }
+
+          if (result.ok) {
+            const followsViewer = (result.page.users ?? []).some(
+              candidate => String(candidate.pk_id ?? candidate.pk) === viewerId,
+            );
+            if (!followsViewer) {
+              const node = rawFriendshipUserToUserNode(user, false);
+              nonFollowers.push(node);
+              setState(prevState =>
+                prevState.status === "scanning"
+                  ? { ...prevState, results: [...prevState.results, node] }
+                  : prevState,
+              );
+            }
+          }
+          // A non-retryable failure for one account (e.g. unavailable profile)
+          // leaves it unverified, so it's skipped rather than listed.
+
+          checkedCount++;
+          setState(prevState =>
+            prevState.status === "scanning"
+              ? { ...prevState, percentage: Math.min(99, Math.round(estimatePhaseProgress(checkedCount))) }
+              : prevState,
+          );
+
+          await paceRequest();
+        }
+        return true;
+      };
+
+      const followingCompleted = await fetchList(FOLLOWING_PAGE_SAFETY_LIMIT, checkPage);
+
+      if (!followingCompleted && checkedCount === 0) {
         setState(prevState =>
           prevState.status === "scanning" ? { ...prevState, isScanningActive: false } : prevState,
         );
@@ -576,84 +585,6 @@ function App() {
           text: t(lang, "scanFailedFollowing"),
         });
         return;
-      }
-
-      // 2. For each followed account, read the first page of *their* following
-      // list. Instagram puts the logged-in viewer at the top of it when the
-      // account follows the viewer, so if we show up there they follow us
-      // back; otherwise we assume they don't and list them as a non-follower.
-      const nonFollowers: UserNode[] = [];
-      let checkedCount = 0;
-      let interrupted = false;
-      let checksSinceLongSleep = 0;
-      const totalToCheck = followingUsers.length;
-
-      for (const user of followingUsers) {
-        // Pause scanning if user requested so.
-        while (scanningPaused) {
-          await sleep(1000);
-          console.info("Scan paused");
-        }
-
-        const userId = String(user.pk_id ?? user.pk);
-        const result = await fetchPageWithRetry(undefined, FOLLOW_CHECK_PAGE_SIZE, userId);
-        if (!result.ok && result.blocked) {
-          interrupted = true;
-          break;
-        }
-
-        if (result.ok) {
-          const followsViewer = (result.page.users ?? []).some(
-            candidate => String(candidate.pk_id ?? candidate.pk) === viewerId,
-          );
-          if (!followsViewer) {
-            const node = rawFriendshipUserToUserNode(user, false);
-            nonFollowers.push(node);
-            setState(prevState =>
-              prevState.status === "scanning"
-                ? { ...prevState, results: [...prevState.results, node] }
-                : prevState,
-            );
-          }
-        }
-        // A non-retryable failure for one account (e.g. unavailable profile)
-        // leaves it unverified, so it's skipped rather than listed.
-
-        checkedCount++;
-        setState(prevState =>
-          prevState.status === "scanning"
-            ? {
-              ...prevState,
-              percentage: Math.round(
-                FOLLOWING_LIST_PROGRESS_END +
-                (checkedCount / totalToCheck) * (100 - FOLLOWING_LIST_PROGRESS_END),
-              ),
-            }
-            : prevState,
-        );
-
-        if (checkedCount >= totalToCheck) {
-          break;
-        }
-
-        // Human-like pacing between checks.
-        await sleep(Math.floor(Math.random() * 700) + 300);
-        await sleep(Math.floor(Math.random() * (timings.timeBetweenSearchCycles - timings.timeBetweenSearchCycles * 0.7)) + timings.timeBetweenSearchCycles);
-
-        checksSinceLongSleep++;
-        if (checksSinceLongSleep >= CHECKS_BEFORE_LONG_SLEEP) {
-          checksSinceLongSleep = 0;
-          const longSleepVar = Math.max(
-            0,
-            timings.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000), // +/- 5 seconds
-          );
-          setToast({
-            show: true,
-            text: t(lang, "sleepingSafety", Math.round(longSleepVar / 1000)),
-          });
-          await sleep(longSleepVar);
-        }
-        setToast({ show: false });
       }
 
       const scanIsComplete = followingCompleted && !interrupted;
@@ -680,7 +611,7 @@ function App() {
         show: true,
         text: scanIsComplete
           ? t(lang, "scanCompleted")
-          : t(lang, "partialScanInterrupted", checkedCount, totalToCheck),
+          : t(lang, "partialScanInterrupted", checkedCount),
       });
     };
     scan();

@@ -15,10 +15,7 @@ export const FOLLOWING_PAGE_SAFETY_LIMIT = 250;
 // of *its* following list: Instagram lists the viewer first when they're
 // followed by that account.
 export const FOLLOW_CHECK_PAGE_SIZE = 12;
-// Share of the progress bar (%) reserved for loading the own following list;
-// the rest is spent checking each account.
-export const FOLLOWING_LIST_PROGRESS_END = 5;
-// A long safety sleep is taken once every this many per-account checks.
+// A long safety sleep is taken once every this many scan requests.
 export const CHECKS_BEFORE_LONG_SLEEP = 15;
 export const RATE_LIMIT_COOLDOWN_SECONDS = 30;
 export const WHITELISTED_RESULTS_STORAGE_KEY = "iu_whitelisted-results";
