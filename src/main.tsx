@@ -12,8 +12,10 @@ import {
   DEFAULT_TIME_TO_WAIT_AFTER_FIVE_SEARCH_CYCLES,
   DEFAULT_TIME_TO_WAIT_AFTER_FIVE_UNFOLLOWS,
   DEFAULT_USERS_PER_SEARCH_CYCLE,
-  FOLLOWERS_PAGE_SAFETY_LIMIT,
   FOLLOWING_PAGE_SAFETY_LIMIT,
+  FOLLOW_CHECK_PAGE_SIZE,
+  FOLLOWING_LIST_PROGRESS_END,
+  CHECKS_BEFORE_LONG_SLEEP,
   INSTAGRAM_ASBD_ID,
   INSTAGRAM_HOSTNAME,
   INSTAGRAM_WEB_APP_ID,
@@ -22,7 +24,7 @@ import {
 import {
   assertUnreachable,
   fetchFriendshipsPage,
-  FriendshipsListKind,
+  FriendshipsPage,
   getCookie,
   getCurrentPageUnfollowers,
   getUsersForDisplay,
@@ -114,8 +116,6 @@ function App() {
           selectedResults: _getPreviewUsers().slice(0, 3),
           whitelistedResults: _getPreviewUsers().slice(10, 12),
           filter: {
-            showNonFollowers: true,
-            showFollowers: false,
             showVerified: true,
             showPrivate: true,
             showWithOutProfilePicture: true,
@@ -188,8 +188,6 @@ function App() {
       selectedResults: [],
       whitelistedResults,
       filter: {
-        showNonFollowers: true,
-        showFollowers: false,
         showVerified: true,
         showPrivate: true,
         showWithOutProfilePicture: true,
@@ -218,8 +216,6 @@ function App() {
         selectedResults: previewUsers.slice(0, 3),
         whitelistedResults: previewUsers.slice(10, 12),
         filter: {
-          showNonFollowers: true,
-          showFollowers: false,
           showVerified: true,
           showPrivate: true,
           showWithOutProfilePicture: true,
@@ -239,8 +235,6 @@ function App() {
       selectedResults: [],
       whitelistedResults,
       filter: {
-        showNonFollowers: true,
-        showFollowers: false,
         showVerified: true,
         showPrivate: true,
         showWithOutProfilePicture: true,
@@ -398,26 +392,67 @@ function App() {
   }, [isActiveProcess, state]);
 
   useEffect(() => {
-    // Instagram's private following/followers endpoints (see
-    // utils/utils.ts) don't expose a reliable total count up front the way
-    // the old GraphQL endpoint did, so we can't compute an exact
-    // percentage. This gives a smooth, ever-increasing estimate within a
-    // phase's share of the progress bar without ever overselling 100%
-    // before the phase is actually done.
+    // The following endpoint doesn't expose a total count up front, so while
+    // loading the viewer's own following list we can't compute an exact
+    // percentage. This gives a smooth, ever-increasing estimate within that
+    // phase's share of the progress bar without ever overselling 100%.
     const estimatePhaseProgress = (usersFetchedSoFar: number): number =>
       100 * (1 - 1 / (1 + usersFetchedSoFar / 150));
 
-    // Fetches every page of `kind` (following or followers), applying the
-    // same pacing/pause/backoff behavior the original single-endpoint scan
-    // used, and reports progress within [progressRangeStart, progressRangeEnd]
-    // of the overall percentage bar.
+    // Fetches one page, retrying with backoff on rate limits / network errors.
+    // `blocked` is true when retries were exhausted for such a transient error
+    // (the scan should stop); false means a different, non-retryable error
+    // (e.g. 404 / unavailable account), which callers may choose to skip.
+    type PageResult =
+      | { readonly ok: true; readonly page: FriendshipsPage }
+      | { readonly ok: false; readonly blocked: boolean };
+
+    const fetchPageWithRetry = async (maxId?: string, count?: number, userId?: string): Promise<PageResult> => {
+      let retries = 0;
+      const maxRetries = 3;
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      while (true) {
+        try {
+          return { ok: true, page: await fetchFriendshipsPage("following", maxId, count, userId) };
+        } catch (e: any) {
+          const status = e?.status;
+          const message = String(e?.message ?? "");
+          const isRateLimitOrSoftBlock =
+            (e instanceof InstagramApiError || e?.name === "InstagramApiError") &&
+            (status === 429 || /feedback_required|checkpoint|rate limit|please wait/i.test(message));
+          const isNetworkError = e instanceof TypeError || /fetch|network/i.test(message);
+          const isTransient = isRateLimitOrSoftBlock || isNetworkError;
+
+          if (isTransient && retries < maxRetries) {
+            retries++;
+            const waitSeconds = isRateLimitOrSoftBlock
+              ? RATE_LIMIT_COOLDOWN_SECONDS * retries
+              : 5 * retries;
+            for (let sec = waitSeconds; sec > 0; sec--) {
+              setToast({
+                show: true,
+                text: t(lang, "rateLimitPause", sec),
+              });
+              await sleep(1000);
+            }
+            setToast({ show: false });
+            continue;
+          }
+          console.error(`Following request failed${userId ? ` for ${userId}` : ""}:`, e);
+          return { ok: false, blocked: isTransient };
+        }
+      }
+    };
+
+    // Fetches every page of the viewer's own following list and reports
+    // progress within [progressRangeStart, progressRangeEnd].
     const fetchList = async (
-      kind: FriendshipsListKind,
       pageSafetyLimit: number,
       progressRangeStart: number,
       progressRangeEnd: number,
       onPageUsers: (pageUsers: readonly RawFriendshipUser[]) => void,
     ): Promise<boolean> => {
+      const kind = "following";
       let maxId: string | undefined;
       let pagesFetched = 0;
       let scrollCycle = 0;
@@ -425,44 +460,12 @@ function App() {
 
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (true) {
-        let page;
-        let retries = 0;
-        const maxRetries = 3;
-        while (retries <= maxRetries) {
-          try {
-            page = await fetchFriendshipsPage(kind, maxId, timings.usersPerSearchCycle);
-            break;
-          } catch (e: any) {
-            const status = e?.status;
-            const message = String(e?.message ?? "");
-            const isRateLimitOrSoftBlock =
-              (e instanceof InstagramApiError || e?.name === "InstagramApiError") &&
-              (status === 429 || /feedback_required|checkpoint|rate limit|please wait/i.test(message));
-            const isNetworkError = e instanceof TypeError || /fetch|network/i.test(message);
-
-            if ((isRateLimitOrSoftBlock || isNetworkError) && retries < maxRetries) {
-              retries++;
-              const waitSeconds = isRateLimitOrSoftBlock
-                ? RATE_LIMIT_COOLDOWN_SECONDS * retries
-                : 5 * retries;
-              for (let sec = waitSeconds; sec > 0; sec--) {
-                setToast({
-                  show: true,
-                  text: t(lang, "rateLimitPause", sec),
-                });
-                await sleep(1000);
-              }
-              setToast({ show: false });
-              continue;
-            }
-            console.error(`Stopping ${kind} scan early:`, e);
-            return false;
-          }
-        }
-
-        if (!page) {
+        const result = await fetchPageWithRetry(maxId, timings.usersPerSearchCycle);
+        if (!result.ok) {
+          console.error(`Stopping ${kind} scan early.`);
           return false;
         }
+        const page = result.page;
 
         const pageUsers = page.users ?? [];
         totalUsersFetched += pageUsers.length;
@@ -542,30 +545,28 @@ function App() {
         return;
       }
 
-      // 1. Fetch all accounts you follow.
-      // We push directly into followingUsers to avoid allocating new arrays on every page.
+      const viewerId = getCookie("ds_user_id");
+      if (viewerId === null) {
+        setState(prevState =>
+          prevState.status === "scanning" ? { ...prevState, isScanningActive: false } : prevState,
+        );
+        setToast({ show: true, text: t(lang, "scanFailedFollowing") });
+        return;
+      }
+
+      // 1. Load the list of accounts you follow. Nothing is shown yet: an
+      // account only appears in the results once we've verified it doesn't
+      // follow you back.
       const followingUsers: RawFriendshipUser[] = [];
       const followingCompleted = await fetchList(
-        "following",
         FOLLOWING_PAGE_SAFETY_LIMIT,
         0,
-        45,
+        FOLLOWING_LIST_PROGRESS_END,
         pageUsers => {
           followingUsers.push(...pageUsers);
-          const newNodes = pageUsers.map(user => rawFriendshipUserToUserNode(user, false));
-          setState(prevState => {
-            if (prevState.status !== "scanning") {
-              return prevState;
-            }
-            return {
-              ...prevState,
-              results: [...prevState.results, ...newNodes],
-            };
-          });
         },
       );
 
-      // If following failed completely on the first attempt, don't waste network requests on followers.
       if (!followingCompleted && followingUsers.length === 0) {
         setState(prevState =>
           prevState.status === "scanning" ? { ...prevState, isScanningActive: false } : prevState,
@@ -577,47 +578,89 @@ function App() {
         return;
       }
 
-      // 2. Fetch follower IDs only.
-      // We only store IDs in a Set<string> and discard the rest of the follower objects
-      // immediately to minimize memory usage.
-      const followerIds = new Set<string>();
-      const followersCompleted = await fetchList(
-        "followers",
-        FOLLOWERS_PAGE_SAFETY_LIMIT,
-        45,
-        95,
-        pageUsers => {
-          const newFollowerIds = new Set<string>();
-          for (const user of pageUsers) {
-            const id = String(user.pk_id ?? user.pk);
-            followerIds.add(id);
-            newFollowerIds.add(id);
+      // 2. For each followed account, read the first page of *their* following
+      // list. Instagram puts the logged-in viewer at the top of it when the
+      // account follows the viewer, so if we show up there they follow us
+      // back; otherwise we assume they don't and list them as a non-follower.
+      const nonFollowers: UserNode[] = [];
+      let checkedCount = 0;
+      let interrupted = false;
+      let checksSinceLongSleep = 0;
+      const totalToCheck = followingUsers.length;
+
+      for (const user of followingUsers) {
+        // Pause scanning if user requested so.
+        while (scanningPaused) {
+          await sleep(1000);
+          console.info("Scan paused");
+        }
+
+        const userId = String(user.pk_id ?? user.pk);
+        const result = await fetchPageWithRetry(undefined, FOLLOW_CHECK_PAGE_SIZE, userId);
+        if (!result.ok && result.blocked) {
+          interrupted = true;
+          break;
+        }
+
+        if (result.ok) {
+          const followsViewer = (result.page.users ?? []).some(
+            candidate => String(candidate.pk_id ?? candidate.pk) === viewerId,
+          );
+          if (!followsViewer) {
+            const node = rawFriendshipUserToUserNode(user, false);
+            nonFollowers.push(node);
+            setState(prevState =>
+              prevState.status === "scanning"
+                ? { ...prevState, results: [...prevState.results, node] }
+                : prevState,
+            );
           }
-          setState(prevState => {
-            if (prevState.status !== "scanning") {
-              return prevState;
-            }
-            return {
+        }
+        // A non-retryable failure for one account (e.g. unavailable profile)
+        // leaves it unverified, so it's skipped rather than listed.
+
+        checkedCount++;
+        setState(prevState =>
+          prevState.status === "scanning"
+            ? {
               ...prevState,
-              results: prevState.results.map(node =>
-                newFollowerIds.has(node.id) && !node.follows_viewer
-                  ? { ...node, follows_viewer: true }
-                  : node,
+              percentage: Math.round(
+                FOLLOWING_LIST_PROGRESS_END +
+                (checkedCount / totalToCheck) * (100 - FOLLOWING_LIST_PROGRESS_END),
               ),
-            };
+            }
+            : prevState,
+        );
+
+        if (checkedCount >= totalToCheck) {
+          break;
+        }
+
+        // Human-like pacing between checks.
+        await sleep(Math.floor(Math.random() * 700) + 300);
+        await sleep(Math.floor(Math.random() * (timings.timeBetweenSearchCycles - timings.timeBetweenSearchCycles * 0.7)) + timings.timeBetweenSearchCycles);
+
+        checksSinceLongSleep++;
+        if (checksSinceLongSleep >= CHECKS_BEFORE_LONG_SLEEP) {
+          checksSinceLongSleep = 0;
+          const longSleepVar = Math.max(
+            0,
+            timings.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000), // +/- 5 seconds
+          );
+          setToast({
+            show: true,
+            text: t(lang, "sleepingSafety", Math.round(longSleepVar / 1000)),
           });
-        },
-      );
+          await sleep(longSleepVar);
+        }
+        setToast({ show: false });
+      }
 
-      const allCompleted = followingCompleted && followersCompleted;
+      const scanIsComplete = followingCompleted && !interrupted;
 
-      const results: UserNode[] = followingUsers.map(user =>
-        rawFriendshipUserToUserNode(user, followerIds.has(String(user.pk_id ?? user.pk))),
-      );
-
-      if (allCompleted || results.length > 0) {
-        saveCachedScanResults(results);
-        setCachedScan({ results, timestamp: Date.now() });
+      if (scanIsComplete || nonFollowers.length > 0) {
+        saveCachedScanResults(nonFollowers);
+        setCachedScan({ results: nonFollowers, timestamp: Date.now() });
       }
 
       setState(prevState => {
@@ -627,24 +670,17 @@ function App() {
         return {
           ...prevState,
           percentage: 100,
-          scanIncomplete: !followersCompleted,
+          scanIncomplete: !scanIsComplete,
           isScanningActive: false,
-          results,
+          results: nonFollowers,
         };
       });
 
-      let toastMessage = t(lang, "scanCompleted");
-      if (!followingCompleted && !followersCompleted) {
-        toastMessage = t(lang, "partialScanInterrupted", followingUsers.length);
-      } else if (!followersCompleted) {
-        toastMessage = t(lang, "partialScanWarning");
-      } else if (!followingCompleted) {
-        toastMessage = t(lang, "partialScanInterrupted", followingUsers.length);
-      }
-
       setToast({
         show: true,
-        text: toastMessage,
+        text: scanIsComplete
+          ? t(lang, "scanCompleted")
+          : t(lang, "partialScanInterrupted", checkedCount, totalToCheck),
       });
     };
     scan();

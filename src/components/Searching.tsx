@@ -96,24 +96,6 @@ export const Searching = ({
             <label className="badge m-small">
               <input
                 type="checkbox"
-                name="showNonFollowers"
-                checked={state.filter.showNonFollowers}
-                onChange={handleScanFilter}
-              />
-              &nbsp;{t(lang, "nonFollowers")}
-            </label>
-            <label className="badge m-small">
-              <input
-                type="checkbox"
-                name="showFollowers"
-                checked={state.filter.showFollowers}
-                onChange={handleScanFilter}
-              />
-              &nbsp;{t(lang, "followers")}
-            </label>
-            <label className="badge m-small">
-              <input
-                type="checkbox"
                 name="showVerified"
                 checked={state.filter.showVerified}
                 onChange={handleScanFilter}
