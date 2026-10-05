@@ -677,6 +677,15 @@ html {
             }
         }
 
+        .btn-paste {
+            background: #5856d6;
+            color: #ffffff;
+
+            &:hover {
+                background: #4745b8;
+            }
+        }
+
         .btn-clear {
             background: #ff3b30;
             color: #ffffff;
@@ -716,6 +725,49 @@ html {
                         accent-color: #007aff;
                     }
                 }
+            }
+        }
+    }
+
+    .paste-whitelist-box {
+        margin-top: 0.8rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        padding: 0.8rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+
+        .paste-whitelist-textarea {
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            color: variables.$clr-white;
+            font-size: 0.88rem;
+            padding: 0.6rem 0.8rem;
+            resize: vertical;
+            min-height: 4rem;
+
+            &:focus {
+                outline: none;
+                border-color: #5856d6;
+            }
+        }
+
+        .btn-paste-submit {
+            align-self: flex-end;
+            background: #5856d6;
+            color: #ffffff;
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+
+            &:hover {
+                background: #4745b8;
             }
         }
     }
@@ -1351,6 +1403,30 @@ html .iu button.run-scan {
 
 html .iu button.run-scan:hover {
     background: #f0b44b;
+}
+
+html .iu button.load-cached-scan {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: static;
+    transform: none;
+    width: auto;
+    height: auto;
+    border: 1px solid var(--line-strong);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-bright);
+    padding: 0.95rem 1.35rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+html .iu button.load-cached-scan:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 .iu .launch-note {

@@ -19,6 +19,8 @@ export const FOLLOWERS_PAGE_SAFETY_LIMIT = 1500;
 export const RATE_LIMIT_COOLDOWN_SECONDS = 30;
 export const WHITELISTED_RESULTS_STORAGE_KEY = "iu_whitelisted-results";
 export const TIMINGS_STORAGE_KEY = "iu_timings";
+export const LAST_SCAN_RESULTS_STORAGE_KEY = "iu_last-scan-results";
+export const LAST_SCAN_TIMESTAMP_STORAGE_KEY = "iu_last-scan-time";
 
 //TIMINGS CONSTANTS
 export const DEFAULT_TIME_BETWEEN_SEARCH_CYCLES = 1000;

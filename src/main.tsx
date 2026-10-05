@@ -38,7 +38,7 @@ import { Searching } from "./components/Searching";
 import { Toolbar } from "./components/Toolbar";
 import { Unfollowing } from "./components/Unfollowing";
 import { Timings } from "./model/timings";
-import { loadTimings, loadWhitelist, saveTimings, saveWhitelist } from "./utils/whitelist-manager";
+import { loadCachedScanResults, loadTimings, loadWhitelist, saveCachedScanResults, saveTimings, saveWhitelist } from "./utils/whitelist-manager";
 import { getInitialLanguage, Language, saveLanguage, t } from "./utils/i18n";
 
 const LOCAL_PREVIEW_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
@@ -145,6 +145,10 @@ function App() {
     saveTimings(timings);
   }, [timings]);
 
+  const [cachedScan, setCachedScan] = useState<{ readonly results: readonly UserNode[]; readonly timestamp: number } | null>(() =>
+    loadCachedScanResults(),
+  );
+
   const [lang, setLang] = useState<Language>(() => getInitialLanguage());
 
   const handleLanguageChange = (newLang: Language) => {
@@ -159,12 +163,43 @@ function App() {
       isActiveProcess = false;
       break;
     case "scanning":
+      isActiveProcess = Boolean(state.isScanningActive);
+      break;
     case "unfollowing":
       isActiveProcess = state.percentage < 100;
       break;
     default:
       assertUnreachable(state);
   }
+
+  const onLoadCached = () => {
+    if (!cachedScan || cachedScan.results.length === 0) {
+      return;
+    }
+    const whitelistedResults = loadWhitelist();
+    setState({
+      status: "scanning",
+      page: 1,
+      searchTerm: "",
+      currentTab: "non_whitelisted",
+      percentage: 100,
+      isScanningActive: false,
+      results: cachedScan.results,
+      selectedResults: [],
+      whitelistedResults,
+      filter: {
+        showNonFollowers: true,
+        showFollowers: false,
+        showVerified: true,
+        showPrivate: true,
+        showWithOutProfilePicture: true,
+      },
+    });
+    setToast({
+      show: true,
+      text: t(lang, "loadedFromCache", cachedScan.results.length),
+    });
+  };
 
   const onScan = async () => {
     if (state.status !== "initial") {
@@ -178,6 +213,7 @@ function App() {
         searchTerm: "",
         currentTab: "non_whitelisted",
         percentage: 100,
+        isScanningActive: false,
         results: previewUsers,
         selectedResults: previewUsers.slice(0, 3),
         whitelistedResults: previewUsers.slice(10, 12),
@@ -198,6 +234,7 @@ function App() {
       searchTerm: "",
       currentTab: "non_whitelisted",
       percentage: 0,
+      isScanningActive: true,
       results: [],
       selectedResults: [],
       whitelistedResults,
@@ -396,9 +433,18 @@ function App() {
             page = await fetchFriendshipsPage(kind, maxId, timings.usersPerSearchCycle);
             break;
           } catch (e: any) {
-            if ((e instanceof InstagramApiError || e?.name === 'InstagramApiError') && e?.status === 429 && retries < maxRetries) {
+            const status = e?.status;
+            const message = String(e?.message ?? "");
+            const isRateLimitOrSoftBlock =
+              (e instanceof InstagramApiError || e?.name === "InstagramApiError") &&
+              (status === 429 || status === 400 || /feedback_required|checkpoint|rate limit|please wait/i.test(message));
+            const isNetworkError = e instanceof TypeError || /fetch|network/i.test(message);
+
+            if ((isRateLimitOrSoftBlock || isNetworkError) && retries < maxRetries) {
               retries++;
-              const waitSeconds = RATE_LIMIT_COOLDOWN_SECONDS * retries;
+              const waitSeconds = isRateLimitOrSoftBlock
+                ? RATE_LIMIT_COOLDOWN_SECONDS * retries
+                : 5 * retries;
               for (let sec = waitSeconds; sec > 0; sec--) {
                 setToast({
                   show: true,
@@ -492,6 +538,9 @@ function App() {
       if (state.status !== "scanning" || isLocalPreview) {
         return;
       }
+      if (state.percentage === 100) {
+        return;
+      }
 
       // 1. Fetch all accounts you follow.
       // We push directly into followingUsers to avoid allocating new arrays on every page.
@@ -503,11 +552,24 @@ function App() {
         45,
         pageUsers => {
           followingUsers.push(...pageUsers);
+          const newNodes = pageUsers.map(user => rawFriendshipUserToUserNode(user, false));
+          setState(prevState => {
+            if (prevState.status !== "scanning") {
+              return prevState;
+            }
+            return {
+              ...prevState,
+              results: [...prevState.results, ...newNodes],
+            };
+          });
         },
       );
 
       // If following failed completely on the first attempt, don't waste network requests on followers.
       if (!followingCompleted && followingUsers.length === 0) {
+        setState(prevState =>
+          prevState.status === "scanning" ? { ...prevState, isScanningActive: false } : prevState,
+        );
         setToast({
           show: true,
           text: t(lang, "scanFailedFollowing"),
@@ -525,9 +587,25 @@ function App() {
         45,
         95,
         pageUsers => {
+          const newFollowerIds = new Set<string>();
           for (const user of pageUsers) {
-            followerIds.add(String(user.pk_id ?? user.pk));
+            const id = String(user.pk_id ?? user.pk);
+            followerIds.add(id);
+            newFollowerIds.add(id);
           }
+          setState(prevState => {
+            if (prevState.status !== "scanning") {
+              return prevState;
+            }
+            return {
+              ...prevState,
+              results: prevState.results.map(node =>
+                newFollowerIds.has(node.id) && !node.follows_viewer
+                  ? { ...node, follows_viewer: true }
+                  : node,
+              ),
+            };
+          });
         },
       );
 
@@ -537,14 +615,20 @@ function App() {
         rawFriendshipUserToUserNode(user, followerIds.has(String(user.pk_id ?? user.pk))),
       );
 
+      if (allCompleted || results.length > 0) {
+        saveCachedScanResults(results);
+        setCachedScan({ results, timestamp: Date.now() });
+      }
+
       setState(prevState => {
         if (prevState.status !== "scanning") {
           return prevState;
         }
         return {
           ...prevState,
-          percentage: allCompleted ? 100 : prevState.percentage,
+          percentage: 100,
           scanIncomplete: !followersCompleted,
+          isScanningActive: false,
           results,
         };
       });
@@ -597,9 +681,17 @@ function App() {
             method: "POST",
             credentials: "same-origin",
           });
-          const success = res.ok;
+          const data = (await res.json().catch(() => null)) as any;
+          const isActionBlocked =
+            res.status === 429 ||
+            res.status === 400 ||
+            data?.status === "fail" ||
+            data?.spam === true ||
+            /feedback_required|checkpoint|action_blocked|block/i.test(data?.message ?? "");
+
+          const success = res.ok && data?.status !== "fail" && !isActionBlocked;
           if (!success) {
-            console.warn(`Unfollow for ${user.username} returned HTTP ${res.status}`);
+            console.warn(`Unfollow for ${user.username} failed (HTTP ${res.status}):`, data);
           }
           setState(prevState => {
             if (prevState.status !== "unfollowing") {
@@ -617,6 +709,14 @@ function App() {
               ],
             };
           });
+
+          if (isActionBlocked) {
+            setToast({
+              show: true,
+              text: t(lang, "actionBlockedWarning"),
+            });
+            break;
+          }
         } catch (e) {
           console.error(e);
           setState(prevState => {
@@ -660,7 +760,7 @@ function App() {
   let markup: React.JSX.Element;
   switch (state.status) {
     case "initial":
-      markup = <NotSearching onScan={onScan} lang={lang}></NotSearching>;
+      markup = <NotSearching onScan={onScan} lang={lang} cachedScan={cachedScan} onLoadCached={onLoadCached}></NotSearching>;
       break;
 
     case "scanning": {

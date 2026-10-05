@@ -230,7 +230,11 @@ export async function fetchFriendshipsPage(kind: FriendshipsListKind, maxId?: st
   if (!response.ok) {
     throw new InstagramApiError(response.status, `Instagram returned HTTP ${response.status} while fetching ${kind}`);
   }
-  return response.json() as Promise<FriendshipsPage>;
+  const data = (await response.json()) as any;
+  if (data?.status === 'fail' || (!data?.users && data?.message)) {
+    throw new InstagramApiError(response.status, data?.message || `Instagram returned failure status while fetching ${kind}`);
+  }
+  return data as FriendshipsPage;
 }
 
 export function rawFriendshipUserToUserNode(raw: RawFriendshipUser, followsViewer: boolean): UserNode {

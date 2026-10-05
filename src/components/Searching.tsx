@@ -197,7 +197,7 @@ export const Searching = ({
             </p>
           </div>
 
-          {state.percentage === 100 && (
+          {!state.isScanningActive && state.results.length > 0 && (
             <div className="sidebar-summary">
               <h4>{t(lang, "scanSummary")}</h4>
               <div className="summary-grid">
@@ -258,8 +258,14 @@ export const Searching = ({
         </div>
         <button
           className="unfollow"
-          disabled={state.scanIncomplete}
-          title={state.scanIncomplete ? t(lang, "unfollowDisabledPartialScan") : undefined}
+          disabled={state.scanIncomplete || Boolean(state.isScanningActive) || state.selectedResults.length === 0}
+          title={
+            state.isScanningActive
+              ? t(lang, "scanInProgressWait")
+              : state.scanIncomplete
+              ? t(lang, "unfollowDisabledPartialScan")
+              : undefined
+          }
           onClick={() => {
             if (state.scanIncomplete) {
               alert(t(lang, "unfollowDisabledPartialScan"));
@@ -405,7 +411,8 @@ export const Searching = ({
                   <input
                     className="account-checkbox"
                     type="checkbox"
-                    checked={state.selectedResults.indexOf(user) !== -1}
+                    disabled={Boolean(state.isScanningActive)}
+                    checked={state.selectedResults.some(result => result.id === user.id)}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => toggleUser(e.currentTarget.checked, user)}
                   />
                 </div>
