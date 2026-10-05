@@ -95,10 +95,9 @@ export function getUsersForDisplay(
     if (!filter.showVerified && result.is_verified) {
       continue;
     }
-    if (!filter.showFollowers && result.follows_viewer) {
-      continue;
-    }
-    if (!filter.showNonFollowers && !result.follows_viewer) {
+    // Scans only keep accounts that don't follow back; this also hides
+    // mutuals stored by older cached scans.
+    if (result.follows_viewer) {
       continue;
     }
     if (!filter.showWithOutProfilePicture && isWithoutProfilePicture(result)) {
@@ -195,9 +194,11 @@ export interface FriendshipsPage {
   readonly has_more?: boolean;
 }
 
-export function friendshipsUrlGenerator(kind: FriendshipsListKind, maxId?: string, count: number = DEFAULT_USERS_PER_SEARCH_CYCLE): string {
-  const viewerId = getCookie('ds_user_id');
-  const base = `https://www.instagram.com/api/v1/friendships/${viewerId}/${kind}/?count=${count}`;
+// `userId` defaults to the logged-in viewer; pass another account's id to read
+// that account's following/followers list instead.
+export function friendshipsUrlGenerator(kind: FriendshipsListKind, maxId?: string, count: number = DEFAULT_USERS_PER_SEARCH_CYCLE, userId?: string): string {
+  const targetId = userId ?? getCookie('ds_user_id');
+  const base = `https://www.instagram.com/api/v1/friendships/${targetId}/${kind}/?count=${count}`;
   return maxId === undefined ? base : `${base}&max_id=${encodeURIComponent(maxId)}`;
 }
 
@@ -211,7 +212,7 @@ export class InstagramApiError extends Error {
   }
 }
 
-export async function fetchFriendshipsPage(kind: FriendshipsListKind, maxId?: string, count?: number): Promise<FriendshipsPage> {
+export async function fetchFriendshipsPage(kind: FriendshipsListKind, maxId?: string, count?: number, userId?: string): Promise<FriendshipsPage> {
   const csrftoken = getCookie('csrftoken') || '';
   const headers: Record<string, string> = {
     'X-IG-App-ID': INSTAGRAM_WEB_APP_ID,
@@ -223,7 +224,7 @@ export async function fetchFriendshipsPage(kind: FriendshipsListKind, maxId?: st
     headers['X-CSRFToken'] = csrftoken;
   }
 
-  const response = await fetch(friendshipsUrlGenerator(kind, maxId, count), {
+  const response = await fetch(friendshipsUrlGenerator(kind, maxId, count, userId), {
     credentials: 'same-origin',
     headers,
   });

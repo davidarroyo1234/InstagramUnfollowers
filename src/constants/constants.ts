@@ -8,14 +8,15 @@ export const UNFOLLOWERS_PER_PAGE = 50;
 export const INSTAGRAM_WEB_APP_ID = "936619743392459";
 export const INSTAGRAM_ASBD_ID = "129477";
 
-// Page-count safety caps for the following/followers scan (see
-// utils/utils.ts fetchAllFriendships and main.tsx). Instagram serves the
-// followers list back in small, server-controlled chunks (observed ~15-25
-// users/page, ignoring the `count` we request) rather than the larger
-// chunks it gives for the following list, so followers needs a much higher
-// cap to be able to finish a full scan.
+// Page-count safety cap for loading the viewer's own following list
+// (see utils/utils.ts and main.tsx).
 export const FOLLOWING_PAGE_SAFETY_LIMIT = 250;
-export const FOLLOWERS_PAGE_SAFETY_LIMIT = 1500;
+// To decide whether an account follows the viewer we only read the first page
+// of *its* following list: Instagram lists the viewer first when they're
+// followed by that account.
+export const FOLLOW_CHECK_PAGE_SIZE = 12;
+// A long safety sleep is taken once every this many scan requests.
+export const CHECKS_BEFORE_LONG_SLEEP = 15;
 export const RATE_LIMIT_COOLDOWN_SECONDS = 30;
 export const WHITELISTED_RESULTS_STORAGE_KEY = "iu_whitelisted-results";
 export const TIMINGS_STORAGE_KEY = "iu_timings";
