@@ -42,10 +42,8 @@ export const SettingMenu = ({
     setSettingState(false);
   };
 
-  // @ts-ignore
-  const handleInputChange = (event: any, setter: (value: number) => void) => {
-
-    const value = Number(event?.target?.value);
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>, setter: (value: number) => void) => {
+    const value = Math.max(0, Number(event.currentTarget.value));
     setter(value);
   };
 

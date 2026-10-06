@@ -36,7 +36,7 @@ export const Toolbar = ({
   onLanguageChange,
 }: ToolBarProps) => {
 
-  const [setingMenu, setSettingMenu] = useState(false);
+  const [settingMenu, setSettingMenu] = useState(false);
 
   return (
     <header className="app-header">
@@ -222,7 +222,7 @@ export const Toolbar = ({
           )}
         </div>
       </div>
-      {(setingMenu) &&
+      {settingMenu && (
         <SettingMenu
           setSettingState={setSettingMenu}
           currentTimings={currentTimings}
@@ -231,8 +231,8 @@ export const Toolbar = ({
           onWhitelistUpdate={onWhitelistUpdate}
           lang={lang}
           onLanguageChange={onLanguageChange}
-        ></SettingMenu>
-      }
+        />
+      )}
 
     </header>
   );

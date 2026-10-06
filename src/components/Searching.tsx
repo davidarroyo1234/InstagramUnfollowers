@@ -125,6 +125,7 @@ export const Searching = ({
           <div className="sidebar-buttons-grid">
             <button
               className="button-secondary"
+              disabled={Boolean(state.isScanningActive)}
               onClick={() => {
                 const verifiedUsers = usersForDisplay.filter(u => u.is_verified);
                 const currentIds = new Set(state.selectedResults.map(u => u.id));
@@ -136,6 +137,7 @@ export const Searching = ({
             </button>
             <button
               className="button-secondary"
+              disabled={Boolean(state.isScanningActive)}
               onClick={() => {
                 const privateUsers = usersForDisplay.filter(u => u.is_private);
                 const currentIds = new Set(state.selectedResults.map(u => u.id));
@@ -147,6 +149,7 @@ export const Searching = ({
             </button>
             <button
               className="button-secondary"
+              disabled={Boolean(state.isScanningActive)}
               onClick={() => {
                 const noPicUsers = usersForDisplay.filter(u => isWithoutProfilePicture(u));
                 const currentIds = new Set(state.selectedResults.map(u => u.id));
@@ -158,6 +161,7 @@ export const Searching = ({
             </button>
             <button
               className="button-secondary danger-text"
+              disabled={Boolean(state.isScanningActive)}
               onClick={() => setState({ ...state, selectedResults: [] })}
             >
               {t(lang, "clear")}

@@ -96,12 +96,6 @@ const _getPreviewUsers = (): readonly UserNode[] => [
   _createPreviewUser("12", "lowlight.club", "Owen Voss", { isPrivate: true }),
 ];
 
-// pause
-let scanningPaused = false;
-
-function pauseScan() {
-  scanningPaused = !scanningPaused;
-}
 
 
 function App() {
@@ -152,6 +146,17 @@ function App() {
   );
 
   const [lang, setLang] = useState<Language>(() => getInitialLanguage());
+
+  const [scanningPaused, setScanningPaused] = useState(false);
+  const scanningPausedRef = React.useRef(false);
+
+  const pauseScan = () => {
+    setScanningPaused(prev => {
+      const next = !prev;
+      scanningPausedRef.current = next;
+      return next;
+    });
+  };
 
   const handleLanguageChange = (newLang: Language) => {
     setLang(newLang);
@@ -492,7 +497,7 @@ function App() {
     let requestsSinceLongSleep = 0;
     const paceRequest = async () => {
       // Pause scanning if user requested so.
-      while (scanningPaused) {
+      while (scanningPausedRef.current) {
         await sleep(1000);
         console.info("Scan paused");
       }

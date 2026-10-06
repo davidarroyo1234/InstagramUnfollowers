@@ -58,10 +58,14 @@ export function getMaxPage(nonFollowersList: readonly UserNode[]): number {
 
 export function getCurrentPageUnfollowers(nonFollowersList: readonly UserNode[], currentPage: number): readonly UserNode[] {
   const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
-  return sortedList.splice(UNFOLLOWERS_PER_PAGE * (currentPage - 1), UNFOLLOWERS_PER_PAGE);
+  const startIndex = UNFOLLOWERS_PER_PAGE * (currentPage - 1);
+  return sortedList.slice(startIndex, startIndex + UNFOLLOWERS_PER_PAGE);
 }
 
 export function isWithoutProfilePicture(user: UserNode): boolean {
+  if (!user.profile_pic_url) {
+    return true;
+  }
   return WITHOUT_PROFILE_PICTURE_URL_IDS.some(id => user.profile_pic_url.includes(id));
 }
 
