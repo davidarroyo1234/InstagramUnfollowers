@@ -95,10 +95,9 @@ export function getUsersForDisplay(
     if (!filter.showVerified && result.is_verified) {
       continue;
     }
-    if (!filter.showFollowers && result.follows_viewer) {
-      continue;
-    }
-    if (!filter.showNonFollowers && !result.follows_viewer) {
+    // Scans only keep accounts that don't follow back; this also hides
+    // mutuals stored by older cached scans.
+    if (result.follows_viewer) {
       continue;
     }
     if (!filter.showWithOutProfilePicture && isWithoutProfilePicture(result)) {
@@ -195,9 +194,11 @@ export interface FriendshipsPage {
   readonly has_more?: boolean;
 }
 
-export function friendshipsUrlGenerator(kind: FriendshipsListKind, maxId?: string, count: number = DEFAULT_USERS_PER_SEARCH_CYCLE): string {
-  const viewerId = getCookie('ds_user_id');
-  const base = `https://www.instagram.com/api/v1/friendships/${viewerId}/${kind}/?count=${count}`;
+// `userId` defaults to the logged-in viewer; pass another account's id to read
+// that account's following/followers list instead.
+export function friendshipsUrlGenerator(kind: FriendshipsListKind, maxId?: string, count: number = DEFAULT_USERS_PER_SEARCH_CYCLE, userId?: string): string {
+  const targetId = userId ?? getCookie('ds_user_id');
+  const base = `https://www.instagram.com/api/v1/friendships/${targetId}/${kind}/?count=${count}`;
   return maxId === undefined ? base : `${base}&max_id=${encodeURIComponent(maxId)}`;
 }
 
@@ -211,7 +212,7 @@ export class InstagramApiError extends Error {
   }
 }
 
-export async function fetchFriendshipsPage(kind: FriendshipsListKind, maxId?: string, count?: number): Promise<FriendshipsPage> {
+export async function fetchFriendshipsPage(kind: FriendshipsListKind, maxId?: string, count?: number, userId?: string): Promise<FriendshipsPage> {
   const csrftoken = getCookie('csrftoken') || '';
   const headers: Record<string, string> = {
     'X-IG-App-ID': INSTAGRAM_WEB_APP_ID,
@@ -223,7 +224,7 @@ export async function fetchFriendshipsPage(kind: FriendshipsListKind, maxId?: st
     headers['X-CSRFToken'] = csrftoken;
   }
 
-  const response = await fetch(friendshipsUrlGenerator(kind, maxId, count), {
+  const response = await fetch(friendshipsUrlGenerator(kind, maxId, count, userId), {
     credentials: 'same-origin',
     headers,
   });
@@ -253,3 +254,94 @@ export function rawFriendshipUserToUserNode(raw: RawFriendshipUser, followsViewe
     follows_viewer: followsViewer,
   };
 }
+
+export interface FriendshipStatus {
+  readonly following: boolean;
+  readonly followed_by: boolean;
+  readonly blocking?: boolean;
+  readonly is_private?: boolean;
+  readonly incoming_request?: boolean;
+  readonly outgoing_request?: boolean;
+  readonly is_bestie?: boolean;
+  readonly is_restricted?: boolean;
+  readonly is_feed_favorite?: boolean;
+}
+
+export interface ShowManyResponse {
+  readonly friendship_statuses?: Record<string, FriendshipStatus>;
+  readonly status?: string;
+  readonly message?: string;
+}
+
+export async function fetchFriendshipStatusesBatch(
+  userIds: readonly string[],
+): Promise<Record<string, FriendshipStatus>> {
+  if (userIds.length === 0) {
+    return {};
+  }
+  const csrftoken = getCookie('csrftoken') || '';
+  const headers: Record<string, string> = {
+    'X-IG-App-ID': INSTAGRAM_WEB_APP_ID,
+    'X-ASBD-ID': INSTAGRAM_ASBD_ID,
+    'X-Requested-With': 'XMLHttpRequest',
+    'Content-Type': 'application/x-www-form-urlencoded',
+    'Accept': '*/*',
+  };
+  if (csrftoken) {
+    headers['X-CSRFToken'] = csrftoken;
+  }
+
+  const body = new URLSearchParams({
+    user_ids: userIds.join(','),
+  }).toString();
+
+  const response = await fetch('https://www.instagram.com/api/v1/friendships/show_many/', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers,
+    body,
+  });
+
+  if (!response.ok) {
+    throw new InstagramApiError(
+      response.status,
+      `Instagram returned HTTP ${response.status} while fetching friendship statuses`,
+    );
+  }
+
+  const data = (await response.json()) as ShowManyResponse;
+  if (data?.status === 'fail' && !data?.friendship_statuses) {
+    throw new InstagramApiError(
+      response.status,
+      data?.message || 'Instagram returned failure status while fetching friendship statuses',
+    );
+  }
+
+  return data.friendship_statuses ?? {};
+}
+
+export async function fetchSingleFriendshipStatus(userId: string): Promise<FriendshipStatus | null> {
+  const csrftoken = getCookie('csrftoken') || '';
+  const headers: Record<string, string> = {
+    'X-IG-App-ID': INSTAGRAM_WEB_APP_ID,
+    'X-ASBD-ID': INSTAGRAM_ASBD_ID,
+    'X-Requested-With': 'XMLHttpRequest',
+    'Accept': '*/*',
+  };
+  if (csrftoken) {
+    headers['X-CSRFToken'] = csrftoken;
+  }
+
+  const response = await fetch(`https://www.instagram.com/api/v1/friendships/show/${userId}/`, {
+    credentials: 'same-origin',
+    headers,
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const data = (await response.json()) as any;
+  return data as FriendshipStatus;
+}
+

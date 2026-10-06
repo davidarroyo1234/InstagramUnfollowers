@@ -96,24 +96,6 @@ export const Searching = ({
             <label className="badge m-small">
               <input
                 type="checkbox"
-                name="showNonFollowers"
-                checked={state.filter.showNonFollowers}
-                onChange={handleScanFilter}
-              />
-              &nbsp;{t(lang, "nonFollowers")}
-            </label>
-            <label className="badge m-small">
-              <input
-                type="checkbox"
-                name="showFollowers"
-                checked={state.filter.showFollowers}
-                onChange={handleScanFilter}
-              />
-              &nbsp;{t(lang, "followers")}
-            </label>
-            <label className="badge m-small">
-              <input
-                type="checkbox"
                 name="showVerified"
                 checked={state.filter.showVerified}
                 onChange={handleScanFilter}
@@ -191,7 +173,7 @@ export const Searching = ({
           )}
           <div className="sidebar-stats metric-stack">
             <p><span>{t(lang, "displayed")}</span><strong>{usersForDisplay.length}</strong></p>
-            <p><span>{t(lang, "totalScanned")}</span><strong>{state.results.length}</strong></p>
+            <p><span>{t(lang, "totalScanned")}</span><strong>{state.totalScanned ?? state.results.length}</strong></p>
             <p className="whitelist-counter">
               <span>{t(lang, "whitelist")}</span><strong>★ {state.whitelistedResults.length}</strong>
             </p>
@@ -344,7 +326,7 @@ export const Searching = ({
         {getCurrentPageUnfollowers(usersForDisplay, state.page).map(user => {
           const firstLetter = user.username.substring(0, 1).toUpperCase();
           return (
-            <>
+            <React.Fragment key={user.id}>
               {firstLetter !== currentLetter && onNewLetter(firstLetter)}
               <label className="result-item">
                 <div className="flex grow align-center">
@@ -417,7 +399,7 @@ export const Searching = ({
                   />
                 </div>
               </label>
-            </>
+            </React.Fragment>
           );
         })}
       </article>

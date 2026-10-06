@@ -28,7 +28,7 @@ export const translations = {
     settings: "Settings",
     goBackConfirm: "Go back to Instagram?",
     copiedToClipboard: "List copied to clipboard!",
-    unfollowDisabledPartialScan: "Unfollow disabled: follower scan did not finish completely.",
+    unfollowDisabledPartialScan: "Unfollow disabled: the scan did not finish completely.",
     switchToSpanish: "Cambiar a Español",
     switchToEnglish: "Switch to English",
 
@@ -52,7 +52,7 @@ export const translations = {
     next: "Next",
     pause: "Pause",
     resume: "Resume",
-    partialScanWarning: "⚠️ Incomplete scan: Followers list was interrupted. Accounts that follow you may appear here. Mass unfollow is disabled to protect your account.",
+    partialScanWarning: "⚠️ Incomplete scan: it was interrupted before every account was checked, so some non-followers may be missing. Mass unfollow is disabled to protect your account.",
     noPic: "No Pic",
     clear: "Clear",
     displayed: "Displayed",
@@ -98,6 +98,7 @@ export const translations = {
     addPastedToWhitelist: "Add to Whitelist",
     pastedUsersAdded: "Added %s new users to whitelist!",
     noValidUsernamesFound: "No valid usernames found.",
+    pastedUsersAlreadyExist: "All pasted users are already in the whitelist.",
 
     // Unfollowing Queue
     unfollowQueue: "Unfollow Queue",
@@ -110,7 +111,7 @@ export const translations = {
     // Toasts & Notifications
     scanCompleted: "Scanning completed!",
     scanFailedFollowing: "Scan failed: could not load your following list from Instagram.",
-    partialScanInterrupted: "Partial scan: loaded %s accounts, but scan was interrupted.",
+    partialScanInterrupted: "Partial scan: checked %s accounts, but scan was interrupted.",
     rateLimitPause: "Instagram cooldown active. Pausing for %s seconds before retrying...",
     sleepingSafety: "Sleeping %s seconds to prevent getting temp blocked",
     loadedFromCache: "Loaded %s accounts from cache!",
@@ -141,7 +142,7 @@ export const translations = {
     settings: "Ajustes",
     goBackConfirm: "¿Deseas volver a Instagram?",
     copiedToClipboard: "¡Lista copiada al portapapeles!",
-    unfollowDisabledPartialScan: "Unfollow desactivado: el escaneo de seguidores no finalizó por completo.",
+    unfollowDisabledPartialScan: "Unfollow desactivado: el escaneo no finalizó por completo.",
     switchToSpanish: "Cambiar a Español",
     switchToEnglish: "Switch to English",
 
@@ -165,7 +166,7 @@ export const translations = {
     next: "Siguiente",
     pause: "Pausar",
     resume: "Reanudar",
-    partialScanWarning: "⚠️ Escaneo incompleto: la lista de seguidores se interrumpió. Cuentas que te siguen podrían aparecer aquí. El unfollow masivo ha sido desactivado por seguridad.",
+    partialScanWarning: "⚠️ Escaneo incompleto: se interrumpió antes de revisar todas las cuentas, por lo que pueden faltar cuentas que no te siguen. El unfollow masivo ha sido desactivado por seguridad.",
     noPic: "Sin foto",
     clear: "Limpiar",
     displayed: "Mostrados",
@@ -211,6 +212,7 @@ export const translations = {
     addPastedToWhitelist: "Añadir a Lista Blanca",
     pastedUsersAdded: "¡Se añadieron %s nuevos usuarios a la lista blanca!",
     noValidUsernamesFound: "No se encontraron nombres de usuario válidos.",
+    pastedUsersAlreadyExist: "Todos los usuarios pegados ya están en la lista blanca.",
 
     // Unfollowing Queue
     unfollowQueue: "Cola de Unfollow",
@@ -223,7 +225,7 @@ export const translations = {
     // Toasts & Notifications
     scanCompleted: "¡Escaneo completado!",
     scanFailedFollowing: "Error en el escaneo: no se pudo cargar la lista de seguidos de Instagram.",
-    partialScanInterrupted: "Escaneo parcial: se cargaron %s cuentas, pero el escaneo fue interrumpido.",
+    partialScanInterrupted: "Escaneo parcial: se revisaron %s cuentas, pero el escaneo fue interrumpido.",
     rateLimitPause: "Enfriamiento de Instagram activo. Pausando %s segundos antes de reintentar...",
     sleepingSafety: "Esperando %s segundos para prevenir bloqueos temporales",
     loadedFromCache: "¡Se cargaron %s cuentas del historial!",
