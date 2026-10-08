@@ -3,7 +3,7 @@ import { Timings } from "../model/timings";
 import { UserNode } from "../model/user";
 import { WhitelistManager } from "./WhitelistManager";
 import { DEFAULT_USERS_PER_SEARCH_CYCLE } from "../constants/constants";
-import { Language, t } from "../utils/i18n";
+import { Language, LANGUAGE_CODES, LANGUAGES, t } from "../utils/i18n";
 
 interface SettingMenuProps {
   setSettingState: (state: boolean) => void;
@@ -73,8 +73,11 @@ export const SettingMenu = ({
                   value={lang}
                   onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onLanguageChange(e.currentTarget.value as Language)}
                 >
-                  <option value="en" style={{ background: "#222" }}>English (EN)</option>
-                  <option value="es" style={{ background: "#222" }}>Español (ES)</option>
+                  {LANGUAGE_CODES.map(code => (
+                    <option key={code} value={code} style={{ background: "#222" }}>
+                      {LANGUAGES[code].label} ({code.toUpperCase()})
+                    </option>
+                  ))}
                 </select>
               </div>
 

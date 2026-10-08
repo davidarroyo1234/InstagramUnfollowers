@@ -65,9 +65,9 @@ Commit: `refactor(i18n): type-check translations against English keys`
 
 New files:
 ```
-src/locales/en.ts   → export const en = { ... } as const;
+src/languages/en.ts   → export const en = { ... } as const;
                       export type TranslationKey = keyof typeof en;
-src/locales/es.ts   → import { TranslationKey } from "./en";
+src/languages/es.ts   → import { TranslationKey } from "./en";
                       export const es: Record<TranslationKey, string> = { ... };
 ```
 
@@ -174,7 +174,7 @@ Commit: `refactor(i18n): use named placeholders`
 
 ## Step 8 — Add Turkish 🇹🇷
 
-1. Create `src/locales/tr.ts`:
+1. Create `src/languages/tr.ts`:
    ```ts
    import { TranslationKey } from "./en";
    export const tr: Record<TranslationKey, string> = { ... };
