@@ -63,6 +63,14 @@ For Android users who want to use it on mobile:
 - 🎨 **Apple-inspired UI**: Clean, responsive, and minimalist interface.
 - 🔒 **100% Client-Side Privacy**: All data is processed locally in your browser. No credentials or data are sent to external servers.
 
+### 🛠️ Development
+
+- Node version: Node 16+ / Node 18+ / Node 20+
+- Install dependencies: `npm install`
+- Build: `npm run build`
+- Dev server with live reload: `npm run build-dev`
+- Do not edit `public/index.html` manually: it is regenerated automatically by GitHub Actions, and PRs that modify it are rejected.
+
 ---
 
 <a name="-español"></a>
@@ -121,14 +129,15 @@ Para usuarios de Android que quieran utilizarlo desde el móvil:
 - 🎨 **Diseño limpio y moderno**: Interfaz minimalista y responsiva inspirada en el diseño de Apple.
 - 🔒 **Privacidad total**: Todo se ejecuta localmente en tu navegador. Tus datos y contraseñas nunca salen de tu sesión ni van a servidores externos.
 
----
-
-## 🛠️ Desarrollo / Development
+### 🛠️ Desarrollo
 
 - Versión de Node: Node 16+ / Node 18+ / Node 20+
 - Instalar dependencias: `npm install`
 - Compilar: `npm run build`
 - Servidor de desarrollo con recarga automática: `npm run build-dev`
+- No edites `public/index.html` a mano: se regenera automáticamente con GitHub Actions, y los PRs que lo modifican son rechazados.
+
+---
 
 ## ⚖️ Legal & License
 
