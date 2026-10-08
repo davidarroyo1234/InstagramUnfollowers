@@ -1,27 +1,42 @@
-import { en, TranslationKey } from "../locales/en";
-import { es } from "../locales/es";
+import { en, TranslationKey } from "../languages/en";
+import { es } from "../languages/es";
 
 export type { TranslationKey };
 
-export type Language = "en" | "es";
+// To add a language: create src/languages/<code>.ts and register it here.
+export const LANGUAGES = {
+  en: { label: "English", dict: en },
+  es: { label: "Español", dict: es },
+};
+
+export type Language = keyof typeof LANGUAGES;
+
+export const LANGUAGE_CODES = Object.keys(LANGUAGES) as Language[];
+
+export const DEFAULT_LANGUAGE: Language = "en";
 
 export const LANGUAGE_STORAGE_KEY = "iu_language";
 
-export const translations = { en, es };
+function isLanguage(value: unknown): value is Language {
+  return typeof value === "string" && LANGUAGE_CODES.indexOf(value as Language) !== -1;
+}
 
 export function getInitialLanguage(): Language {
   try {
     const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (saved === "en" || saved === "es") {
+    if (isLanguage(saved)) {
       return saved;
     }
-    if (typeof navigator !== "undefined" && navigator.language && navigator.language.toLowerCase().startsWith("es")) {
-      return "es";
+    if (typeof navigator !== "undefined" && navigator.language) {
+      const browserLanguage = navigator.language.slice(0, 2).toLowerCase();
+      if (isLanguage(browserLanguage)) {
+        return browserLanguage;
+      }
     }
   } catch {
     // fallback
   }
-  return "en";
+  return DEFAULT_LANGUAGE;
 }
 
 export function saveLanguage(lang: Language): void {
@@ -33,8 +48,8 @@ export function saveLanguage(lang: Language): void {
 }
 
 export function t(lang: Language, key: TranslationKey, ...args: (string | number)[]): string {
-  const dict = translations[lang] || translations.en;
-  let text: string = dict[key] || translations.en[key] || (key as string);
+  const dict = isLanguage(lang) ? LANGUAGES[lang].dict : en;
+  let text: string = dict[key] || en[key] || (key as string);
   for (const arg of args) {
     text = text.replace("%s", String(arg));
   }
