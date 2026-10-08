@@ -6,7 +6,8 @@ import { SettingIcon } from "./icons/SettingIcon";
 import { Timings } from "../model/timings";
 import { Logo } from "./icons/Logo";
 import { UserNode } from "../model/user";
-import { Language, LANGUAGE_CODES, LANGUAGES, t } from "../utils/i18n";
+import { Language, t } from "../utils/i18n";
+import { LanguageMenu } from "./LanguageMenu";
 
 interface ToolBarProps {
   isActiveProcess: boolean;
@@ -37,7 +38,6 @@ export const Toolbar = ({
 }: ToolBarProps) => {
 
   const [setingMenu, setSettingMenu] = useState(false);
-  const nextLang = LANGUAGE_CODES[(LANGUAGE_CODES.indexOf(lang) + 1) % LANGUAGE_CODES.length];
 
   return (
     <header className="app-header">
@@ -132,15 +132,7 @@ export const Toolbar = ({
           >
             CSV
           </button>
-          <button
-            className="copy-list"
-            type="button"
-            title={`${t(lang, "language")}: ${LANGUAGES[nextLang].label}`}
-            onClick={() => onLanguageChange(nextLang)}
-            style={{ fontWeight: "bold" }}
-          >
-            🌐 {lang.toUpperCase()}
-          </button>
+          <LanguageMenu lang={lang} onLanguageChange={onLanguageChange} />
           <button
             className="icon-button"
             type="button"
