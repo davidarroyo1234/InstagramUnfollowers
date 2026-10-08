@@ -58,10 +58,14 @@ export function getMaxPage(nonFollowersList: readonly UserNode[]): number {
 
 export function getCurrentPageUnfollowers(nonFollowersList: readonly UserNode[], currentPage: number): readonly UserNode[] {
   const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
-  return sortedList.splice(UNFOLLOWERS_PER_PAGE * (currentPage - 1), UNFOLLOWERS_PER_PAGE);
+  const startIndex = UNFOLLOWERS_PER_PAGE * (currentPage - 1);
+  return sortedList.slice(startIndex, startIndex + UNFOLLOWERS_PER_PAGE);
 }
 
 export function isWithoutProfilePicture(user: UserNode): boolean {
+  if (!user.profile_pic_url) {
+    return true;
+  }
   return WITHOUT_PROFILE_PICTURE_URL_IDS.some(id => user.profile_pic_url.includes(id));
 }
 
@@ -254,3 +258,73 @@ export function rawFriendshipUserToUserNode(raw: RawFriendshipUser, followsViewe
     follows_viewer: followsViewer,
   };
 }
+
+export interface FollowerIndex {
+  readonly ids: ReadonlySet<string>;
+  readonly usernames: ReadonlySet<string>;
+}
+
+export function createFollowerIndex(): {
+  readonly ids: Set<string>;
+  readonly usernames: Set<string>;
+} {
+  return {
+    ids: new Set<string>(),
+    usernames: new Set<string>(),
+  };
+}
+
+export function extractUserIdentities(user: RawFriendshipUser): {
+  readonly ids: readonly string[];
+  readonly username: string;
+} {
+  const ids: string[] = [];
+  if (user.pk !== undefined && user.pk !== null) {
+    const s = String(user.pk).trim();
+    if (s) {
+      ids.push(s);
+    }
+  }
+  if (user.pk_id) {
+    const s = String(user.pk_id).trim();
+    if (s && !ids.includes(s)) {
+      ids.push(s);
+    }
+  }
+  if ((user as any).id) {
+    const s = String((user as any).id).trim();
+    if (s && !ids.includes(s)) {
+      ids.push(s);
+    }
+  }
+  const username = (user.username ?? "").trim().toLowerCase();
+  return { ids, username };
+}
+
+export function addFollowerToIndex(
+  index: { readonly ids: Set<string>; readonly usernames: Set<string> },
+  user: RawFriendshipUser,
+): void {
+  const { ids, username } = extractUserIdentities(user);
+  for (const id of ids) {
+    index.ids.add(id);
+  }
+  if (username) {
+    index.usernames.add(username);
+  }
+}
+
+export function isUserInFollowerIndex(
+  index: { readonly ids: ReadonlySet<string>; readonly usernames: ReadonlySet<string> },
+  user: RawFriendshipUser,
+): boolean {
+  const { ids, username } = extractUserIdentities(user);
+  if (ids.some(id => index.ids.has(id))) {
+    return true;
+  }
+  if (username && index.usernames.has(username)) {
+    return true;
+  }
+  return false;
+}
+

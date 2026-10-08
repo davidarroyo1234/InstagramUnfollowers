@@ -87,15 +87,27 @@ export const clearWhitelist = (): void => {
  * Load whitelist from localStorage
  */
 export const loadWhitelist = (): readonly UserNode[] => {
-  const whitelistedResultsFromStorage = localStorage.getItem(WHITELISTED_RESULTS_STORAGE_KEY);
-  return whitelistedResultsFromStorage === null ? [] : JSON.parse(whitelistedResultsFromStorage);
+  try {
+    const whitelistedResultsFromStorage = localStorage.getItem(WHITELISTED_RESULTS_STORAGE_KEY);
+    if (!whitelistedResultsFromStorage) {
+      return [];
+    }
+    const parsed = JSON.parse(whitelistedResultsFromStorage);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 };
 
 /**
  * Save whitelist to localStorage
  */
 export const saveWhitelist = (whitelistedUsers: readonly UserNode[]): void => {
-  localStorage.setItem(WHITELISTED_RESULTS_STORAGE_KEY, JSON.stringify(whitelistedUsers));
+  try {
+    localStorage.setItem(WHITELISTED_RESULTS_STORAGE_KEY, JSON.stringify(whitelistedUsers));
+  } catch (e) {
+    console.warn("Could not save whitelist to storage:", e);
+  }
 };
 
 /**
@@ -140,7 +152,11 @@ export const loadTimings = (): Timings | null => {
  * Save timings to localStorage
  */
 export const saveTimings = (timings: Timings): void => {
-  localStorage.setItem(TIMINGS_STORAGE_KEY, JSON.stringify(timings));
+  try {
+    localStorage.setItem(TIMINGS_STORAGE_KEY, JSON.stringify(timings));
+  } catch (e) {
+    console.warn("Could not save timings to storage:", e);
+  }
 };
 
 /**
