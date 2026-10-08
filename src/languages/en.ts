@@ -24,8 +24,6 @@ export const en = {
   goBackConfirm: "Go back to Instagram?",
   copiedToClipboard: "List copied to clipboard!",
   unfollowDisabledPartialScan: "Unfollow disabled: the scan did not finish completely.",
-  switchToSpanish: "Cambiar a Español",
-  switchToEnglish: "Switch to English",
 
   // Scanner / Filters
   scanner: "Scanner",

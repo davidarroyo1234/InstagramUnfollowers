@@ -26,8 +26,6 @@ export const es: Record<TranslationKey, string> = {
   goBackConfirm: "¿Deseas volver a Instagram?",
   copiedToClipboard: "¡Lista copiada al portapapeles!",
   unfollowDisabledPartialScan: "Unfollow desactivado: el escaneo no finalizó por completo.",
-  switchToSpanish: "Cambiar a Español",
-  switchToEnglish: "Switch to English",
 
   // Scanner / Filters
   scanner: "Escáner",
