@@ -90,7 +90,7 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate, lang }: 
     const toAdd = uniqueUsernames.filter(u => !existingUsernames.has(u));
 
     if (toAdd.length === 0) {
-      setMessage({ type: "success", text: "All pasted users are already in the whitelist." });
+      setMessage({ type: "success", text: t(lang, "pastedUsersAlreadyExist") });
       setTimeout(() => setMessage(null), 4000);
       return;
     }
