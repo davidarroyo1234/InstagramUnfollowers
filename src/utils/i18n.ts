@@ -1,5 +1,6 @@
 import { en, TranslationKey } from "../languages/en";
 import { es } from "../languages/es";
+import { tr } from "../languages/tr";
 
 export type { TranslationKey };
 
@@ -7,6 +8,7 @@ export type { TranslationKey };
 export const LANGUAGES = {
   en: { label: "English", dict: en },
   es: { label: "Español", dict: es },
+  tr: { label: "Türkçe", dict: tr },
 };
 
 export type Language = keyof typeof LANGUAGES;
