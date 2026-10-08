@@ -111,6 +111,9 @@ export const translations = {
     // Toasts & Notifications
     scanCompleted: "Scanning completed!",
     scanFailedFollowing: "Scan failed: could not load your following list from Instagram.",
+    scanFailedFollowers: "Scan failed: could not load your followers list from Instagram.",
+    indexingFollowersProgress: "Indexing followers (%s loaded)...",
+    scanningFollowingProgress: "Checking followed accounts (%s checked)...",
     partialScanInterrupted: "Partial scan: checked %s accounts, but scan was interrupted.",
     rateLimitPause: "Instagram cooldown active. Pausing for %s seconds before retrying...",
     sleepingSafety: "Sleeping %s seconds to prevent getting temp blocked",
@@ -225,6 +228,9 @@ export const translations = {
     // Toasts & Notifications
     scanCompleted: "¡Escaneo completado!",
     scanFailedFollowing: "Error en el escaneo: no se pudo cargar la lista de seguidos de Instagram.",
+    scanFailedFollowers: "Error en el escaneo: no se pudo cargar la lista de seguidores de Instagram.",
+    indexingFollowersProgress: "Indexando seguidores (%s cargados)...",
+    scanningFollowingProgress: "Comprobando cuentas seguidas (%s revisadas)...",
     partialScanInterrupted: "Escaneo parcial: se revisaron %s cuentas, pero el escaneo fue interrumpido.",
     rateLimitPause: "Enfriamiento de Instagram activo. Pausando %s segundos antes de reintentar...",
     sleepingSafety: "Esperando %s segundos para prevenir bloqueos temporales",

@@ -8,12 +8,10 @@ export const UNFOLLOWERS_PER_PAGE = 50;
 export const INSTAGRAM_WEB_APP_ID = "936619743392459";
 export const INSTAGRAM_ASBD_ID = "129477";
 
-// Page-count safety cap for loading the viewer's own following list
+// Page-count safety cap for loading the viewer's own following and followers lists
 // (see utils/utils.ts and main.tsx).
 export const FOLLOWING_PAGE_SAFETY_LIMIT = 250;
-// Batch size for /api/v1/friendships/show_many/ endpoint
-export const FRIENDSHIP_BATCH_SIZE = 30;
-export const FOLLOW_CHECK_PAGE_SIZE = 12;
+export const FOLLOWERS_PAGE_SAFETY_LIMIT = 250;
 // A long safety sleep is taken once every this many scan requests.
 export const CHECKS_BEFORE_LONG_SLEEP = 15;
 export const RATE_LIMIT_COOLDOWN_SECONDS = 30;

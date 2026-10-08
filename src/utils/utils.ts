@@ -259,93 +259,72 @@ export function rawFriendshipUserToUserNode(raw: RawFriendshipUser, followsViewe
   };
 }
 
-export interface FriendshipStatus {
-  readonly following: boolean;
-  readonly followed_by: boolean;
-  readonly blocking?: boolean;
-  readonly is_private?: boolean;
-  readonly incoming_request?: boolean;
-  readonly outgoing_request?: boolean;
-  readonly is_bestie?: boolean;
-  readonly is_restricted?: boolean;
-  readonly is_feed_favorite?: boolean;
+export interface FollowerIndex {
+  readonly ids: ReadonlySet<string>;
+  readonly usernames: ReadonlySet<string>;
 }
 
-export interface ShowManyResponse {
-  readonly friendship_statuses?: Record<string, FriendshipStatus>;
-  readonly status?: string;
-  readonly message?: string;
-}
-
-export async function fetchFriendshipStatusesBatch(
-  userIds: readonly string[],
-): Promise<Record<string, FriendshipStatus>> {
-  if (userIds.length === 0) {
-    return {};
-  }
-  const csrftoken = getCookie('csrftoken') || '';
-  const headers: Record<string, string> = {
-    'X-IG-App-ID': INSTAGRAM_WEB_APP_ID,
-    'X-ASBD-ID': INSTAGRAM_ASBD_ID,
-    'X-Requested-With': 'XMLHttpRequest',
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'Accept': '*/*',
+export function createFollowerIndex(): {
+  readonly ids: Set<string>;
+  readonly usernames: Set<string>;
+} {
+  return {
+    ids: new Set<string>(),
+    usernames: new Set<string>(),
   };
-  if (csrftoken) {
-    headers['X-CSRFToken'] = csrftoken;
-  }
-
-  const body = new URLSearchParams({
-    user_ids: userIds.join(','),
-  }).toString();
-
-  const response = await fetch('https://www.instagram.com/api/v1/friendships/show_many/', {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers,
-    body,
-  });
-
-  if (!response.ok) {
-    throw new InstagramApiError(
-      response.status,
-      `Instagram returned HTTP ${response.status} while fetching friendship statuses`,
-    );
-  }
-
-  const data = (await response.json()) as ShowManyResponse;
-  if (data?.status === 'fail' && !data?.friendship_statuses) {
-    throw new InstagramApiError(
-      response.status,
-      data?.message || 'Instagram returned failure status while fetching friendship statuses',
-    );
-  }
-
-  return data.friendship_statuses ?? {};
 }
 
-export async function fetchSingleFriendshipStatus(userId: string): Promise<FriendshipStatus | null> {
-  const csrftoken = getCookie('csrftoken') || '';
-  const headers: Record<string, string> = {
-    'X-IG-App-ID': INSTAGRAM_WEB_APP_ID,
-    'X-ASBD-ID': INSTAGRAM_ASBD_ID,
-    'X-Requested-With': 'XMLHttpRequest',
-    'Accept': '*/*',
-  };
-  if (csrftoken) {
-    headers['X-CSRFToken'] = csrftoken;
+export function extractUserIdentities(user: RawFriendshipUser): {
+  readonly ids: readonly string[];
+  readonly username: string;
+} {
+  const ids: string[] = [];
+  if (user.pk !== undefined && user.pk !== null) {
+    const s = String(user.pk).trim();
+    if (s) {
+      ids.push(s);
+    }
   }
-
-  const response = await fetch(`https://www.instagram.com/api/v1/friendships/show/${userId}/`, {
-    credentials: 'same-origin',
-    headers,
-  });
-
-  if (!response.ok) {
-    return null;
+  if (user.pk_id) {
+    const s = String(user.pk_id).trim();
+    if (s && !ids.includes(s)) {
+      ids.push(s);
+    }
   }
+  if ((user as any).id) {
+    const s = String((user as any).id).trim();
+    if (s && !ids.includes(s)) {
+      ids.push(s);
+    }
+  }
+  const username = (user.username ?? "").trim().toLowerCase();
+  return { ids, username };
+}
 
-  const data = (await response.json()) as any;
-  return data as FriendshipStatus;
+export function addFollowerToIndex(
+  index: { readonly ids: Set<string>; readonly usernames: Set<string> },
+  user: RawFriendshipUser,
+): void {
+  const { ids, username } = extractUserIdentities(user);
+  for (const id of ids) {
+    index.ids.add(id);
+  }
+  if (username) {
+    index.usernames.add(username);
+  }
+}
+
+export function isUserInFollowerIndex(
+  index: { readonly ids: ReadonlySet<string>; readonly usernames: ReadonlySet<string> },
+  user: RawFriendshipUser,
+): boolean {
+  const { ids, username } = extractUserIdentities(user);
+  if (ids.some(id => index.ids.has(id))) {
+    return true;
+  }
+  if (username && index.usernames.has(username)) {
+    return true;
+  }
+  return false;
 }
 
