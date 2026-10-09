@@ -1,0 +1,20 @@
+name: Protect public/index.html
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  block-index-html:
+    name: block-index-html
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fail if public/index.html was modified
+        run: |
+          if git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -qx 'public/index.html'; then
+            echo "::error file=public/index.html::public/index.html must not be modified in a PR."
+            exit 1
+          fi

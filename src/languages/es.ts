@@ -107,6 +107,9 @@ export const es: Record<TranslationKey, string> = {
   // Toasts & Notifications
   scanCompleted: "¡Escaneo completado!",
   scanFailedFollowing: "Error en el escaneo: no se pudo cargar la lista de seguidos de Instagram.",
+  scanFailedFollowers: "Error en el escaneo: no se pudo cargar la lista de seguidores de Instagram.",
+  indexingFollowersProgress: "Indexando seguidores (%s cargados)...",
+  scanningFollowingProgress: "Comprobando cuentas seguidas (%s revisadas)...",
   partialScanInterrupted: "Escaneo parcial: se revisaron %s cuentas, pero el escaneo fue interrumpido.",
   rateLimitPause: "Enfriamiento de Instagram activo. Pausando %s segundos antes de reintentar...",
   sleepingSafety: "Esperando %s segundos para prevenir bloqueos temporales",

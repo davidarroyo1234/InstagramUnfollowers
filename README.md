@@ -73,6 +73,7 @@ For Android users who want to use it on mobile:
 - Install dependencies: `npm install`
 - Build: `npm run build`
 - Dev server with auto-reload: `npm run build-dev`
+- Do not edit `public/index.html` manually: it is regenerated automatically by GitHub Actions, and PRs that modify it are rejected.
 
 ### 🌐 Adding a language
 

@@ -16,6 +16,7 @@ type ScanningState = {
   readonly filter: ScanningFilter;
   readonly scanIncomplete?: boolean;
   readonly isScanningActive?: boolean;
+  readonly totalScanned?: number;
 };
 
 type UnfollowingState = {

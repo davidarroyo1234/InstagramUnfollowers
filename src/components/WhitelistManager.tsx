@@ -18,7 +18,7 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate, lang }: 
 
   const handleExport = () => {
     exportWhitelist(whitelistedUsers);
-    setMessage({ type: "success", text: `Exported ${whitelistedUsers.length} users successfully` });
+    setMessage({ type: "success", text: t(lang, "whitelistExported") });
     setTimeout(() => setMessage(null), 3000);
   };
 

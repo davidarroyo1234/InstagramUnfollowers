@@ -73,6 +73,7 @@ Mobilde kullanmak isteyen Android kullanıcıları için:
 - Bağımlılıkları yükle: `npm install`
 - Derle: `npm run build`
 - Otomatik yenilemeli geliştirme sunucusu: `npm run build-dev`
+- `public/index.html` dosyasını elle düzenleme: GitHub Actions tarafından otomatik olarak yeniden oluşturulur ve onu değiştiren PR'lar reddedilir.
 
 ## ⚖️ Yasal Uyarı ve Lisans
 

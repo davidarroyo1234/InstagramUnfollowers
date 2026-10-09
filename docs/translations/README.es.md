@@ -73,6 +73,7 @@ Para usuarios de Android que quieran utilizarlo desde el móvil:
 - Instalar dependencias: `npm install`
 - Compilar: `npm run build`
 - Servidor de desarrollo con recarga automática: `npm run build-dev`
+- No edites `public/index.html` a mano: se regenera automáticamente con GitHub Actions, y los PRs que lo modifican son rechazados.
 
 ## ⚖️ Aviso Legal y Licencia
 

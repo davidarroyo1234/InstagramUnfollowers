@@ -105,6 +105,9 @@ export const en = {
   // Toasts & Notifications
   scanCompleted: "Scanning completed!",
   scanFailedFollowing: "Scan failed: could not load your following list from Instagram.",
+  scanFailedFollowers: "Scan failed: could not load your followers list from Instagram.",
+  indexingFollowersProgress: "Indexing followers (%s loaded)...",
+  scanningFollowingProgress: "Checking followed accounts (%s checked)...",
   partialScanInterrupted: "Partial scan: checked %s accounts, but scan was interrupted.",
   rateLimitPause: "Instagram cooldown active. Pausing for %s seconds before retrying...",
   sleepingSafety: "Sleeping %s seconds to prevent getting temp blocked",

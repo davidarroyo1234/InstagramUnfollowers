@@ -107,6 +107,9 @@ export const tr: Record<TranslationKey, string> = {
   // Toasts & Notifications
   scanCompleted: "Tarama tamamlandı!",
   scanFailedFollowing: "Tarama başarısız: takip ettiklerin listesi Instagram'dan yüklenemedi.",
+  scanFailedFollowers: "Tarama başarısız: takipçi listen Instagram'dan yüklenemedi.",
+  indexingFollowersProgress: "Takipçiler yükleniyor (%s yüklendi)...",
+  scanningFollowingProgress: "Takip edilen hesaplar kontrol ediliyor (%s kontrol edildi)...",
   partialScanInterrupted: "Kısmi tarama: %s hesap kontrol edildi, ancak tarama kesintiye uğradı.",
   rateLimitPause: "Instagram bekleme süresi aktif. Tekrar denemeden önce %s saniye bekleniyor...",
   sleepingSafety: "Geçici engeli önlemek için %s saniye bekleniyor",
