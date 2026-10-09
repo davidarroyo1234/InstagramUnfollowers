@@ -255,7 +255,7 @@ function App() {
       return;
     }
     if (state.selectedResults.length > 0) {
-      if (!confirm("Changing filter options will clear selected users")) {
+      if (!confirm(t(lang, "filterChangeClearsSelection"))) {
         // Force re-render. Bit of a hack but had an issue where the checkbox state was still
         // changing in the UI even even when not confirming. So updating the state fixes this
         // by synchronizing the checkboxes with the filter statuses in the state.
@@ -389,15 +389,15 @@ function App() {
       // For IE and Firefox prior to version 4
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (e) {
-        e.returnValue = "Changes you made may not be saved.";
+                e.returnValue = t(lang, "unsavedChangesWarning");
       }
 
       // For Safari
-      return "Changes you made may not be saved.";
+            return t(lang, "unsavedChangesWarning");
     };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [isActiveProcess, state]);
+  }, [isActiveProcess, state, lang]);
 
   useEffect(() => {
     // Fetches one page, retrying with backoff on rate limits / network errors.
@@ -850,7 +850,8 @@ function App() {
 }
 
 if (location.hostname !== INSTAGRAM_HOSTNAME && !isLocalPreview) {
-  alert("Can be used only on Instagram routes");
+    alert(t(getInitialLanguage(), "onlyOnInstagram"));
+
 } else {
   document.title = "InstagramUnfollowers";
   document.body.innerHTML = "";
