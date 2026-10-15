@@ -15,9 +15,7 @@ import {
   FOLLOWERS_PAGE_SAFETY_LIMIT,
   FOLLOWING_PAGE_SAFETY_LIMIT,
   CHECKS_BEFORE_LONG_SLEEP,
-  INSTAGRAM_ASBD_ID,
   INSTAGRAM_HOSTNAME,
-  INSTAGRAM_WEB_APP_ID,
   RATE_LIMIT_COOLDOWN_SECONDS,
 } from "./constants/constants";
 import {
@@ -35,7 +33,7 @@ import {
   RawFriendshipUser,
   rawFriendshipUserToUserNode,
   sleep,
-  unfollowUserUrlGenerator,
+  unfollowUser,
 } from "./utils/utils";
 import { NotSearching } from "./components/NotSearching";
 import { State } from "./model/state";
@@ -702,28 +700,11 @@ function App() {
         // Math.floor would leave progress at 99% when near completion
         const percentage = Math.round((counter / state.selectedResults.length) * 100);
         try {
-          const res = await fetch(unfollowUserUrlGenerator(user.id), {
-            headers: {
-              "content-type": "application/x-www-form-urlencoded",
-              "x-csrftoken": csrftoken,
-              "x-ig-app-id": INSTAGRAM_WEB_APP_ID,
-              "x-asbd-id": INSTAGRAM_ASBD_ID,
-              "x-requested-with": "XMLHttpRequest",
-            },
-            method: "POST",
-            credentials: "same-origin",
-          });
-          const data = (await res.json().catch(() => null)) as any;
-          const isActionBlocked =
-            res.status === 429 ||
-            res.status === 400 ||
-            data?.status === "fail" ||
-            data?.spam === true ||
-            /feedback_required|checkpoint|action_blocked|block/i.test(data?.message ?? "");
-
-          const success = res.ok && data?.status !== "fail" && !isActionBlocked;
+          const result = await unfollowUser(user, csrftoken);
+          const success = result.outcome === "unfollowed";
+          const isActionBlocked = result.outcome === "blocked";
           if (!success) {
-            console.warn(`Unfollow for ${user.username} failed (HTTP ${res.status}):`, data);
+            console.warn(`Unfollow for ${user.username} not confirmed: ${result.detail}`);
           }
           setState(prevState => {
             if (prevState.status !== "unfollowing") {

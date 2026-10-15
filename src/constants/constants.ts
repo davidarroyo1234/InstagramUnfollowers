@@ -8,6 +8,13 @@ export const UNFOLLOWERS_PER_PAGE = 50;
 export const INSTAGRAM_WEB_APP_ID = "936619743392459";
 export const INSTAGRAM_ASBD_ID = "129477";
 
+// The persisted GraphQL query instagram.com's own Unfollow button runs
+// (fb_api_req_friendly_name "usePolarisUnfollowMutation"). Instagram can rotate
+// this id on a deploy; if unfollows start failing with a GraphQL error, capture
+// the button's /api/graphql request in DevTools and update it here.
+export const INSTAGRAM_UNFOLLOW_DOC_ID = "27789106940691111";
+export const INSTAGRAM_UNFOLLOW_FRIENDLY_NAME = "usePolarisUnfollowMutation";
+
 // Page-count safety cap for loading the viewer's own following and followers lists
 // (see utils/utils.ts and main.tsx).
 export const FOLLOWING_PAGE_SAFETY_LIMIT = 250;
