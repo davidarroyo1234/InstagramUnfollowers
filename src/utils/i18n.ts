@@ -1,4 +1,4 @@
-export type Language = "en" | "es";
+export type Language = "en" | "es" | "tr";
 
 export const LANGUAGE_STORAGE_KEY = "iu_language";
 
@@ -31,6 +31,7 @@ export const translations = {
     unfollowDisabledPartialScan: "Unfollow disabled: the scan did not finish completely.",
     switchToSpanish: "Cambiar a Español",
     switchToEnglish: "Switch to English",
+    switchToTurkish: "Türkçe'ye geç",
 
     // Scanner / Filters
     scanner: "Scanner",
@@ -46,6 +47,7 @@ export const translations = {
     addToWhitelist: "Add to Whitelist",
     removeFromWhitelist: "Remove from Whitelist",
     noUsersFound: "No users found matching your filters.",
+    filterClearConfirm: "Changing filter options will clear selected users",
     page: "Page",
     of: "of",
     previous: "Previous",
@@ -99,6 +101,15 @@ export const translations = {
     pastedUsersAdded: "Added %s new users to whitelist!",
     noValidUsernamesFound: "No valid usernames found.",
     pastedUsersAlreadyExist: "All pasted users are already in the whitelist.",
+    noUsers: "No users",
+    tip: "Tip:",
+    invalidWhitelistFile: "Invalid file format: Expected an array of users",
+    invalidWhitelistUsers: "Invalid file format: Users missing required fields (id, username)",
+    failedToParseWhitelist: "Failed to parse JSON file: %s",
+    failedToReadFile: "Failed to read file",
+    unknownError: "Unknown error",
+    mergedWhitelist: "Merged successfully! Added %s new users (%s imported, %s duplicates skipped)",
+    replacedWhitelist: "Replaced whitelist with %s users",
 
     // Unfollowing Queue
     unfollowQueue: "Unfollow Queue",
@@ -148,6 +159,7 @@ export const translations = {
     unfollowDisabledPartialScan: "Unfollow desactivado: el escaneo no finalizó por completo.",
     switchToSpanish: "Cambiar a Español",
     switchToEnglish: "Switch to English",
+    switchToTurkish: "Türkçe'ye geç",
 
     // Scanner / Filters
     scanner: "Escáner",
@@ -163,6 +175,7 @@ export const translations = {
     addToWhitelist: "Añadir a Lista Blanca",
     removeFromWhitelist: "Quitar de Lista Blanca",
     noUsersFound: "No se encontraron usuarios con estos filtros.",
+    filterClearConfirm: "Cambiar los filtros borrará los usuarios seleccionados",
     page: "Página",
     of: "de",
     previous: "Anterior",
@@ -216,6 +229,15 @@ export const translations = {
     pastedUsersAdded: "¡Se añadieron %s nuevos usuarios a la lista blanca!",
     noValidUsernamesFound: "No se encontraron nombres de usuario válidos.",
     pastedUsersAlreadyExist: "Todos los usuarios pegados ya están en la lista blanca.",
+    noUsers: "Sin usuarios",
+    tip: "Consejo:",
+    invalidWhitelistFile: "Formato de archivo no válido: se esperaba una lista de usuarios",
+    invalidWhitelistUsers: "Formato de archivo no válido: faltan campos obligatorios (id, username)",
+    failedToParseWhitelist: "No se pudo leer el archivo JSON: %s",
+    failedToReadFile: "No se pudo leer el archivo",
+    unknownError: "Error desconocido",
+    mergedWhitelist: "¡Combinado! Se añadieron %s usuarios nuevos (%s importados, %s duplicados omitidos)",
+    replacedWhitelist: "Lista blanca reemplazada por %s usuarios",
 
     // Unfollowing Queue
     unfollowQueue: "Cola de Unfollow",
@@ -237,6 +259,134 @@ export const translations = {
     loadedFromCache: "¡Se cargaron %s cuentas del historial!",
     actionBlockedWarning: "⚠️ Bloqueo de acción de Instagram detectado (feedback_required). La cola se detuvo para proteger tu cuenta.",
   },
+  tr: {
+    // Launch Screen
+    localAccountAudit: "Yerel hesap denetimi",
+    launchTitle: "Geri takip etmeyenleri bulun.",
+    launchDescription: "Instagram takip listenizi tarayın, risk işaretlerini inceleyin, korumak istediğiniz hesapları beyaz listeye alın ve yalnızca seçtiğiniz kullanıcılara işlem yapın.",
+    runScan: "Taramayı Başlat",
+    runsInBrowserOnly: "Yalnızca bu tarayıcı oturumunda çalışır",
+    loadCachedScan: "Önceki taramayı yükle (%s hesap)",
+    ready: "Hazır",
+    protected: "Korumalı",
+    whitelist: "Beyaz Liste",
+    review: "İncele",
+    selectFirst: "Önce seç",
+
+    // Toolbar
+    scanNoticeBanner: "⚡ Hesaplar gerçek zamanlı olarak alınıyor...",
+    copyList: "Listeyi Kopyala",
+    exportJson: "JSON Dışa Aktar",
+    exportCsv: "CSV Dışa Aktar",
+    unfollowSelected: "Seçilenleri Bırak",
+    selectPage: "Sayfayı Seç",
+    selectAll: "Tümünü Seç",
+    settings: "Ayarlar",
+    goBackConfirm: "Instagram'a geri dönülsün mü?",
+    copiedToClipboard: "Liste panoya kopyalandı!",
+    unfollowDisabledPartialScan: "Bırakma devre dışı: tarama tamamlanmadı.",
+    switchToSpanish: "İspanyolca'ya geç",
+    switchToEnglish: "İngilizce'ye geç",
+    switchToTurkish: "Türkçe'ye geç",
+
+    // Scanner / Filters
+    scanner: "Tarayıcı",
+    filters: "Filtre",
+    nonFollowers: "Geri Takip Etmeyenler",
+    followers: "Takipçiler",
+    verified: "Onaylı",
+    private: "Gizli",
+    withoutProfilePicture: "Profil Fotoğrafsız",
+    searchPlaceholder: "Kullanıcı ara...",
+    nonWhitelistedTab: "Beyaz Liste Dışı",
+    whitelistedTab: "Beyaz Listede",
+    addToWhitelist: "Beyaz Listeye Ekle",
+    removeFromWhitelist: "Beyaz Listeden Çıkar",
+    noUsersFound: "Filtrelerinize uyan kullanıcı bulunamadı.",
+    filterClearConfirm: "Filtreleri değiştirmek seçili kullanıcıları temizler",
+    page: "Sayfa",
+    of: "/",
+    previous: "Önceki",
+    next: "Sonraki",
+    pause: "Duraklat",
+    resume: "Devam Et",
+    partialScanWarning: "⚠️ Eksik tarama: tüm hesaplar kontrol edilmeden kesildi, bu yüzden bazı geri takip etmeyenler eksik olabilir. Hesabınızı korumak için toplu bırakma devre dışı.",
+    noPic: "Fotoğraf Yok",
+    clear: "Temizle",
+    displayed: "Gösterilen",
+    totalScanned: "Taranan toplam",
+    scanSummary: "Tarama Özeti",
+    unfollowCount: "Bırak (%s)",
+    unfollowConfirm: "Seçilen hesapları takipten çıkarmak istediğinize emin misiniz?",
+    scanInProgressWait: "Tarama sürüyor: takipten çıkmak için taramanın bitmesini bekleyin.",
+    selectAtLeastOneUser: "Takipten çıkarmak için en az bir kullanıcı seçmelisiniz",
+
+    // Settings
+    settingsTitle: "Ayarlar",
+    language: "Dil",
+    timeBetweenSearchCycles: "Arama döngüleri arası varsayılan süre",
+    timeToWaitAfterFiveCycles: "Beş arama döngüsünden sonra varsayılan bekleme süresi",
+    timeBetweenUnfollows: "Takipten çıkarmalar arası varsayılan süre",
+    timeToWaitAfterFiveUnfollows: "Beş takipten çıkarmadan sonra varsayılan bekleme süresi",
+    usersPerSearchCycle: "İstek başına alınan kullanıcı (adet)",
+    settingsWarning1: "UYARI: Bu ayarları değiştirmek hesabınızın yasaklanmasına yol açabilir.",
+    settingsWarning2: "RİSK TAMAMEN SİZE AİTTİR!!!!",
+    saveSettings: "Ayarları Kaydet",
+    cancel: "İptal",
+    save: "Kaydet",
+    warningPrefix: "UYARI:",
+
+    // Whitelist Manager
+    whitelistTitle: "Beyaz Liste Yönetimi",
+    whitelistDescription: "Takipten çıkarılmaktan korumak istediğiniz kullanıcıları yönetin.",
+    exportWhitelist: "Beyaz Listeyi Dışa Aktar",
+    importWhitelist: "Beyaz Listeyi İçe Aktar",
+    clearWhitelist: "Beyaz Listeyi Temizle",
+    clearWhitelistConfirm: "Beyaz listenizi temizlemek istediğinize emin misiniz?",
+    whitelistExported: "Beyaz liste başarıyla dışa aktarıldı!",
+    whitelistImported: "Beyaz liste başarıyla içe aktarıldı!",
+    whitelistCleared: "Beyaz liste temizlendi!",
+    userSingular: "kullanıcı",
+    userPlural: "kullanıcı",
+    mergeWhitelist: "Birleştir (mevcuda ekle)",
+    replaceWhitelist: "Değiştir (üzerine yaz)",
+    whitelistTip: "Beyaz listenizi yedek olarak dışa aktarın. Daha sonra içe aktararak kayıtlı kullanıcılarınızı geri yükleyebilirsiniz.",
+    pasteWhitelist: "Kullanıcı Adı Yapıştır",
+    pasteWhitelistPlaceholder: "Kullanıcı adlarını buraya yapıştırın (virgül, boşluk veya satırla ayrılmış)...",
+    addPastedToWhitelist: "Beyaz Listeye Ekle",
+    pastedUsersAdded: "Beyaz listeye %s yeni kullanıcı eklendi!",
+    noValidUsernamesFound: "Geçerli kullanıcı adı bulunamadı.",
+    pastedUsersAlreadyExist: "Yapıştırılan kullanıcıların tümü zaten beyaz listede.",
+    noUsers: "Kullanıcı yok",
+    tip: "İpucu:",
+    invalidWhitelistFile: "Geçersiz dosya biçimi: kullanıcı listesi bekleniyordu",
+    invalidWhitelistUsers: "Geçersiz dosya biçimi: zorunlu alanlar eksik (id, username)",
+    failedToParseWhitelist: "JSON dosyası okunamadı: %s",
+    failedToReadFile: "Dosya okunamadı",
+    unknownError: "Bilinmeyen hata",
+    mergedWhitelist: "Birleştirildi! %s yeni kullanıcı eklendi (%s içe aktarıldı, %s yinelenen atlandı)",
+    replacedWhitelist: "Beyaz liste %s kullanıcıyla değiştirildi",
+
+    // Unfollowing Queue
+    unfollowQueue: "Takipten Çıkarma Kuyruğu",
+    succeeded: "Başarılı",
+    failed: "Başarısız",
+    allDone: "TAMAMI TAMAM!",
+    unfollowed: "Takipten çıkarıldı",
+    failedToUnfollow: "Takipten çıkarılamadı",
+
+    // Toasts & Notifications
+    scanCompleted: "Tarama tamamlandı!",
+    scanFailedFollowing: "Tarama başarısız: Instagram'dan takip listeniz yüklenemedi.",
+    scanFailedFollowers: "Tarama başarısız: Instagram'dan takipçi listeniz yüklenemedi.",
+    indexingFollowersProgress: "Takipçiler dizinleniyor (%s yüklendi)...",
+    scanningFollowingProgress: "Takip edilen hesaplar kontrol ediliyor (%s kontrol edildi)...",
+    partialScanInterrupted: "Kısmi tarama: %s hesap kontrol edildi ancak tarama kesildi.",
+    rateLimitPause: "Instagram bekleme süresi aktif. Yeniden denemeden önce %s saniye duraklatılıyor...",
+    sleepingSafety: "Geçici engel yememek için %s saniye bekleniyor",
+    loadedFromCache: "Önbellekten %s hesap yüklendi!",
+    actionBlockedWarning: "⚠️ Instagram eylem engeli algılandı (feedback_required). Hesabınızı korumak için kuyruk durduruldu.",
+  },
 } as const;
 
 export type TranslationKey = keyof typeof translations.en;
@@ -244,11 +394,17 @@ export type TranslationKey = keyof typeof translations.en;
 export function getInitialLanguage(): Language {
   try {
     const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (saved === "en" || saved === "es") {
+    if (saved === "en" || saved === "es" || saved === "tr") {
       return saved;
     }
-    if (typeof navigator !== "undefined" && navigator.language && navigator.language.toLowerCase().startsWith("es")) {
-      return "es";
+    if (typeof navigator !== "undefined" && navigator.language) {
+      const browserLanguage = navigator.language.toLowerCase();
+      if (browserLanguage.startsWith("tr")) {
+        return "tr";
+      }
+      if (browserLanguage.startsWith("es")) {
+        return "es";
+      }
     }
   } catch {
     // fallback

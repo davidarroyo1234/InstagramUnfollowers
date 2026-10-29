@@ -73,6 +73,7 @@ export const SettingMenu = ({
                 >
                   <option value="en" style={{ background: "#222" }}>English (EN)</option>
                   <option value="es" style={{ background: "#222" }}>Español (ES)</option>
+                  <option value="tr" style={{ background: "#222" }}>Türkçe (TR)</option>
                 </select>
               </div>
 

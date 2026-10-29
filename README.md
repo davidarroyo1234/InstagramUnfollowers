@@ -30,7 +30,7 @@ A nifty tool that lets you see who doesn't follow you back on Instagram.
 7. As scanning runs, accounts appear live on screen, and follow-back status updates automatically:
    <br/><img src="./assets/results.png" alt="Results screen" />
 8. 🤍 **Whitelist users** by clicking their profile image.
-9. 🌐 **Switch language** anytime between English and Spanish using the `🌐 EN / ES` button in the top bar.
+9. 🌐 **Switch language** anytime between English, Spanish and Turkish using the `🌐 EN / ES / TR` button in the top bar.
 10. 💾 **Manage your whitelist** via Settings:
     - Export: Save your whitelist as a JSON backup file
     - Import: Restore or merge whitelisted users from a file
@@ -53,7 +53,7 @@ For Android users who want to use it on mobile:
 - 🔍 **Scan & Detect**: Accurately identifies users who don't follow you back.
 - ⚡ **Live Progressive Streaming**: Accounts stream dynamically onto your screen as each batch arrives, eliminating blank waiting screens on large accounts.
 - ⚡ **Instant Local Cache (0ms load)**: Re-open and review previously completed audits instantly without re-scraping from scratch.
-- 🌐 **Bilingual (EN / ES)**: Native English and Spanish support with instant switching.
+- 🌐 **Trilingual (EN / ES / TR)**: Native English, Spanish and Turkish support with instant switching.
 - 🛡️ **Anti-Ban & Session Protection**: Uses full Instagram Web headers (`X-ASBD-ID`, `X-CSRFToken`, `XMLHttpRequest`) to prevent forced logouts and suspicious activity flags.
 - 🛡️ **Action-Block Guard**: Double-checks unfollow API responses to prevent ghost unfollows; halts the queue automatically if Instagram returns `feedback_required` to protect your account.
 - ⏳ **Smart Rate-Limit & Soft-Block Backoff**: Automatically pauses and retries if Instagram returns HTTP 429 or HTTP 400 (`feedback_required`) with exponential cooldowns instead of failing.
@@ -96,7 +96,7 @@ Una herramienta práctica y ligera que te permite ver quién no te sigue de vuel
 7. Durante el escaneo, las cuentas se muestran en vivo y el estado de seguimiento se actualiza en tiempo real:
    <br/><img src="./assets/results.png" alt="Pantalla de resultados" />
 8. 🤍 **Agrega cuentas a la lista blanca** haciendo clic sobre su foto de perfil para protegerlas.
-9. 🌐 **Cambia el idioma** entre Español e Inglés en cualquier momento con el botón `🌐 ES / EN` en la barra superior.
+9. 🌐 **Cambia el idioma** entre Inglés, Español y Turco en cualquier momento con el botón `🌐 EN / ES / TR` en la barra superior.
 10. 💾 **Administra tu lista blanca** desde Ajustes:
     - Exportar: Guarda tu lista blanca como respaldo en un archivo JSON.
     - Importar: Restaura o combina cuentas desde un archivo de respaldo.
@@ -119,7 +119,7 @@ Para usuarios de Android que quieran utilizarlo desde el móvil:
 - 🔍 **Detección precisa**: Encuentra rápidamente a quienes sigues pero no te siguen de vuelta.
 - ⚡ **Carga progresiva en vivo**: Las cuentas aparecen en pantalla en tiempo real mientras se descargan, evitando pantallas en blanco en cuentas con muchos seguidos.
 - ⚡ **Caché local instantáneo (0ms)**: Carga escaneos anteriores con un solo clic desde la pantalla inicial sin hacer peticiones innecesarias.
-- 🌐 **Soporte Bilingüe (Español / Inglés)**: Interfaz completamente en español e inglés con cambio instantáneo.
+- 🌐 **Soporte en tres idiomas (EN / ES / TR)**: Interfaz en inglés, español y turco con cambio instantáneo.
 - 🛡️ **Protección antibloqueo y anti-cierre de sesión**: Envía cabeceras completas de Instagram Web (`X-ASBD-ID`, `X-CSRFToken`, `XMLHttpRequest`) para evitar alertas de actividad sospechosa y cierres de sesión forzados.
 - 🛡️ **Protección contra bloqueos de acción (Action Block)**: Verifica la respuesta real de la API de Instagram al dejar de seguir evitando falsos éxitos ("ghost unfollows"); detiene la cola automáticamente ante `feedback_required` para proteger tu cuenta de suspensiones.
 - ⏳ **Manejo inteligente de Rate Limit y bloqueos suaves**: Pausa y reintenta automáticamente con pausas exponenciales ante respuestas HTTP 429 o HTTP 400 (`feedback_required`) evitando que el escaneo falle.
