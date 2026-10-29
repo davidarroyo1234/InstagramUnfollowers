@@ -1,13 +1,14 @@
 import { UserNode } from "../model/user";
 import { Timings } from "../model/timings";
 import { WHITELISTED_RESULTS_STORAGE_KEY, TIMINGS_STORAGE_KEY, LAST_SCAN_RESULTS_STORAGE_KEY, LAST_SCAN_TIMESTAMP_STORAGE_KEY } from "../constants/constants";
+import { Language, t } from "./i18n";
 
 /**
  * Export whitelist to a JSON file
  */
-export const exportWhitelist = (whitelistedUsers: readonly UserNode[]): void => {
+export const exportWhitelist = (whitelistedUsers: readonly UserNode[], lang: Language): void => {
   if (whitelistedUsers.length === 0) {
-    alert("No users in whitelist to export");
+    alert(t(lang, "noUsers"));
     return;
   }
 
@@ -31,7 +32,8 @@ export const exportWhitelist = (whitelistedUsers: readonly UserNode[]): void => 
 export const importWhitelist = (
   file: File,
   onSuccess: (users: readonly UserNode[]) => void,
-  onError: (message: string) => void
+  onError: (message: string) => void,
+  lang: Language,
 ): void => {
   const reader = new FileReader();
   
@@ -42,7 +44,7 @@ export const importWhitelist = (
       
       // Validate the imported data
       if (!Array.isArray(importedUsers)) {
-        onError("Invalid file format: Expected an array of users");
+        onError(t(lang, "invalidWhitelistFile"));
         return;
       }
       
@@ -55,31 +57,27 @@ export const importWhitelist = (
       );
       
       if (!isValid) {
-        onError("Invalid file format: Users missing required fields (id, username)");
+        onError(t(lang, "invalidWhitelistUsers"));
         return;
       }
       
       onSuccess(importedUsers);
     } catch (error) {
-      onError(`Failed to parse JSON file: ${error instanceof Error ? error.message : "Unknown error"}`);
+      onError(t(lang, "failedToParseWhitelist", error instanceof Error ? error.message : t(lang, "unknownError")));
     }
   };
   
   reader.onerror = () => {
-    onError("Failed to read file");
+    onError(t(lang, "failedToReadFile"));
   };
   
   reader.readAsText(file);
 };
 
 /**
- * Clear all whitelist data
+ * Clear all whitelist data. The caller confirms with the user first.
  */
 export const clearWhitelist = (): void => {
-  if (!confirm("Are you sure you want to clear the entire whitelist? This action cannot be undone.")) {
-    return;
-  }
-  
   localStorage.removeItem(WHITELISTED_RESULTS_STORAGE_KEY);
 };
 

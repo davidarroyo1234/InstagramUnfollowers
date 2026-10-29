@@ -17,7 +17,7 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate, lang }: 
   const [pasteText, setPasteText] = useState("");
 
   const handleExport = () => {
-    exportWhitelist(whitelistedUsers);
+    exportWhitelist(whitelistedUsers, lang);
     setMessage({ type: "success", text: t(lang, "whitelistExported") });
     setTimeout(() => setMessage(null), 3000);
   };
@@ -40,13 +40,13 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate, lang }: 
           const newUsersCount = finalUsers.length - whitelistedUsers.length;
           setMessage({ 
             type: "success", 
-            text: `Merged successfully! Added ${newUsersCount} new users (${importedUsers.length} imported, ${importedUsers.length - newUsersCount} duplicates skipped)` 
+            text: t(lang, "mergedWhitelist", newUsersCount, importedUsers.length, importedUsers.length - newUsersCount)
           });
         } else {
           finalUsers = importedUsers;
           setMessage({ 
             type: "success", 
-            text: `Replaced whitelist with ${importedUsers.length} users` 
+            text: t(lang, "replacedWhitelist", importedUsers.length)
           });
         }
         
@@ -56,7 +56,8 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate, lang }: 
       (errorMessage) => {
         setMessage({ type: "error", text: errorMessage });
         setTimeout(() => setMessage(null), 5000);
-      }
+      },
+      lang,
     );
 
     // Reset file input
@@ -151,7 +152,7 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate, lang }: 
           className="btn btn-export" 
           onClick={handleExport}
           disabled={whitelistedUsers.length === 0}
-          title={whitelistedUsers.length === 0 ? "No users" : t(lang, "exportWhitelist")}
+          title={whitelistedUsers.length === 0 ? t(lang, "noUsers") : t(lang, "exportWhitelist")}
         >
           📥 {t(lang, "exportWhitelist")}
         </button>
@@ -236,7 +237,7 @@ export const WhitelistManager = ({ whitelistedUsers, onWhitelistUpdate, lang }: 
 
       <div className="whitelist-info">
         <p className="info-text">
-          <strong>💡 Tip:</strong> {t(lang, "whitelistTip")}
+          <strong>💡 {t(lang, "tip")}</strong> {t(lang, "whitelistTip")}
         </p>
       </div>
     </div>
