@@ -50,6 +50,11 @@ export const Unfollowing = (
         </menu>
       </aside>
       <article className="unfollow-log-container">
+        {state.aborted && (
+          <div className="fs-large p-medium clr-red" role="alert">
+            {t(lang, "actionBlockedWarning")}
+          </div>
+        )}
         {state.unfollowLog.length === state.selectedResults.length && (
           <>
             <hr />

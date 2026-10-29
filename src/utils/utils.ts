@@ -17,14 +17,28 @@ export async function copyListToClipboard(nonFollowersList: readonly UserNode[],
   alert(alertMessage);
 }
 
+function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  // Revoking immediately can cancel the download in some browsers.
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
 export function exportToJSON(users: readonly UserNode[]) {
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(users, null, 2));
-  const downloadAnchorNode = document.createElement('a');
-  downloadAnchorNode.setAttribute("href",     dataStr);
-  downloadAnchorNode.setAttribute("download", "instagram_unfollowers.json");
-  document.body.appendChild(downloadAnchorNode);
-  downloadAnchorNode.click();
-  downloadAnchorNode.remove();
+  downloadBlob(new Blob([JSON.stringify(users, null, 2)], { type: "application/json" }), "instagram_unfollowers.json");
+}
+
+// Spreadsheet apps execute cells starting with these characters, so they get a
+// leading apostrophe and every cell is quoted.
+function csvCell(value: unknown): string {
+  const text = value === null || value === undefined ? "" : String(value);
+  const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+  return `"${safe.replace(/"/g, '""')}"`;
 }
 
 export function exportToCSV(users: readonly UserNode[]) {
@@ -32,23 +46,15 @@ export function exportToCSV(users: readonly UserNode[]) {
   const rows = users.map(user => [
     user.id,
     user.username,
-    `"${user.full_name.replace(/"/g, '""')}"`,
+    user.full_name,
     user.is_verified,
     user.is_private,
     user.profile_pic_url
-  ]);
-  
-  const csvContent = "data:text/csv;charset=utf-8," 
-    + headers.join(",") + "\n" 
-    + rows.map(e => e.join(",")).join("\n");
+  ].map(csvCell).join(","));
 
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "instagram_unfollowers.csv");
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+  // BOM so Excel reads the file as UTF-8 (Turkish characters), CRLF for Windows.
+  const csvContent = "\ufeff" + headers.join(",") + "\r\n" + rows.join("\r\n");
+  downloadBlob(new Blob([csvContent], { type: "text/csv;charset=utf-8" }), "instagram_unfollowers.csv");
 }
 
 export function getMaxPage(nonFollowersList: readonly UserNode[]): number {
@@ -77,8 +83,9 @@ export function getUsersForDisplay(
   filter: ScanningFilter,
 ): readonly UserNode[] {
   const users: UserNode[] = [];
+  const whitelistedIds = new Set(whitelistedResults.map(user => user.id));
   for (const result of results) {
-    const isWhitelisted = whitelistedResults.find(user => user.id === result.id) !== undefined;
+    const isWhitelisted = whitelistedIds.has(result.id);
     switch (currentTab) {
       case "non_whitelisted":
         if (isWhitelisted) {
@@ -109,7 +116,7 @@ export function getUsersForDisplay(
     }
     const userMatchesSearchTerm =
       result.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      result.full_name.toLowerCase().includes(searchTerm.toLowerCase());
+      (result.full_name ?? "").toLowerCase().includes(searchTerm.toLowerCase());
     if (searchTerm !== "" && !userMatchesSearchTerm) {
       continue;
     }

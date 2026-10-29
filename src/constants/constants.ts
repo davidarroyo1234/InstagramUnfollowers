@@ -26,6 +26,9 @@ export const WHITELISTED_RESULTS_STORAGE_KEY = "iu_whitelisted-results";
 export const TIMINGS_STORAGE_KEY = "iu_timings";
 export const LAST_SCAN_RESULTS_STORAGE_KEY = "iu_last-scan-results";
 export const LAST_SCAN_TIMESTAMP_STORAGE_KEY = "iu_last-scan-time";
+// Persisted across reloads: starting a scan/unfollow before this is refused.
+export const BLOCKED_UNTIL_STORAGE_KEY = "iu_blocked_until";
+export const BLOCKED_COOLDOWN_MS = 10 * 60 * 1000;
 
 //TIMINGS CONSTANTS
 export const DEFAULT_TIME_BETWEEN_SEARCH_CYCLES = 1000;

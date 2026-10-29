@@ -12,6 +12,7 @@ import {
   DEFAULT_TIME_TO_WAIT_AFTER_FIVE_SEARCH_CYCLES,
   DEFAULT_TIME_TO_WAIT_AFTER_FIVE_UNFOLLOWS,
   DEFAULT_USERS_PER_SEARCH_CYCLE,
+  BLOCKED_COOLDOWN_MS,
   FOLLOWERS_PAGE_SAFETY_LIMIT,
   FOLLOWING_PAGE_SAFETY_LIMIT,
   CHECKS_BEFORE_LONG_SLEEP,
@@ -41,7 +42,7 @@ import { Searching } from "./components/Searching";
 import { Toolbar } from "./components/Toolbar";
 import { Unfollowing } from "./components/Unfollowing";
 import { Timings } from "./model/timings";
-import { loadCachedScanResults, loadTimings, loadWhitelist, saveCachedScanResults, saveTimings, saveWhitelist } from "./utils/whitelist-manager";
+import { getBlockedUntil, loadCachedScanResults, loadTimings, loadWhitelist, saveCachedScanResults, saveTimings, saveWhitelist, setBlockedUntil } from "./utils/whitelist-manager";
 import { getInitialLanguage, Language, saveLanguage, t } from "./utils/i18n";
 
 const LOCAL_PREVIEW_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
@@ -172,7 +173,7 @@ function App() {
       isActiveProcess = Boolean(state.isScanningActive);
       break;
     case "unfollowing":
-      isActiveProcess = state.percentage < 100;
+      isActiveProcess = !state.aborted && state.percentage < 100;
       break;
     default:
       assertUnreachable(state);
@@ -226,6 +227,14 @@ function App() {
           showPrivate: true,
           showWithOutProfilePicture: true,
         },
+      });
+      return;
+    }
+    const blockedUntil = getBlockedUntil();
+    if (blockedUntil > Date.now()) {
+      setToast({
+        show: true,
+        text: t(lang, "rateLimitPause", Math.ceil((blockedUntil - Date.now()) / 1000)),
       });
       return;
     }
@@ -443,6 +452,10 @@ function App() {
             continue;
           }
           console.error(`${kind} request failed${userId ? ` for ${userId}` : ""}:`, e);
+          if (isRateLimitOrSoftBlock) {
+            // Remember the 429 so the next scan/unfollow does not walk straight back into it.
+            setBlockedUntil(Date.now() + BLOCKED_COOLDOWN_MS);
+          }
           return { ok: false, blocked: isTransient };
         }
       }
@@ -688,6 +701,16 @@ function App() {
         return;
       }
 
+      const blockedUntil = getBlockedUntil();
+      if (blockedUntil > Date.now()) {
+        setToast({
+          show: true,
+          text: t(lang, "rateLimitPause", Math.ceil((blockedUntil - Date.now()) / 1000)),
+        });
+        setState(prevState => (prevState.status === "unfollowing" ? { ...prevState, aborted: true } : prevState));
+        return;
+      }
+
       const csrftoken = getCookie("csrftoken");
       if (csrftoken === null) {
         throw new Error("csrftoken cookie is null");
@@ -724,10 +747,12 @@ function App() {
           });
 
           if (isActionBlocked) {
+            setBlockedUntil(Date.now() + BLOCKED_COOLDOWN_MS);
             setToast({
               show: true,
               text: t(lang, "actionBlockedWarning"),
             });
+            setState(prevState => (prevState.status === "unfollowing" ? { ...prevState, aborted: true } : prevState));
             break;
           }
         } catch (e) {
