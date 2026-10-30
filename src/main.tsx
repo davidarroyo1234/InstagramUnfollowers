@@ -180,7 +180,11 @@ function App() {
   }
 
   const onLoadCached = () => {
-    if (!cachedScan || cachedScan.results.length === 0) {
+    // Re-read instead of trusting the mount-time snapshot: the account may have
+    // been switched in another tab, and the cache is scoped per account.
+    const cached = loadCachedScanResults();
+    setCachedScan(cached);
+    if (!cached || cached.results.length === 0) {
       return;
     }
     const whitelistedResults = loadWhitelist();
@@ -191,7 +195,7 @@ function App() {
       currentTab: "non_whitelisted",
       percentage: 100,
       isScanningActive: false,
-      results: cachedScan.results,
+      results: cached.results,
       selectedResults: [],
       whitelistedResults,
       filter: {
@@ -202,7 +206,7 @@ function App() {
     });
     setToast({
       show: true,
-      text: t(lang, "loadedFromCache", cachedScan.results.length),
+      text: t(lang, "loadedFromCache", cached.results.length),
     });
   };
 
@@ -665,8 +669,11 @@ function App() {
       const scanIsComplete = followingCompleted;
 
       if (scanIsComplete || nonFollowers.length > 0) {
-        saveCachedScanResults(nonFollowers);
-        setCachedScan({ results: nonFollowers, timestamp: Date.now() });
+        // viewerId was captured when the scan started: cache under that account
+        // even if the cookie changed mid-scan, and never offer the old account's
+        // results as "previous scan" for the new one.
+        saveCachedScanResults(nonFollowers, viewerId);
+        setCachedScan(getCookie("ds_user_id") === viewerId ? { results: nonFollowers, timestamp: Date.now() } : null);
       }
 
       setState(prevState => {

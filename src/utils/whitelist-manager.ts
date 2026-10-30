@@ -165,11 +165,16 @@ export const saveTimings = (timings: Timings): void => {
  * Scoped to the logged-in account: one shared key would show the previous
  * account's results after switching accounts.
  */
-const cacheKeySuffix = (): string => `-${getCookie("ds_user_id") ?? ""}`;
+const cacheKeySuffix = (accountId?: string | null): string => `-${accountId ?? getCookie("ds_user_id") ?? ""}`;
 
-export const saveCachedScanResults = (results: readonly UserNode[]): void => {
+/**
+ * `accountId` is the viewer captured when the scan started. Passing it keeps a
+ * scan that outlives an account switch under the account it came from, instead
+ * of overwriting the new account's cache.
+ */
+export const saveCachedScanResults = (results: readonly UserNode[], accountId?: string | null): void => {
   try {
-    const suffix = cacheKeySuffix();
+    const suffix = cacheKeySuffix(accountId);
     localStorage.setItem(LAST_SCAN_RESULTS_STORAGE_KEY + suffix, JSON.stringify(results));
     localStorage.setItem(LAST_SCAN_TIMESTAMP_STORAGE_KEY + suffix, String(Date.now()));
   } catch (e) {
