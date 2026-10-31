@@ -1255,6 +1255,66 @@ html .iu {
     transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
 
+.iu .language-menu {
+    position: relative;
+}
+
+.iu .language-menu-caret {
+    margin-left: 0.35rem;
+    color: var(--muted);
+    font-size: 0.7rem;
+}
+
+.iu .language-menu-list {
+    position: absolute;
+    top: calc(100% + 0.4rem);
+    right: 0;
+    z-index: 20;
+    min-width: 10rem;
+    padding: 0.3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+}
+
+.iu .language-menu-list button.language-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    padding: 0.5rem 0.65rem;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        background: rgba(224, 163, 58, 0.14);
+        outline: none;
+    }
+
+    &.active {
+        color: var(--amber);
+        background: rgba(224, 163, 58, 0.1);
+    }
+}
+
+.iu .language-menu-code {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
 .iu button.copy-list:hover,
 .iu .button-secondary:hover,
 .iu .btn:hover {
