@@ -12,6 +12,7 @@ import {
   DEFAULT_TIME_TO_WAIT_AFTER_FIVE_SEARCH_CYCLES,
   DEFAULT_TIME_TO_WAIT_AFTER_FIVE_UNFOLLOWS,
   DEFAULT_USERS_PER_SEARCH_CYCLE,
+  BLOCKED_COOLDOWN_MS,
   FOLLOWERS_PAGE_SAFETY_LIMIT,
   FOLLOWING_PAGE_SAFETY_LIMIT,
   CHECKS_BEFORE_LONG_SLEEP,
@@ -41,7 +42,7 @@ import { Searching } from "./components/Searching";
 import { Toolbar } from "./components/Toolbar";
 import { Unfollowing } from "./components/Unfollowing";
 import { Timings } from "./model/timings";
-import { loadCachedScanResults, loadTimings, loadWhitelist, saveCachedScanResults, saveTimings, saveWhitelist } from "./utils/whitelist-manager";
+import { getBlockedUntil, loadCachedScanResults, loadTimings, loadWhitelist, saveCachedScanResults, saveTimings, saveWhitelist, setBlockedUntil } from "./utils/whitelist-manager";
 import { getInitialLanguage, Language, saveLanguage, t } from "./utils/i18n";
 
 const LOCAL_PREVIEW_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
@@ -172,14 +173,18 @@ function App() {
       isActiveProcess = Boolean(state.isScanningActive);
       break;
     case "unfollowing":
-      isActiveProcess = state.percentage < 100;
+      isActiveProcess = !state.aborted && state.percentage < 100;
       break;
     default:
       assertUnreachable(state);
   }
 
   const onLoadCached = () => {
-    if (!cachedScan || cachedScan.results.length === 0) {
+    // Re-read instead of trusting the mount-time snapshot: the account may have
+    // been switched in another tab, and the cache is scoped per account.
+    const cached = loadCachedScanResults();
+    setCachedScan(cached);
+    if (!cached || cached.results.length === 0) {
       return;
     }
     const whitelistedResults = loadWhitelist();
@@ -190,7 +195,7 @@ function App() {
       currentTab: "non_whitelisted",
       percentage: 100,
       isScanningActive: false,
-      results: cachedScan.results,
+      results: cached.results,
       selectedResults: [],
       whitelistedResults,
       filter: {
@@ -201,7 +206,7 @@ function App() {
     });
     setToast({
       show: true,
-      text: t(lang, "loadedFromCache", cachedScan.results.length),
+      text: t(lang, "loadedFromCache", cached.results.length),
     });
   };
 
@@ -226,6 +231,14 @@ function App() {
           showPrivate: true,
           showWithOutProfilePicture: true,
         },
+      });
+      return;
+    }
+    const blockedUntil = getBlockedUntil();
+    if (blockedUntil > Date.now()) {
+      setToast({
+        show: true,
+        text: t(lang, "rateLimitPause", Math.ceil((blockedUntil - Date.now()) / 1000)),
       });
       return;
     }
@@ -443,6 +456,10 @@ function App() {
             continue;
           }
           console.error(`${kind} request failed${userId ? ` for ${userId}` : ""}:`, e);
+          if (isRateLimitOrSoftBlock) {
+            // Remember the 429 so the next scan/unfollow does not walk straight back into it.
+            setBlockedUntil(Date.now() + BLOCKED_COOLDOWN_MS);
+          }
           return { ok: false, blocked: isTransient };
         }
       }
@@ -652,8 +669,11 @@ function App() {
       const scanIsComplete = followingCompleted;
 
       if (scanIsComplete || nonFollowers.length > 0) {
-        saveCachedScanResults(nonFollowers);
-        setCachedScan({ results: nonFollowers, timestamp: Date.now() });
+        // viewerId was captured when the scan started: cache under that account
+        // even if the cookie changed mid-scan, and never offer the old account's
+        // results as "previous scan" for the new one.
+        saveCachedScanResults(nonFollowers, viewerId);
+        setCachedScan(getCookie("ds_user_id") === viewerId ? { results: nonFollowers, timestamp: Date.now() } : null);
       }
 
       setState(prevState => {
@@ -685,6 +705,16 @@ function App() {
   useEffect(() => {
     const unfollow = async () => {
       if (state.status !== "unfollowing" || isLocalPreview) {
+        return;
+      }
+
+      const blockedUntil = getBlockedUntil();
+      if (blockedUntil > Date.now()) {
+        setToast({
+          show: true,
+          text: t(lang, "rateLimitPause", Math.ceil((blockedUntil - Date.now()) / 1000)),
+        });
+        setState(prevState => (prevState.status === "unfollowing" ? { ...prevState, aborted: true } : prevState));
         return;
       }
 
@@ -724,10 +754,12 @@ function App() {
           });
 
           if (isActionBlocked) {
+            setBlockedUntil(Date.now() + BLOCKED_COOLDOWN_MS);
             setToast({
               show: true,
               text: t(lang, "actionBlockedWarning"),
             });
+            setState(prevState => (prevState.status === "unfollowing" ? { ...prevState, aborted: true } : prevState));
             break;
           }
         } catch (e) {
