@@ -6,7 +6,11 @@ export const UNFOLLOWERS_PER_PAGE = 50;
 // endpoints behave inconsistently; it is not a secret, just an identifier
 // for "the instagram.com web client" and is safe to keep public.
 export const INSTAGRAM_WEB_APP_ID = "936619743392459";
-export const INSTAGRAM_ASBD_ID = "129477";
+// Changed from "129477" to "359341" in Oct 2026: with the old value the
+// friendships endpoints answer with the HTML page instead of JSON. If scans
+// start failing with "Unexpected token '<'" again, read the X-ASBD-ID header
+// Instagram's own followers request sends in DevTools and update it here.
+export const INSTAGRAM_ASBD_ID = "359341";
 
 // The persisted GraphQL query instagram.com's own Unfollow button runs
 // (fb_api_req_friendly_name "usePolarisUnfollowMutation"). Instagram can rotate
