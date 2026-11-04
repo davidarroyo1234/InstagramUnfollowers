@@ -436,7 +436,9 @@ function App() {
           const message = String(e?.message ?? "");
           const isRateLimitOrSoftBlock =
             (e instanceof InstagramApiError || e?.name === "InstagramApiError") &&
-            (status === 429 || /feedback_required|checkpoint|rate limit|please wait/i.test(message));
+            (status === 429 ||
+              e?.notJson === true ||
+              /feedback_required|checkpoint|rate limit|please wait/i.test(message));
           const isNetworkError = e instanceof TypeError || /fetch|network/i.test(message);
           const isTransient = isRateLimitOrSoftBlock || isNetworkError;
 

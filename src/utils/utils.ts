@@ -437,11 +437,16 @@ export function friendshipsUrlGenerator(kind: FriendshipsListKind, maxId?: strin
 
 export class InstagramApiError extends Error {
   readonly status: number;
-  constructor(status: number, message: string) {
+  // True when Instagram answered with its HTML page instead of JSON. On long
+  // lists this happens mid-scan as a soft throttle (often after a few thousand
+  // followers), so callers treat it as transient and retry after a pause.
+  readonly notJson: boolean;
+  constructor(status: number, message: string, notJson: boolean = false) {
     super(message);
     Object.setPrototypeOf(this, InstagramApiError.prototype);
     this.name = 'InstagramApiError';
     this.status = status;
+    this.notJson = notJson;
   }
 }
 
@@ -457,14 +462,22 @@ async function fetchFriendshipsPageFromUrl(url: string, headers?: Record<string,
   rememberWwwClaim(response);
   const contentType = response.headers.get('content-type') || '';
   const text = await response.text().catch(() => '');
-  if (!response.ok || !/json/i.test(contentType)) {
-    // Instagram answers unknown/unauthorised API calls with its 200 HTML page.
-    throw new InstagramApiError(
-      response.status,
-      `Instagram returned HTTP ${response.status} (${contentType || 'no content-type'}, redirected ${response.redirected}, final URL ${response.url}) for ${url}: ${text.slice(0, 200)}`,
-    );
+  const describe = () =>
+    `Instagram returned HTTP ${response.status} (${contentType || 'no content-type'}, redirected ${response.redirected}, final URL ${response.url}) for ${url}: ${text.slice(0, 200)}`;
+  if (!response.ok) {
+    throw new InstagramApiError(response.status, describe());
   }
-  const data = JSON.parse(text) as any;
+  // Instagram answers throttled or unauthorised API calls with its 200 HTML
+  // page, sometimes even labelled as JSON, so parse defensively.
+  let data: any;
+  try {
+    if (!/json/i.test(contentType)) {
+      throw new Error('not JSON');
+    }
+    data = JSON.parse(text);
+  } catch {
+    throw new InstagramApiError(response.status, describe(), true);
+  }
   if (data?.status === 'fail' || (!data?.users && data?.message)) {
     throw new InstagramApiError(response.status, data?.message || `Instagram returned failure status for ${url}`);
   }
