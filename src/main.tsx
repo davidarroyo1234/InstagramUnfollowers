@@ -530,6 +530,11 @@ function App() {
           console.error(`Stopping ${kind} scan early: hit the safety cap of ${pageSafetyLimit} pages.`);
           return false;
         }
+        if (page.next_max_id === maxId) {
+          // Instagram handed back the cursor we just sent: the walk would loop forever.
+          console.error(`Stopping ${kind} scan early: Instagram returned the same page cursor twice.`);
+          return false;
+        }
         maxId = page.next_max_id;
 
         await paceRequest();
