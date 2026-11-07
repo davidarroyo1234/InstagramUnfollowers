@@ -436,7 +436,9 @@ function App() {
           const message = String(e?.message ?? "");
           const isRateLimitOrSoftBlock =
             (e instanceof InstagramApiError || e?.name === "InstagramApiError") &&
-            (status === 429 || /feedback_required|checkpoint|rate limit|please wait/i.test(message));
+            (status === 429 ||
+              e?.notJson === true ||
+              /feedback_required|checkpoint|rate limit|please wait/i.test(message));
           const isNetworkError = e instanceof TypeError || /fetch|network/i.test(message);
           const isTransient = isRateLimitOrSoftBlock || isNetworkError;
 
@@ -526,6 +528,11 @@ function App() {
         pagesFetched += 1;
         if (pagesFetched >= pageSafetyLimit) {
           console.error(`Stopping ${kind} scan early: hit the safety cap of ${pageSafetyLimit} pages.`);
+          return false;
+        }
+        if (page.next_max_id === maxId) {
+          // Instagram handed back the cursor we just sent: the walk would loop forever.
+          console.error(`Stopping ${kind} scan early: Instagram returned the same page cursor twice.`);
           return false;
         }
         maxId = page.next_max_id;

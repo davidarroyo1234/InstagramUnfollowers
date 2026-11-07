@@ -1,5 +1,5 @@
 import { UserNode } from "../model/user";
-import { DEFAULT_USERS_PER_SEARCH_CYCLE, INSTAGRAM_ASBD_ID, INSTAGRAM_UNFOLLOW_DOC_ID, INSTAGRAM_UNFOLLOW_FRIENDLY_NAME, INSTAGRAM_WEB_APP_ID, UNFOLLOWERS_PER_PAGE, WITHOUT_PROFILE_PICTURE_URL_IDS } from "../constants/constants";
+import { DEFAULT_USERS_PER_SEARCH_CYCLE, INSTAGRAM_ASBD_ID, INSTAGRAM_WEB_APP_ID, UNFOLLOWERS_PER_PAGE, WITHOUT_PROFILE_PICTURE_URL_IDS } from "../constants/constants";
 import { ScanningTab } from "../model/scanning-tab";
 import { ScanningFilter } from "../model/scanning-filter";
 import { UnfollowLogEntry } from "../model/unfollow-log-entry";
@@ -170,6 +170,56 @@ export function getCookie(name: string): string | null {
   return parts.pop()!.split(';').shift()!;
 }
 
+// --- Headers instagram.com's own web client sends on /api/v1 calls --------
+// X-IG-WWW-Claim: Instagram stores it in sessionStorage ("www-claim-v2") and
+// refreshes it via the X-IG-Set-WWW-Claim response header. "0" is accepted
+// when none is known yet.
+const WWW_CLAIM_STORAGE_KEY = 'www-claim-v2';
+let wwwClaim: string | null = null;
+
+function getWwwClaim(): string {
+  if (wwwClaim === null) {
+    try {
+      wwwClaim = sessionStorage.getItem(WWW_CLAIM_STORAGE_KEY) || '0';
+    } catch {
+      wwwClaim = '0';
+    }
+  }
+  return wwwClaim;
+}
+
+function rememberWwwClaim(response: Response): void {
+  const claim = response.headers.get('x-ig-set-www-claim');
+  if (claim) {
+    wwwClaim = claim;
+    try {
+      sessionStorage.setItem(WWW_CLAIM_STORAGE_KEY, claim);
+    } catch {
+      // Storage unavailable; the in-memory copy is enough.
+    }
+  }
+}
+
+// X-Web-Session-ID: three 6-char base36 groups, generated once per page load.
+const webSessionId = [0, 0, 0].map(() => Math.random().toString(36).slice(2, 8).padEnd(6, '0')).join(':');
+
+export function instagramApiHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  const csrftoken = getCookie('csrftoken') || '';
+  const headers: Record<string, string> = {
+    'X-IG-App-ID': INSTAGRAM_WEB_APP_ID,
+    'X-ASBD-ID': INSTAGRAM_ASBD_ID,
+    'X-IG-WWW-Claim': getWwwClaim(),
+    'X-Web-Session-ID': webSessionId,
+    'X-Requested-With': 'XMLHttpRequest',
+    'Accept': '*/*',
+    ...extra,
+  };
+  if (csrftoken) {
+    headers['X-CSRFToken'] = csrftoken;
+  }
+  return headers;
+}
+
 export type UnfollowOutcome = 'unfollowed' | 'failed' | 'blocked';
 
 export interface UnfollowResult {
@@ -272,58 +322,42 @@ export async function isStillFollowing(user: { readonly id: string; readonly use
   }
 }
 
-// Unfollows the way instagram.com's own Unfollow button does: the
-// usePolarisUnfollowMutation GraphQL query. It only counts once Instagram
-// confirms the follow is gone: either the response's friendship_status says
-// so, or a follow-up search of the viewer's following list no longer finds the
-// account. A 2xx alone proves nothing (Instagram answers unknown routes with a
-// 200 HTML page).
+// Unfollows the way instagram.com's own Unfollow button does (Oct 2026):
+// POST /api/v1/friendships/destroy/<id>/ with the same headers and form body
+// the web client sends. It only counts once Instagram confirms the follow is
+// gone: the response's friendship_status says so, or a follow-up search of
+// the viewer's following list no longer finds the account. A 2xx alone proves
+// nothing (Instagram answers unknown routes with a 200 HTML page).
 export async function unfollowUser(user: { readonly id: string; readonly username: string }, csrftoken: string): Promise<UnfollowResult> {
   const tokens = await getWebSessionTokens();
   if (tokens === null) {
     return { outcome: 'failed', detail: 'could not find the fb_dtsg/lsd session tokens on the page' };
   }
-  const params: Record<string, string> = {
-    av: getCookie('ds_user_id') ?? '',
-    __d: 'www',
-    __user: '0',
-    __a: '1',
-    __comet_req: '7',
-    fb_dtsg: tokens.fbDtsg,
+  const body = new URLSearchParams({
+    container_module: 'profile',
+    nav_chain: 'PolarisProfilePostsTabRoot:profilePage:1:via_cold_start',
+    user_id: user.id,
     jazoest: jazoest(tokens.fbDtsg),
-    lsd: tokens.lsd,
-    fb_api_caller_class: 'RelayModern',
-    fb_api_req_friendly_name: INSTAGRAM_UNFOLLOW_FRIENDLY_NAME,
-    variables: JSON.stringify({
-      target_user_id: user.id,
-      container_module: 'profile',
-      nav_chain: 'PolarisProfilePostsTabRoot:profilePage:1:via_cold_start',
-    }),
-    server_timestamps: 'true',
-    doc_id: INSTAGRAM_UNFOLLOW_DOC_ID,
+    fb_dtsg: tokens.fbDtsg,
+  });
+  const extra: Record<string, string> = {
+    'Content-Type': 'application/x-www-form-urlencoded',
+    'X-CSRFToken': csrftoken,
   };
   if (tokens.revision) {
-    params.__rev = tokens.revision;
-    params.__spin_r = tokens.revision;
+    extra['X-Instagram-AJAX'] = tokens.revision;
   }
 
-  const res = await fetch('https://www.instagram.com/api/graphql', {
-    headers: {
-      'content-type': 'application/x-www-form-urlencoded',
-      'x-csrftoken': csrftoken,
-      'x-fb-friendly-name': INSTAGRAM_UNFOLLOW_FRIENDLY_NAME,
-      'x-fb-lsd': tokens.lsd,
-      'x-ig-app-id': INSTAGRAM_WEB_APP_ID,
-      'x-asbd-id': INSTAGRAM_ASBD_ID,
-    },
+  const res = await fetch(`https://www.instagram.com/api/v1/friendships/destroy/${user.id}/`, {
+    headers: instagramApiHeaders(extra),
     method: 'POST',
     credentials: 'same-origin',
-    body: new URLSearchParams(params).toString(),
+    body: body.toString(),
   });
+  rememberWwwClaim(res);
   const text = await res.text().catch(() => '');
   let data: any = null;
   try {
-    // Facebook-style endpoints may prefix JSON with an anti-hijacking guard.
     data = JSON.parse(text.replace(/^for \(;;\);/, ''));
   } catch {
     // Not JSON; reported below with enough context to see what came back.
@@ -337,23 +371,26 @@ export async function unfollowUser(user: { readonly id: string; readonly usernam
   if (isActionBlocked) {
     return { outcome: 'blocked', detail: `HTTP ${res.status}: ${errorText.trim()}` };
   }
-  if (!res.ok || data === null || data.errors || data.error || data.status === 'fail' || !data.data) {
+  if (!res.ok || data === null || data.errors || data.error || data.status !== 'ok') {
     const body = data === null
       ? `not JSON (content-type ${res.headers.get('content-type')}, redirected ${res.redirected}, final URL ${res.url}): ${text.slice(0, 300)}`
       : JSON.stringify(data).slice(0, 1000);
     return { outcome: 'failed', detail: `HTTP ${res.status}, body ${body}` };
   }
 
-  const fs = findFriendshipStatus(data.data);
+  const fs = findFriendshipStatus(data);
   if (fs && (fs.following === true || fs.outgoing_request === true)) {
     return { outcome: 'failed', detail: `Instagram answered but friendship_status still shows following: ${JSON.stringify(fs)}` };
+  }
+  if (fs && fs.following === false) {
+    return { outcome: 'unfollowed', detail: 'confirmed' };
   }
 
   const stillFollowing = await isStillFollowing(user);
   if (stillFollowing === true) {
     return { outcome: 'failed', detail: `Instagram answered but the account is still in your following list. Response: ${JSON.stringify(data).slice(0, 500)}` };
   }
-  if (stillFollowing === null && !(fs && fs.following === false)) {
+  if (stillFollowing === null) {
     return { outcome: 'failed', detail: `Instagram answered but the unfollow could not be confirmed. Response: ${JSON.stringify(data).slice(0, 500)}` };
   }
   return { outcome: 'unfollowed', detail: 'confirmed' };
@@ -394,56 +431,53 @@ export interface FriendshipsPage {
 // that account's following/followers list instead.
 export function friendshipsUrlGenerator(kind: FriendshipsListKind, maxId?: string, count: number = DEFAULT_USERS_PER_SEARCH_CYCLE, userId?: string): string {
   const targetId = userId ?? getCookie('ds_user_id');
-  const base = `https://www.instagram.com/api/v1/friendships/${targetId}/${kind}/?count=${count}`;
+  const base = `https://www.instagram.com/api/v1/friendships/${targetId}/${kind}/?count=${count}&search_surface=follow_list_page`;
   return maxId === undefined ? base : `${base}&max_id=${encodeURIComponent(maxId)}`;
 }
 
 export class InstagramApiError extends Error {
   readonly status: number;
-  constructor(status: number, message: string) {
+  // True when Instagram answered with its HTML page instead of JSON. On long
+  // lists this happens mid-scan as a soft throttle (often after a few thousand
+  // followers), so callers treat it as transient and retry after a pause.
+  readonly notJson: boolean;
+  constructor(status: number, message: string, notJson: boolean = false) {
     super(message);
     Object.setPrototypeOf(this, InstagramApiError.prototype);
     this.name = 'InstagramApiError';
     this.status = status;
+    this.notJson = notJson;
   }
 }
 
 export async function fetchFriendshipsPage(kind: FriendshipsListKind, maxId?: string, count?: number, userId?: string): Promise<FriendshipsPage> {
-  const csrftoken = getCookie('csrftoken') || '';
-  const headers: Record<string, string> = {
-    'X-IG-App-ID': INSTAGRAM_WEB_APP_ID,
-    'X-ASBD-ID': INSTAGRAM_ASBD_ID,
-    'X-Requested-With': 'XMLHttpRequest',
-    'Accept': '*/*',
-  };
-  if (csrftoken) {
-    headers['X-CSRFToken'] = csrftoken;
-  }
-
-  return fetchFriendshipsPageFromUrl(friendshipsUrlGenerator(kind, maxId, count, userId), headers);
+  return fetchFriendshipsPageFromUrl(friendshipsUrlGenerator(kind, maxId, count, userId));
 }
 
 async function fetchFriendshipsPageFromUrl(url: string, headers?: Record<string, string>): Promise<FriendshipsPage> {
-  if (headers === undefined) {
-    const csrftoken = getCookie('csrftoken') || '';
-    headers = {
-      'X-IG-App-ID': INSTAGRAM_WEB_APP_ID,
-      'X-ASBD-ID': INSTAGRAM_ASBD_ID,
-      'X-Requested-With': 'XMLHttpRequest',
-      'Accept': '*/*',
-    };
-    if (csrftoken) {
-      headers['X-CSRFToken'] = csrftoken;
-    }
-  }
   const response = await fetch(url, {
     credentials: 'same-origin',
-    headers,
+    headers: headers ?? instagramApiHeaders(),
   });
+  rememberWwwClaim(response);
+  const contentType = response.headers.get('content-type') || '';
+  const text = await response.text().catch(() => '');
+  const describe = () =>
+    `Instagram returned HTTP ${response.status} (${contentType || 'no content-type'}, redirected ${response.redirected}, final URL ${response.url}) for ${url}: ${text.slice(0, 200)}`;
   if (!response.ok) {
-    throw new InstagramApiError(response.status, `Instagram returned HTTP ${response.status} for ${url}`);
+    throw new InstagramApiError(response.status, describe());
   }
-  const data = (await response.json()) as any;
+  // Instagram answers throttled or unauthorised API calls with its 200 HTML
+  // page, sometimes even labelled as JSON, so parse defensively.
+  let data: any;
+  try {
+    if (!/json/i.test(contentType)) {
+      throw new Error('not JSON');
+    }
+    data = JSON.parse(text);
+  } catch {
+    throw new InstagramApiError(response.status, describe(), true);
+  }
   if (data?.status === 'fail' || (!data?.users && data?.message)) {
     throw new InstagramApiError(response.status, data?.message || `Instagram returned failure status for ${url}`);
   }
