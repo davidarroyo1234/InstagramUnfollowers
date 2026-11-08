@@ -7,6 +7,7 @@ import { Timings } from "../model/timings";
 import { Logo } from "./icons/Logo";
 import { UserNode } from "../model/user";
 import { Language, t } from "../utils/i18n";
+import { LanguageMenu } from "./LanguageMenu";
 
 interface ToolBarProps {
   isActiveProcess: boolean;
@@ -131,15 +132,7 @@ export const Toolbar = ({
           >
             CSV
           </button>
-          <button
-            className="copy-list"
-            type="button"
-            title={lang === "en" ? t(lang, "switchToSpanish") : t(lang, "switchToEnglish")}
-            onClick={() => onLanguageChange(lang === "en" ? "es" : "en")}
-            style={{ fontWeight: "bold" }}
-          >
-            🌐 {lang.toUpperCase()}
-          </button>
+          <LanguageMenu lang={lang} onLanguageChange={onLanguageChange} />
           <button
             className="icon-button"
             type="button"
