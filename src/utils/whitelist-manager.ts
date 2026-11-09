@@ -1,6 +1,6 @@
 import { UserNode } from "../model/user";
 import { Timings } from "../model/timings";
-import { WHITELISTED_RESULTS_STORAGE_KEY, TIMINGS_STORAGE_KEY, LAST_SCAN_RESULTS_STORAGE_KEY, LAST_SCAN_TIMESTAMP_STORAGE_KEY, BLOCKED_UNTIL_STORAGE_KEY } from "../constants/constants";
+import { WHITELISTED_RESULTS_STORAGE_KEY, TIMINGS_STORAGE_KEY, LAST_SCAN_RESULTS_STORAGE_KEY, LAST_SCAN_TIMESTAMP_STORAGE_KEY, BLOCKED_UNTIL_STORAGE_KEY, FOLLOWERS_CHECKPOINT_STORAGE_KEY, FOLLOWERS_CHECKPOINT_TTL_MS } from "../constants/constants";
 import { getCookie } from "./utils";
 
 /**
@@ -222,5 +222,65 @@ export const setBlockedUntil = (until: number): void => {
     localStorage.setItem(BLOCKED_UNTIL_STORAGE_KEY, String(until));
   } catch (e) {
     console.warn("Could not persist the cooldown:", e);
+  }
+};
+
+/**
+ * Followers downloaded so far by an interrupted scan, plus the cursor to
+ * continue from. Scoped to the account that started the scan.
+ */
+export interface FollowersCheckpoint {
+  readonly accountId: string;
+  readonly ids: readonly string[];
+  readonly usernames: readonly string[];
+  readonly count: number;
+  // Cursor of the next page to fetch.
+  readonly maxId: string;
+  readonly timestamp: number;
+}
+
+export const saveFollowersCheckpoint = (checkpoint: FollowersCheckpoint): void => {
+  try {
+    localStorage.setItem(FOLLOWERS_CHECKPOINT_STORAGE_KEY, JSON.stringify(checkpoint));
+  } catch (e) {
+    console.warn("Could not save followers checkpoint:", e);
+  }
+};
+
+export const clearFollowersCheckpoint = (): void => {
+  try {
+    localStorage.removeItem(FOLLOWERS_CHECKPOINT_STORAGE_KEY);
+  } catch {
+    // Nothing to clean up if storage is unavailable.
+  }
+};
+
+export const loadFollowersCheckpoint = (accountId: string | null): FollowersCheckpoint | null => {
+  if (accountId === null) {
+    return null;
+  }
+  try {
+    const raw = localStorage.getItem(FOLLOWERS_CHECKPOINT_STORAGE_KEY);
+    if (raw === null) {
+      return null;
+    }
+    const parsed: any = JSON.parse(raw);
+    const valid =
+      parsed &&
+      parsed.accountId === accountId &&
+      Array.isArray(parsed.ids) &&
+      Array.isArray(parsed.usernames) &&
+      typeof parsed.maxId === "string" &&
+      parsed.maxId !== "" &&
+      typeof parsed.count === "number" &&
+      typeof parsed.timestamp === "number" &&
+      Date.now() - parsed.timestamp < FOLLOWERS_CHECKPOINT_TTL_MS;
+    if (!valid) {
+      clearFollowersCheckpoint();
+      return null;
+    }
+    return parsed as FollowersCheckpoint;
+  } catch {
+    return null;
   }
 };
