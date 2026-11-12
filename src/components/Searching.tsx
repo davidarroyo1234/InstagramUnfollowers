@@ -2,7 +2,7 @@ import React from "react";
 import { assertUnreachable, getCurrentPageUnfollowers, getMaxPage, getUsersForDisplay, isWithoutProfilePicture } from "../utils/utils";
 import { State } from "../model/state";
 import { UserNode } from "../model/user";
-import { WHITELISTED_RESULTS_STORAGE_KEY } from "../constants/constants";
+import { mergeWhitelists, saveWhitelist } from "../utils/whitelist-manager";
 import { Language, t } from "../utils/i18n";
 
 
@@ -42,9 +42,23 @@ export const Searching = ({
   );
   let currentLetter = "";
 
+  const maxPage = getMaxPage(usersForDisplay);
+  const currentPage = Math.min(state.page, maxPage);
+
   const onNewLetter = (firstLetter: string) => {
     currentLetter = firstLetter;
     return <div className="alphabet-character">{currentLetter}</div>;
+  };
+
+  const removeFromWhitelist = (
+    list: readonly UserNode[],
+    toRemove: readonly UserNode[],
+  ): readonly UserNode[] => {
+    const removeIds = new Set(toRemove.map(user => user.id));
+    const removeUsernames = new Set(toRemove.map(user => user.username.trim().toLowerCase()).filter(Boolean));
+    return list.filter(
+      user => !removeIds.has(user.id) && !removeUsernames.has(user.username.trim().toLowerCase()),
+    );
   };
 
   const handleSelectedWhitelistAction = () => {
@@ -56,15 +70,12 @@ export const Searching = ({
 
     switch (state.currentTab) {
       case "non_whitelisted": {
-        const existingIds = new Set(state.whitelistedResults.map(user => user.id));
-        const usersToAdd = state.selectedResults.filter(user => !existingIds.has(user.id));
-        whitelistedResults = [...state.whitelistedResults, ...usersToAdd];
+        whitelistedResults = mergeWhitelists(state.whitelistedResults, state.selectedResults);
         break;
       }
 
       case "whitelisted": {
-        const selectedIds = new Set(state.selectedResults.map(user => user.id));
-        whitelistedResults = state.whitelistedResults.filter(user => !selectedIds.has(user.id));
+        whitelistedResults = removeFromWhitelist(state.whitelistedResults, state.selectedResults);
         break;
       }
 
@@ -72,10 +83,7 @@ export const Searching = ({
         assertUnreachable(state.currentTab);
     }
 
-    localStorage.setItem(
-      WHITELISTED_RESULTS_STORAGE_KEY,
-      JSON.stringify(whitelistedResults),
-    );
+    saveWhitelist(whitelistedResults);
     setState({
       ...state,
       whitelistedResults,
@@ -214,6 +222,7 @@ export const Searching = ({
           <div className="sidebar-footer-controls">
             <button
               className="button-control button-pause"
+              disabled={!state.isScanningActive}
               onClick={pauseScan}
             >
               {scanningPaused ? t(lang, "resume") : t(lang, "pause")}
@@ -222,10 +231,10 @@ export const Searching = ({
               <div className="pagination-controls">
                 <a
                   onClick={() => {
-                    if (state.page - 1 > 0) {
+                    if (currentPage - 1 > 0) {
                       setState({
                         ...state,
-                        page: state.page - 1,
+                        page: currentPage - 1,
                       });
                     }
                   }}
@@ -233,14 +242,14 @@ export const Searching = ({
                   ❮
                 </a>
                 <span>
-                  {state.page}/{getMaxPage(usersForDisplay)}
+                  {currentPage}/{maxPage}
                 </span>
                 <a
                   onClick={() => {
-                    if (state.page < getMaxPage(usersForDisplay)) {
+                    if (currentPage < maxPage) {
                       setState({
                         ...state,
-                        page: state.page + 1,
+                        page: currentPage + 1,
                       });
                     }
                   }}
@@ -352,7 +361,7 @@ export const Searching = ({
             <p style={{ fontSize: "1rem" }}>{t(lang, "noUsersFound")}</p>
           </div>
         )}
-        {getCurrentPageUnfollowers(usersForDisplay, state.page).map(user => {
+        {getCurrentPageUnfollowers(usersForDisplay, currentPage).map(user => {
           const firstLetter = user.username.substring(0, 1).toUpperCase();
           return (
             <React.Fragment key={user.id}>
@@ -368,23 +377,22 @@ export const Searching = ({
                       let whitelistedResults: readonly UserNode[] = [];
                       switch (state.currentTab) {
                         case "non_whitelisted":
-                          whitelistedResults = [...state.whitelistedResults, user];
+                          whitelistedResults = mergeWhitelists(state.whitelistedResults, [user]);
                           break;
 
                         case "whitelisted":
-                          whitelistedResults = state.whitelistedResults.filter(
-                            result => result.id !== user.id,
-                          );
+                          whitelistedResults = removeFromWhitelist(state.whitelistedResults, [user]);
                           break;
 
                         default:
                           assertUnreachable(state.currentTab);
                       }
-                      localStorage.setItem(
-                        WHITELISTED_RESULTS_STORAGE_KEY,
-                        JSON.stringify(whitelistedResults),
-                      );
-                      setState({ ...state, whitelistedResults });
+                      saveWhitelist(whitelistedResults);
+                      setState({
+                        ...state,
+                        whitelistedResults,
+                        selectedResults: state.selectedResults.filter(selected => selected.id !== user.id),
+                      });
                     }}
                   >
                     <img

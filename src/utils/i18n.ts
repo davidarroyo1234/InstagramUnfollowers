@@ -67,6 +67,7 @@ export const translations = {
     scanSummary: "Scan Summary",
     unfollowCount: "Unfollow (%s)",
     unfollowConfirm: "Are you sure you want to unfollow the selected accounts?",
+    confirmFilterClear: "Changing filter options will clear selected users",
     scanInProgressWait: "Scan in progress: please wait until scan finishes to unfollow.",
     selectAtLeastOneUser: "Must select at least a single user to unfollow",
 
@@ -95,6 +96,9 @@ export const translations = {
     clearWhitelistConfirm: "Are you sure you want to clear your whitelist?",
     whitelistExported: "Whitelist exported successfully!",
     whitelistImported: "Whitelist imported successfully!",
+    whitelistMerged: "Merged successfully! Added %s new users (%s imported, %s duplicates skipped)",
+    whitelistReplaced: "Replaced whitelist with %s users",
+    noUsersInWhitelist: "No users",
     whitelistCleared: "Whitelist cleared!",
     userSingular: "user",
     userPlural: "users",
@@ -126,6 +130,7 @@ export const translations = {
     rateLimitPause: "Instagram cooldown active. Pausing for %s seconds before retrying...",
     sleepingSafety: "Sleeping %s seconds to prevent getting temp blocked",
     loadedFromCache: "Loaded %s accounts from cache!",
+    scanAccountChanged: "Instagram account changed during the scan. Please run the scan again.",
     actionBlockedWarning: "⚠️ Instagram Action Block detected (feedback_required). Unfollow queue stopped to protect your account.",
   },
   es: {
@@ -192,6 +197,7 @@ export const translations = {
     scanSummary: "Resumen",
     unfollowCount: "Dejar de Seguir (%s)",
     unfollowConfirm: "¿Estás seguro de dejar de seguir a las cuentas seleccionadas?",
+    confirmFilterClear: "Cambiar los filtros limpiará los usuarios seleccionados",
     scanInProgressWait: "Escaneo en progreso: espera a que termine para dejar de seguir.",
     selectAtLeastOneUser: "Debes seleccionar al menos un usuario",
 
@@ -220,6 +226,9 @@ export const translations = {
     clearWhitelistConfirm: "¿Estás seguro de que deseas borrar tu lista blanca?",
     whitelistExported: "¡Lista blanca exportada correctamente!",
     whitelistImported: "¡Lista blanca importada correctamente!",
+    whitelistMerged: "¡Combinado con éxito! Se añadieron %s nuevos usuarios (%s importados, %s duplicados omitidos)",
+    whitelistReplaced: "Lista blanca reemplazada con %s usuarios",
+    noUsersInWhitelist: "Sin usuarios",
     whitelistCleared: "¡Lista blanca borrada!",
     userSingular: "usuario",
     userPlural: "usuarios",
@@ -251,6 +260,7 @@ export const translations = {
     rateLimitPause: "Enfriamiento de Instagram activo. Pausando %s segundos antes de reintentar...",
     sleepingSafety: "Esperando %s segundos para prevenir bloqueos temporales",
     loadedFromCache: "¡Se cargaron %s cuentas del historial!",
+    scanAccountChanged: "La cuenta de Instagram cambió durante el escaneo. Por favor inicia el escaneo nuevamente.",
     actionBlockedWarning: "⚠️ Bloqueo de acción de Instagram detectado (feedback_required). La cola se detuvo para proteger tu cuenta.",
   },
 } as const;

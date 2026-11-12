@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useState } from "react";
 import { State } from "../model/state";
-import { assertUnreachable, copyListToClipboard, exportToCSV, exportToJSON, getCurrentPageUnfollowers, getUsersForDisplay } from "../utils/utils";
+import { assertUnreachable, copyListToClipboard, exportToCSV, exportToJSON, getCurrentPageUnfollowers, getMaxPage, getUsersForDisplay } from "../utils/utils";
 import { SettingMenu } from "./SettingMenu";
 import { SettingIcon } from "./icons/SettingIcon";
 import { Timings } from "../model/timings";
@@ -170,6 +170,7 @@ export const Toolbar = ({
                   return setState({
                     ...state,
                     searchTerm: e.currentTarget.value,
+                    page: 1,
                   });
                 case "unfollowing":
                   return setState({
@@ -191,7 +192,8 @@ export const Toolbar = ({
                 checked={
                   (() => {
                     const displayed = getUsersForDisplay(state.results, state.whitelistedResults, state.currentTab, state.searchTerm, state.filter);
-                    const pageUsers = getCurrentPageUnfollowers(displayed, state.page);
+                    const currentPage = Math.min(state.page, getMaxPage(displayed));
+                    const pageUsers = getCurrentPageUnfollowers(displayed, currentPage);
                     return pageUsers.length > 0 && pageUsers.every(u => state.selectedResults.some(s => s.id === u.id));
                   })()
                 }

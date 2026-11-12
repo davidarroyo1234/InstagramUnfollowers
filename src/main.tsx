@@ -24,11 +24,13 @@ import {
   addFollowerToIndex,
   assertUnreachable,
   createFollowerIndex,
+  deduplicateUsersById,
   fetchFriendshipsPage,
   FriendshipsListKind,
   FriendshipsPage,
   getCookie,
   getCurrentPageUnfollowers,
+  getMaxPage,
   getUsersForDisplay,
   InstagramApiError,
   isUserInFollowerIndex,
@@ -148,6 +150,11 @@ function App() {
   );
 
   const [lang, setLang] = useState<Language>(() => getInitialLanguage());
+  const langRef = React.useRef(lang);
+  langRef.current = lang;
+
+  const timingsRef = React.useRef(timings);
+  timingsRef.current = timings;
 
   const [scanningPaused, setScanningPaused] = useState(false);
   const scanningPausedRef = React.useRef(false);
@@ -190,6 +197,8 @@ function App() {
       return;
     }
     const whitelistedResults = loadWhitelist();
+    scanningPausedRef.current = false;
+    setScanningPaused(false);
     setState({
       status: "scanning",
       page: 1,
@@ -245,6 +254,8 @@ function App() {
       return;
     }
     const whitelistedResults = loadWhitelist();
+    scanningPausedRef.current = false;
+    setScanningPaused(false);
     setState({
       status: "scanning",
       page: 1,
@@ -271,7 +282,7 @@ function App() {
       return;
     }
     if (state.selectedResults.length > 0) {
-      if (!confirm("Changing filter options will clear selected users")) {
+      if (!confirm(t(lang, "confirmFilterClear"))) {
         // Force re-render. Bit of a hack but had an issue where the checkbox state was still
         // changing in the UI even even when not confirming. So updating the state fixes this
         // by synchronizing the checkboxes with the filter statuses in the state.
@@ -281,6 +292,7 @@ function App() {
     }
     setState({
       ...state,
+      page: 1,
       // Make sure to clear selected results when changing filter options. This is to avoid having
       // users selected in the unfollow queue but not visible in the UI, which would be confusing.
       selectedResults: [],
@@ -353,15 +365,16 @@ function App() {
     if (state.status !== "scanning") {
       return;
     }
+    const displayed = getUsersForDisplay(
+      state.results,
+      state.whitelistedResults,
+      state.currentTab,
+      state.searchTerm,
+      state.filter,
+    );
     const pageUsers = getCurrentPageUnfollowers(
-      getUsersForDisplay(
-        state.results,
-        state.whitelistedResults,
-        state.currentTab,
-        state.searchTerm,
-        state.filter,
-      ),
-      state.page,
+      displayed,
+      Math.min(state.page, getMaxPage(displayed)),
     );
     if (e.currentTarget.checked) {
       const currentIds = new Set(state.selectedResults.map(u => u.id));
@@ -416,6 +429,8 @@ function App() {
   }, [isActiveProcess, state]);
 
   useEffect(() => {
+    let cancelled = false;
+
     // Fetches one page, retrying with backoff on rate limits / network errors.
     // `blocked` is true when retries were exhausted for such a transient error
     // (the scan should stop); false means a different, non-retryable error
@@ -434,6 +449,15 @@ function App() {
       const maxRetries = 3;
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (true) {
+        if (cancelled) {
+          return { ok: false, blocked: false };
+        }
+        if (userId) {
+          const activeId = getCookie("ds_user_id");
+          if (activeId !== null && activeId !== userId) {
+            return { ok: false, blocked: false };
+          }
+        }
         try {
           return { ok: true, page: await fetchFriendshipsPage(kind, maxId, count, userId) };
         } catch (e: any) {
@@ -453,13 +477,24 @@ function App() {
               ? RATE_LIMIT_COOLDOWN_SECONDS * retries
               : 5 * retries;
             for (let sec = waitSeconds; sec > 0; sec--) {
+              if (cancelled) {
+                return { ok: false, blocked: false };
+              }
+              if (userId) {
+                const activeId = getCookie("ds_user_id");
+                if (activeId !== null && activeId !== userId) {
+                  return { ok: false, blocked: false };
+                }
+              }
               setToast({
                 show: true,
-                text: t(lang, "rateLimitPause", sec),
+                text: t(langRef.current, "rateLimitPause", sec),
               });
               await sleep(1000);
             }
-            setToast({ show: false });
+            if (!cancelled) {
+              setToast({ show: false });
+            }
             continue;
           }
           console.error(`${kind} request failed${userId ? ` for ${userId}` : ""}:`, e);
@@ -473,30 +508,49 @@ function App() {
     };
 
     let requestsSinceLongSleep = 0;
-    const paceRequest = async () => {
+    const paceRequest = async (expectedViewerId: string): Promise<boolean> => {
       // Pause scanning if user requested so.
       while (scanningPausedRef.current) {
+        if (cancelled) {
+          return false;
+        }
+        const activeId = getCookie("ds_user_id");
+        if (activeId !== null && activeId !== expectedViewerId) {
+          return false;
+        }
         await sleep(1000);
         console.info("Scan paused");
       }
 
+      if (cancelled) {
+        return false;
+      }
+
+      const activeTimings = timingsRef.current;
       await sleep(Math.floor(Math.random() * 700) + 300);
-      await sleep(Math.floor(Math.random() * (timings.timeBetweenSearchCycles - timings.timeBetweenSearchCycles * 0.7)) + timings.timeBetweenSearchCycles);
+      await sleep(Math.floor(Math.random() * (activeTimings.timeBetweenSearchCycles - activeTimings.timeBetweenSearchCycles * 0.7)) + activeTimings.timeBetweenSearchCycles);
+
+      if (cancelled) {
+        return false;
+      }
 
       requestsSinceLongSleep++;
       if (requestsSinceLongSleep >= CHECKS_BEFORE_LONG_SLEEP) {
         requestsSinceLongSleep = 0;
         const longSleepVar = Math.max(
           0,
-          timings.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000), // +/- 5 seconds
+          activeTimings.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000), // +/- 5 seconds
         );
         setToast({
           show: true,
-          text: t(lang, "sleepingSafety", Math.round(longSleepVar / 1000)),
+          text: t(langRef.current, "sleepingSafety", Math.round(longSleepVar / 1000)),
         });
         await sleep(longSleepVar);
       }
-      setToast({ show: false });
+      if (!cancelled) {
+        setToast({ show: false });
+      }
+      return !cancelled;
     };
 
     // Walks the viewer's own list (followers or following) page by page. `onPageUsers` is
@@ -506,6 +560,7 @@ function App() {
     const fetchList = async (
       kind: FriendshipsListKind,
       pageSafetyLimit: number,
+      viewerId: string,
       onPageUsers: (pageUsers: readonly RawFriendshipUser[]) => Promise<boolean>,
     ): Promise<boolean> => {
       let maxId: string | undefined;
@@ -513,9 +568,20 @@ function App() {
 
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (true) {
-        const result = await fetchPageWithRetry(kind, maxId, timings.usersPerSearchCycle);
-        if (!result.ok) {
+        if (cancelled) {
+          return false;
+        }
+        const activeBefore = getCookie("ds_user_id");
+        if (activeBefore !== null && activeBefore !== viewerId) {
+          return false;
+        }
+        const result = await fetchPageWithRetry(kind, maxId, timingsRef.current.usersPerSearchCycle, viewerId);
+        if (cancelled || !result.ok) {
           console.error(`Stopping ${kind} scan early.`);
+          return false;
+        }
+        const activeAfter = getCookie("ds_user_id");
+        if (activeAfter !== null && activeAfter !== viewerId) {
           return false;
         }
         const page = result.page;
@@ -542,7 +608,9 @@ function App() {
         }
         maxId = page.next_max_id;
 
-        await paceRequest();
+        if (!(await paceRequest(viewerId))) {
+          return false;
+        }
       }
     };
 
@@ -559,9 +627,20 @@ function App() {
         setState(prevState =>
           prevState.status === "scanning" ? { ...prevState, isScanningActive: false } : prevState,
         );
-        setToast({ show: true, text: t(lang, "scanFailedFollowing") });
+        setToast({ show: true, text: t(langRef.current, "scanFailedFollowing") });
         return;
       }
+
+      const handleAccountSwitchIfNeeded = (): boolean => {
+        const activeId = getCookie("ds_user_id");
+        if (activeId !== null && activeId !== viewerId) {
+          setCachedScan(loadCachedScanResults());
+          setState({ status: "initial" });
+          setToast({ show: true, text: t(langRef.current, "scanAccountChanged") });
+          return true;
+        }
+        return false;
+      };
 
       // Phase 1: Retrieve and index all of the viewer's followers.
       // We dual-index by ID and normalized lowercase username to guarantee zero false positives.
@@ -569,6 +648,9 @@ function App() {
       let followersCount = 0;
 
       const indexFollowersPage = async (pageUsers: readonly RawFriendshipUser[]): Promise<boolean> => {
+        if (cancelled) {
+          return false;
+        }
         for (const user of pageUsers) {
           addFollowerToIndex(followerIndex, user);
           followersCount++;
@@ -589,7 +671,7 @@ function App() {
 
         setToast({
           show: true,
-          text: t(lang, "indexingFollowersProgress", followersCount),
+          text: t(langRef.current, "indexingFollowersProgress", followersCount),
         });
 
         return true;
@@ -598,8 +680,13 @@ function App() {
       const followersCompleted = await fetchList(
         "followers",
         FOLLOWERS_PAGE_SAFETY_LIMIT,
+        viewerId,
         indexFollowersPage,
       );
+
+      if (cancelled || handleAccountSwitchIfNeeded()) {
+        return;
+      }
 
       if (!followersCompleted) {
         // If followers list could not be fully loaded, aborting is mandatory.
@@ -612,7 +699,7 @@ function App() {
         );
         setToast({
           show: true,
-          text: t(lang, "scanFailedFollowers"),
+          text: t(langRef.current, "scanFailedFollowers"),
         });
         return;
       }
@@ -632,19 +719,26 @@ function App() {
       // Phase 2: Walk the viewer's following list and check each against the follower index.
       // Accounts not in the index genuinely do not follow back and are progressively streamed to UI.
       const nonFollowers: UserNode[] = [];
+      const seenNonFollowerIds = new Set<string>();
       let checkedCount = 0;
 
       const checkFollowingPage = async (pageUsers: readonly RawFriendshipUser[]): Promise<boolean> => {
-        const newNonFollowersBatch: UserNode[] = [];
+        if (cancelled) {
+          return false;
+        }
+        const rawBatch: UserNode[] = [];
 
         for (const user of pageUsers) {
           const followsViewer = isUserInFollowerIndex(followerIndex, user);
           if (!followsViewer) {
-            const node = rawFriendshipUserToUserNode(user, false);
-            nonFollowers.push(node);
-            newNonFollowersBatch.push(node);
+            rawBatch.push(rawFriendshipUserToUserNode(user, false));
           }
           checkedCount++;
+        }
+
+        const newNonFollowersBatch = deduplicateUsersById(rawBatch, seenNonFollowerIds);
+        if (newNonFollowersBatch.length > 0) {
+          nonFollowers.push(...newNonFollowersBatch);
         }
 
         const followingProgress = Math.min(99, 50 + Math.round(50 * (1 - 1 / (1 + checkedCount / 150))));
@@ -664,7 +758,7 @@ function App() {
 
         setToast({
           show: true,
-          text: t(lang, "scanningFollowingProgress", checkedCount),
+          text: t(langRef.current, "scanningFollowingProgress", checkedCount),
         });
 
         return true;
@@ -673,8 +767,13 @@ function App() {
       const followingCompleted = await fetchList(
         "following",
         FOLLOWING_PAGE_SAFETY_LIMIT,
+        viewerId,
         checkFollowingPage,
       );
+
+      if (cancelled || handleAccountSwitchIfNeeded()) {
+        return;
+      }
 
       if (!followingCompleted && checkedCount === 0) {
         setState(prevState =>
@@ -682,7 +781,7 @@ function App() {
         );
         setToast({
           show: true,
-          text: t(lang, "scanFailedFollowing"),
+          text: t(langRef.current, "scanFailedFollowing"),
         });
         return;
       }
@@ -715,11 +814,14 @@ function App() {
       setToast({
         show: true,
         text: scanIsComplete
-          ? t(lang, "scanCompleted")
-          : t(lang, "partialScanInterrupted", checkedCount),
+          ? t(langRef.current, "scanCompleted")
+          : t(langRef.current, "partialScanInterrupted", checkedCount),
       });
     };
     scan();
+    return () => {
+      cancelled = true;
+    };
     // Dependency array not entirely legit, but works this way. TODO: Find a way to fix.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.status]);
@@ -735,27 +837,32 @@ function App() {
       if (blockedUntil > Date.now()) {
         setToast({
           show: true,
-          text: t(lang, "rateLimitPause", Math.ceil((blockedUntil - Date.now()) / 1000)),
+          text: t(langRef.current, "rateLimitPause", Math.ceil((blockedUntil - Date.now()) / 1000)),
         });
         setState(prevState => (prevState.status === "unfollowing" ? { ...prevState, aborted: true } : prevState));
         return;
       }
 
+      const startViewerId = getCookie("ds_user_id");
       const csrftoken = getCookie("csrftoken");
       if (csrftoken === null) {
         throw new Error("csrftoken cookie is null");
       }
 
-      const batchSize = Math.max(1, timings.unfollowsPerBatch ?? DEFAULT_UNFOLLOWS_PER_BATCH);
-      const batchWaitMs = Math.max(
-        0,
-        timings.timeToWaitAfterUnfollowBatch ?? DEFAULT_TIME_TO_WAIT_AFTER_UNFOLLOW_BATCH,
-      );
-
       for (let index = 0; index < state.selectedResults.length; index++) {
         if (cancelled) {
           break;
         }
+        const activeViewerId = getCookie("ds_user_id");
+        if (startViewerId !== null && activeViewerId !== null && activeViewerId !== startViewerId) {
+          setToast({
+            show: true,
+            text: t(langRef.current, "scanAccountChanged"),
+          });
+          setState(prevState => (prevState.status === "unfollowing" ? { ...prevState, aborted: true } : prevState));
+          break;
+        }
+
         const user = state.selectedResults[index];
         const counter = index + 1;
         // Fix: Changed from Math.floor to Math.round to ensure progress reaches 100%
@@ -763,6 +870,9 @@ function App() {
         const percentage = Math.round((counter / state.selectedResults.length) * 100);
         try {
           const result = await unfollowUser(user, csrftoken);
+          if (cancelled) {
+            break;
+          }
           const success = result.outcome === "unfollowed";
           const isActionBlocked = result.outcome === "blocked";
           if (!success) {
@@ -789,7 +899,7 @@ function App() {
             setBlockedUntil(Date.now() + BLOCKED_COOLDOWN_MS);
             setToast({
               show: true,
-              text: t(lang, "actionBlockedWarning"),
+              text: t(langRef.current, "actionBlockedWarning"),
             });
             setState(prevState => (prevState.status === "unfollowing" ? { ...prevState, aborted: true } : prevState));
             break;
@@ -819,6 +929,13 @@ function App() {
           break;
         }
 
+        const activeTimings = timingsRef.current;
+        const batchSize = Math.max(1, activeTimings.unfollowsPerBatch ?? DEFAULT_UNFOLLOWS_PER_BATCH);
+        const batchWaitMs = Math.max(
+          0,
+          activeTimings.timeToWaitAfterUnfollowBatch ?? DEFAULT_TIME_TO_WAIT_AFTER_UNFOLLOW_BATCH,
+        );
+
         if (counter % batchSize === 0) {
           const waitSeconds = Math.round(batchWaitMs / 1000);
           for (let sec = waitSeconds; sec > 0; sec--) {
@@ -827,7 +944,7 @@ function App() {
             }
             setToast({
               show: true,
-              text: t(lang, "sleepingSafety", sec),
+              text: t(langRef.current, "sleepingSafety", sec),
             });
             await sleep(1000);
           }
@@ -836,8 +953,8 @@ function App() {
           }
         } else {
           const jitterDelay =
-            Math.floor(Math.random() * (timings.timeBetweenUnfollows * 1.2 - timings.timeBetweenUnfollows)) +
-            timings.timeBetweenUnfollows;
+            Math.floor(Math.random() * (activeTimings.timeBetweenUnfollows * 1.2 - activeTimings.timeBetweenUnfollows)) +
+            activeTimings.timeBetweenUnfollows;
           await sleep(Math.max(0, jitterDelay));
         }
       }

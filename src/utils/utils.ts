@@ -75,6 +75,20 @@ export function isWithoutProfilePicture(user: UserNode): boolean {
   return WITHOUT_PROFILE_PICTURE_URL_IDS.some(id => user.profile_pic_url.includes(id));
 }
 
+export function deduplicateUsersById(
+  users: readonly UserNode[],
+  seenIds: Set<string> = new Set<string>(),
+): UserNode[] {
+  const unique: UserNode[] = [];
+  for (const user of users) {
+    if (!seenIds.has(user.id)) {
+      seenIds.add(user.id);
+      unique.push(user);
+    }
+  }
+  return unique;
+}
+
 export function getUsersForDisplay(
   results: readonly UserNode[],
   whitelistedResults: readonly UserNode[],
@@ -84,8 +98,13 @@ export function getUsersForDisplay(
 ): readonly UserNode[] {
   const users: UserNode[] = [];
   const whitelistedIds = new Set(whitelistedResults.map(user => user.id));
+  const whitelistedUsernames = new Set(
+    whitelistedResults.map(user => user.username.trim().toLowerCase()).filter(Boolean),
+  );
   for (const result of results) {
-    const isWhitelisted = whitelistedIds.has(result.id);
+    const isWhitelisted =
+      whitelistedIds.has(result.id) ||
+      whitelistedUsernames.has((result.username ?? "").trim().toLowerCase());
     switch (currentTab) {
       case "non_whitelisted":
         if (isWhitelisted) {

@@ -1,7 +1,7 @@
 import { UserNode } from "../model/user";
 import { Timings } from "../model/timings";
 import { WHITELISTED_RESULTS_STORAGE_KEY, TIMINGS_STORAGE_KEY, LAST_SCAN_RESULTS_STORAGE_KEY, LAST_SCAN_TIMESTAMP_STORAGE_KEY, BLOCKED_UNTIL_STORAGE_KEY } from "../constants/constants";
-import { getCookie } from "./utils";
+import { deduplicateUsersById, getCookie } from "./utils";
 
 /**
  * Export whitelist to a JSON file
@@ -22,8 +22,8 @@ export const exportWhitelist = (whitelistedUsers: readonly UserNode[]): void => 
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  
-  URL.revokeObjectURL(url);
+
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
 };
 
 /**
@@ -77,11 +77,11 @@ export const importWhitelist = (
  * Clear all whitelist data
  */
 export const clearWhitelist = (): void => {
-  if (!confirm("Are you sure you want to clear the entire whitelist? This action cannot be undone.")) {
-    return;
+  try {
+    localStorage.removeItem(WHITELISTED_RESULTS_STORAGE_KEY);
+  } catch (e) {
+    console.warn("Could not clear whitelist from storage:", e);
   }
-  
-  localStorage.removeItem(WHITELISTED_RESULTS_STORAGE_KEY);
 };
 
 /**
@@ -119,7 +119,13 @@ export const mergeWhitelists = (
   imported: readonly UserNode[]
 ): readonly UserNode[] => {
   const existingIds = new Set(existing.map(user => user.id));
-  const uniqueImported = imported.filter(user => !existingIds.has(user.id));
+  const existingUsernames = new Set(
+    existing.map(user => user.username.trim().toLowerCase()).filter(Boolean),
+  );
+  const uniqueImported = imported.filter(user => {
+    const uname = (user.username ?? "").trim().toLowerCase();
+    return !existingIds.has(user.id) && (!uname || !existingUsernames.has(uname));
+  });
   return [...existing, ...uniqueImported];
 };
 
@@ -198,7 +204,7 @@ export const loadCachedScanResults = (): { results: readonly UserNode[]; timesta
       return null;
     }
     return {
-      results: parsed as readonly UserNode[],
+      results: deduplicateUsersById(parsed as readonly UserNode[]),
       timestamp: Number(time),
     };
   } catch {

@@ -55,7 +55,7 @@ export const Unfollowing = (
             {t(lang, "actionBlockedWarning")}
           </div>
         )}
-        {state.unfollowLog.length === state.selectedResults.length && (
+        {!state.aborted && state.unfollowLog.length === state.selectedResults.length && (
           <>
             <hr />
             <div className="fs-large p-medium clr-green">{t(lang, "allDone")}</div>
