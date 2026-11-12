@@ -128,6 +128,27 @@
       border-radius: 6px;
       margin-bottom: 12px;
       padding: 8px 12px;
+      flex-wrap: wrap;
+
+      button.resume-scan {
+        position: static;
+        transform: none;
+        width: auto;
+        height: auto;
+        border: 1px solid rgba(239, 68, 68, 0.6);
+        border-radius: 6px;
+        background: rgba(239, 68, 68, 0.25);
+        color: #fee2e2;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+
+        &:disabled {
+          cursor: default;
+          opacity: 0.7;
+        }
+      }
     }
   }
 

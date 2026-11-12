@@ -1405,6 +1405,15 @@ html .iu button.run-scan:hover {
     background: #f0b44b;
 }
 
+html .iu button.run-scan:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+html .iu button.run-scan:disabled:hover {
+    background: var(--amber);
+}
+
 html .iu button.load-cached-scan {
     display: inline-flex;
     align-items: center;

@@ -22,6 +22,7 @@ import {
   SLOWDOWN_AFTER_USERS,
   STRONG_SLOWDOWN_AFTER_USERS,
   SOFT_BLOCK_MAX_RETRIES,
+  FOLLOWERS_CHECKPOINT_TTL_MS,
 } from "./constants/constants";
 import {
   addFollowerToIndex,
@@ -151,6 +152,38 @@ function App() {
 
   const [lang, setLang] = useState<Language>(() => getInitialLanguage());
 
+  useEffect(() => {
+    console.info(`InstagramUnfollowers version ${__BUILD_VERSION__}`);
+  }, []);
+
+  // Followers saved by an interrupted scan of the current account, offered as
+  // "Resume scan" on the launch screen and after a blocked scan.
+  const readResume = () => {
+    const checkpoint = loadFollowersCheckpoint(getCookie("ds_user_id"));
+    return checkpoint === null
+      ? null
+      : { count: checkpoint.count, expiresAt: checkpoint.timestamp + FOLLOWERS_CHECKPOINT_TTL_MS };
+  };
+  const [resume, setResume] = useState(readResume);
+
+  // Seconds left on the cooldown set after Instagram blocks a scan, ticking
+  // down so the scan buttons say how long to wait instead of failing silently.
+  const readCooldownSeconds = () => Math.max(0, Math.ceil((getBlockedUntil() - Date.now()) / 1000));
+  const [cooldownSeconds, setCooldownSeconds] = useState(readCooldownSeconds);
+  const cooldownActive = cooldownSeconds > 0;
+  useEffect(() => {
+    if (!cooldownActive) {
+      return;
+    }
+    const id = setInterval(() => setCooldownSeconds(readCooldownSeconds()), 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cooldownActive]);
+
+  // Bumped to start another scan while already on the results screen (resume
+  // after a block), since the scan effect otherwise only runs on status changes.
+  const [scanRunId, setScanRunId] = useState(0);
+
   const [scanningPaused, setScanningPaused] = useState(false);
   const scanningPausedRef = React.useRef(false);
 
@@ -214,6 +247,38 @@ function App() {
     });
   };
 
+  const startScan = () => {
+    const blockedUntil = getBlockedUntil();
+    if (blockedUntil > Date.now()) {
+      setCooldownSeconds(readCooldownSeconds());
+      setToast({
+        show: true,
+        text: t(lang, "rateLimitPause", Math.ceil((blockedUntil - Date.now()) / 1000)),
+      });
+      return;
+    }
+    scanningPausedRef.current = false;
+    setScanningPaused(false);
+    setScanRunId(id => id + 1);
+    const whitelistedResults = loadWhitelist();
+    setState({
+      status: "scanning",
+      page: 1,
+      searchTerm: "",
+      currentTab: "non_whitelisted",
+      percentage: 0,
+      isScanningActive: true,
+      results: [],
+      selectedResults: [],
+      whitelistedResults,
+      filter: {
+        showVerified: true,
+        showPrivate: true,
+        showWithOutProfilePicture: true,
+      },
+    });
+  };
+
   const onScan = async () => {
     if (state.status !== "initial") {
       return;
@@ -238,31 +303,15 @@ function App() {
       });
       return;
     }
-    const blockedUntil = getBlockedUntil();
-    if (blockedUntil > Date.now()) {
-      setToast({
-        show: true,
-        text: t(lang, "rateLimitPause", Math.ceil((blockedUntil - Date.now()) / 1000)),
-      });
+    startScan();
+  };
+
+  // Resumes a followers download that Instagram interrupted, from the results screen.
+  const onResumeScan = () => {
+    if (state.status !== "scanning" || state.isScanningActive) {
       return;
     }
-    const whitelistedResults = loadWhitelist();
-    setState({
-      status: "scanning",
-      page: 1,
-      searchTerm: "",
-      currentTab: "non_whitelisted",
-      percentage: 0,
-      isScanningActive: true,
-      results: [],
-      selectedResults: [],
-      whitelistedResults,
-      filter: {
-        showVerified: true,
-        showPrivate: true,
-        showWithOutProfilePicture: true,
-      },
-    });
+    startScan();
   };
 
   const handleScanFilter = (e: ChangeEvent<HTMLInputElement>) => {
@@ -665,6 +714,8 @@ function App() {
         } else {
           clearFollowersCheckpoint();
         }
+        setResume(readResume());
+        setCooldownSeconds(readCooldownSeconds());
         setState(prevState =>
           prevState.status === "scanning"
             ? { ...prevState, isScanningActive: false, scanIncomplete: true }
@@ -679,6 +730,7 @@ function App() {
 
       // The full followers list is in memory: nothing left to resume.
       clearFollowersCheckpoint();
+      setResume(null);
       pacingFactor = 1;
 
       // Mark Phase 1 complete at 50%
@@ -778,7 +830,7 @@ function App() {
     scan();
     // Dependency array not entirely legit, but works this way. TODO: Find a way to fix.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.status]);
+  }, [state.status, scanRunId]);
 
   useEffect(() => {
     const unfollow = async () => {
@@ -883,7 +935,7 @@ function App() {
   let markup: React.JSX.Element;
   switch (state.status) {
     case "initial":
-      markup = <NotSearching onScan={onScan} lang={lang} cachedScan={cachedScan} onLoadCached={onLoadCached}></NotSearching>;
+      markup = <NotSearching onScan={onScan} lang={lang} cachedScan={cachedScan} onLoadCached={onLoadCached} resume={resume} cooldownSeconds={cooldownSeconds}></NotSearching>;
       break;
 
     case "scanning": {
@@ -897,6 +949,9 @@ function App() {
         UserCheckIcon={UserCheckIcon}
         UserUncheckIcon={UserUncheckIcon}
         lang={lang}
+        resume={resume}
+        cooldownSeconds={cooldownSeconds}
+        onResumeScan={onResumeScan}
       ></Searching>;
       break;
     }
