@@ -10,7 +10,8 @@ import {
   DEFAULT_TIME_BETWEEN_SEARCH_CYCLES,
   DEFAULT_TIME_BETWEEN_UNFOLLOWS,
   DEFAULT_TIME_TO_WAIT_AFTER_FIVE_SEARCH_CYCLES,
-  DEFAULT_TIME_TO_WAIT_AFTER_FIVE_UNFOLLOWS,
+  DEFAULT_TIME_TO_WAIT_AFTER_UNFOLLOW_BATCH,
+  DEFAULT_UNFOLLOWS_PER_BATCH,
   DEFAULT_USERS_PER_SEARCH_CYCLE,
   BLOCKED_COOLDOWN_MS,
   FOLLOWERS_PAGE_SAFETY_LIMIT,
@@ -131,7 +132,8 @@ function App() {
       timeBetweenSearchCycles: storedTimings?.timeBetweenSearchCycles ?? DEFAULT_TIME_BETWEEN_SEARCH_CYCLES,
       timeToWaitAfterFiveSearchCycles: storedTimings?.timeToWaitAfterFiveSearchCycles ?? DEFAULT_TIME_TO_WAIT_AFTER_FIVE_SEARCH_CYCLES,
       timeBetweenUnfollows: storedTimings?.timeBetweenUnfollows ?? DEFAULT_TIME_BETWEEN_UNFOLLOWS,
-      timeToWaitAfterFiveUnfollows: storedTimings?.timeToWaitAfterFiveUnfollows ?? DEFAULT_TIME_TO_WAIT_AFTER_FIVE_UNFOLLOWS,
+      timeToWaitAfterUnfollowBatch: storedTimings?.timeToWaitAfterUnfollowBatch ?? DEFAULT_TIME_TO_WAIT_AFTER_UNFOLLOW_BATCH,
+      unfollowsPerBatch: storedTimings?.unfollowsPerBatch ?? DEFAULT_UNFOLLOWS_PER_BATCH,
       usersPerSearchCycle: storedTimings?.usersPerSearchCycle ?? DEFAULT_USERS_PER_SEARCH_CYCLE,
     };
   });
@@ -723,6 +725,7 @@ function App() {
   }, [state.status]);
 
   useEffect(() => {
+    let cancelled = false;
     const unfollow = async () => {
       if (state.status !== "unfollowing" || isLocalPreview) {
         return;
@@ -743,9 +746,18 @@ function App() {
         throw new Error("csrftoken cookie is null");
       }
 
-      let counter = 0;
-      for (const user of state.selectedResults) {
-        counter += 1;
+      const batchSize = Math.max(1, timings.unfollowsPerBatch ?? DEFAULT_UNFOLLOWS_PER_BATCH);
+      const batchWaitMs = Math.max(
+        0,
+        timings.timeToWaitAfterUnfollowBatch ?? DEFAULT_TIME_TO_WAIT_AFTER_UNFOLLOW_BATCH,
+      );
+
+      for (let index = 0; index < state.selectedResults.length; index++) {
+        if (cancelled) {
+          break;
+        }
+        const user = state.selectedResults[index];
+        const counter = index + 1;
         // Fix: Changed from Math.floor to Math.round to ensure progress reaches 100%
         // Math.floor would leave progress at 99% when near completion
         const percentage = Math.round((counter / state.selectedResults.length) * 100);
@@ -801,23 +813,39 @@ function App() {
             };
           });
         }
+
         // If unfollowing the last user in the list, no reason to wait.
-        if (user === state.selectedResults[state.selectedResults.length - 1]) {
+        if (cancelled || index === state.selectedResults.length - 1) {
           break;
         }
-        await sleep(Math.floor(Math.random() * (timings.timeBetweenUnfollows * 1.2 - timings.timeBetweenUnfollows)) + timings.timeBetweenUnfollows);
 
-        if (counter % 5 === 0) {
-          setToast({
-            show: true,
-            text: t(lang, "sleepingSafety", `${Math.round(timings.timeToWaitAfterFiveUnfollows / 60000)}m`),
-          });
-          await sleep(timings.timeToWaitAfterFiveUnfollows);
+        if (counter % batchSize === 0) {
+          const waitSeconds = Math.round(batchWaitMs / 1000);
+          for (let sec = waitSeconds; sec > 0; sec--) {
+            if (cancelled) {
+              break;
+            }
+            setToast({
+              show: true,
+              text: t(lang, "sleepingSafety", sec),
+            });
+            await sleep(1000);
+          }
+          if (!cancelled) {
+            setToast({ show: false });
+          }
+        } else {
+          const jitterDelay =
+            Math.floor(Math.random() * (timings.timeBetweenUnfollows * 1.2 - timings.timeBetweenUnfollows)) +
+            timings.timeBetweenUnfollows;
+          await sleep(Math.max(0, jitterDelay));
         }
-        setToast({ show: false });
       }
     };
     unfollow();
+    return () => {
+      cancelled = true;
+    };
     // Dependency array not entirely legit, but works this way. TODO: Find a way to fix.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.status]);

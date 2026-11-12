@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import { Timings } from "../model/timings";
 import { UserNode } from "../model/user";
 import { WhitelistManager } from "./WhitelistManager";
-import { DEFAULT_USERS_PER_SEARCH_CYCLE } from "../constants/constants";
+import {
+  DEFAULT_TIME_TO_WAIT_AFTER_UNFOLLOW_BATCH,
+  DEFAULT_UNFOLLOWS_PER_BATCH,
+  DEFAULT_USERS_PER_SEARCH_CYCLE,
+} from "../constants/constants";
 import { Language, t } from "../utils/i18n";
 
 interface SettingMenuProps {
@@ -27,7 +31,8 @@ export const SettingMenu = ({
   const [timeBetweenSearchCycles, setTimeBetweenSearchCycles] = useState(currentTimings.timeBetweenSearchCycles);
   const [timeToWaitAfterFiveSearchCycles, setTimeToWaitAfterFiveSearchCycles] = useState(currentTimings.timeToWaitAfterFiveSearchCycles);
   const [timeBetweenUnfollows, setTimeBetweenUnfollows] = useState(currentTimings.timeBetweenUnfollows);
-  const [timeToWaitAfterFiveUnfollows, setTimeToWaitAfterFiveUnfollows] = useState(currentTimings.timeToWaitAfterFiveUnfollows);
+  const [unfollowsPerBatch, setUnfollowsPerBatch] = useState(currentTimings.unfollowsPerBatch ?? DEFAULT_UNFOLLOWS_PER_BATCH);
+  const [timeToWaitAfterUnfollowBatch, setTimeToWaitAfterUnfollowBatch] = useState(currentTimings.timeToWaitAfterUnfollowBatch ?? DEFAULT_TIME_TO_WAIT_AFTER_UNFOLLOW_BATCH);
   const [usersPerSearchCycle, setUsersPerSearchCycle] = useState(currentTimings.usersPerSearchCycle ?? DEFAULT_USERS_PER_SEARCH_CYCLE);
 
   const handleSave = (event: any) => {
@@ -36,7 +41,8 @@ export const SettingMenu = ({
       timeBetweenSearchCycles,
       timeToWaitAfterFiveSearchCycles,
       timeBetweenUnfollows,
-      timeToWaitAfterFiveUnfollows,
+      unfollowsPerBatch: Math.max(1, unfollowsPerBatch),
+      timeToWaitAfterUnfollowBatch,
       usersPerSearchCycle,
     });
     setSettingState(false);
@@ -110,7 +116,7 @@ export const SettingMenu = ({
                   type="number"
                   id="timeBetweenUnfollow"
                   name="timeBetweenUnfollow"
-                  min={1000}
+                  min={500}
                   max={999999}
                   value={timeBetweenUnfollows}
                   onChange={(e) => handleInputChange(e, setTimeBetweenUnfollows)}
@@ -119,15 +125,29 @@ export const SettingMenu = ({
               </div>
 
               <div className="row">
-                <label className="minimun-width">{t(lang, "timeToWaitAfterFiveUnfollows")}</label>
+                <label className="minimun-width">{t(lang, "unfollowsPerBatch")}</label>
                 <input
                   type="number"
-                  id="timeAfterFiveUnfollows"
-                  name="timeAfterFiveUnfollows"
-                  min={70000}
+                  id="unfollowsPerBatch"
+                  name="unfollowsPerBatch"
+                  min={1}
+                  max={500}
+                  value={unfollowsPerBatch}
+                  onChange={(e) => handleInputChange(e, setUnfollowsPerBatch)}
+                />
+                <label className="margin-between-input-and-label">(users)</label>
+              </div>
+
+              <div className="row">
+                <label className="minimun-width">{t(lang, "timeToWaitAfterUnfollowBatch")}</label>
+                <input
+                  type="number"
+                  id="timeAfterUnfollowBatch"
+                  name="timeAfterUnfollowBatch"
+                  min={1000}
                   max={999999}
-                  value={timeToWaitAfterFiveUnfollows}
-                  onChange={(e) => handleInputChange(e, setTimeToWaitAfterFiveUnfollows)}
+                  value={timeToWaitAfterUnfollowBatch}
+                  onChange={(e) => handleInputChange(e, setTimeToWaitAfterUnfollowBatch)}
                 />
                 <label className="margin-between-input-and-label">(ms)</label>
               </div>
