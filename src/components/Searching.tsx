@@ -176,8 +176,17 @@ export const Searching = ({
             </button>
           )}
           <div className="sidebar-stats metric-stack">
-            <p><span>{t(lang, "displayed")}</span><strong>{usersForDisplay.length}</strong></p>
-            <p><span>{t(lang, "totalScanned")}</span><strong>{state.totalScanned ?? state.results.length}</strong></p>
+            {state.isScanningActive && state.scanPhase === "followers" ? (
+              <>
+                <p><span>{t(lang, "phase")}</span><strong>1 / 2</strong></p>
+                <p><span>{t(lang, "indexedFollowers")}</span><strong>{state.followersIndexed ?? 0}</strong></p>
+              </>
+            ) : (
+              <>
+                <p><span>{t(lang, "displayed")}</span><strong>{usersForDisplay.length}</strong></p>
+                <p><span>{t(lang, "totalScanned")}</span><strong>{state.totalScanned ?? state.results.length}</strong></p>
+              </>
+            )}
             <p className="whitelist-counter">
               <span>{t(lang, "whitelist")}</span><strong>★ {state.whitelistedResults.length}</strong>
             </p>
@@ -327,6 +336,22 @@ export const Searching = ({
             {t(lang, "whitelistedTab")}
           </button>
         </nav>
+        {state.isScanningActive && state.scanPhase === "followers" && (
+          <div style={{ textAlign: "center", padding: "48px 24px", color: "#94a3b8" }}>
+            <div style={{ fontSize: "2.8rem", marginBottom: "12px" }}>📥</div>
+            <h3 style={{ fontSize: "1.25rem", fontWeight: "bold", marginBottom: "8px", color: "#f8fafc" }}>
+              {t(lang, "indexingPhaseTitle")}
+            </h3>
+            <p style={{ maxWidth: "480px", margin: "0 auto", lineHeight: "1.6", fontSize: "0.95rem" }}>
+              {t(lang, "indexingPhaseDesc", state.followersIndexed ?? 0)}
+            </p>
+          </div>
+        )}
+        {usersForDisplay.length === 0 && (!state.isScanningActive || state.scanPhase !== "followers") && (
+          <div style={{ textAlign: "center", padding: "48px 24px", color: "#94a3b8" }}>
+            <p style={{ fontSize: "1rem" }}>{t(lang, "noUsersFound")}</p>
+          </div>
+        )}
         {getCurrentPageUnfollowers(usersForDisplay, state.page).map(user => {
           const firstLetter = user.username.substring(0, 1).toUpperCase();
           return (

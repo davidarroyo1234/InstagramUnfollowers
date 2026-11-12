@@ -40,9 +40,15 @@ export const Toolbar = ({
 
   return (
     <header className="app-header">
-      {state.status === "scanning" && state.results.length === 0 && (
+      {state.status === "scanning" && Boolean(state.isScanningActive) && (
         <div className="scan-warning-banner" role="status">
-          <span>{t(lang, "scanNoticeBanner")}</span>
+          <span>
+            {state.scanPhase === "followers"
+              ? t(lang, "indexingFollowersBanner", state.followersIndexed ?? 0)
+              : state.scanPhase === "following"
+              ? t(lang, "scanningFollowingBanner", state.followingChecked ?? 0)
+              : t(lang, "scanNoticeBanner")}
+          </span>
         </div>
       )}
       {isActiveProcess && (

@@ -253,6 +253,9 @@ function App() {
       results: [],
       selectedResults: [],
       whitelistedResults,
+      scanPhase: "followers",
+      followersIndexed: 0,
+      followingChecked: 0,
       filter: {
         showVerified: true,
         showPrivate: true,
@@ -576,6 +579,8 @@ function App() {
                 ...prevState,
                 percentage: followersProgress,
                 totalScanned: followersCount,
+                scanPhase: "followers",
+                followersIndexed: followersCount,
               }
             : prevState,
         );
@@ -613,7 +618,12 @@ function App() {
       // Mark Phase 1 complete at 50%
       setState(prevState =>
         prevState.status === "scanning"
-          ? { ...prevState, percentage: 50 }
+          ? {
+              ...prevState,
+              percentage: 50,
+              scanPhase: "following",
+              followersIndexed: followersCount,
+            }
           : prevState,
       );
 
@@ -644,6 +654,8 @@ function App() {
                 results: newNonFollowersBatch.length > 0 ? [...prevState.results, ...newNonFollowersBatch] : prevState.results,
                 totalScanned: checkedCount,
                 percentage: followingProgress,
+                scanPhase: "following",
+                followingChecked: checkedCount,
               }
             : prevState,
         );
@@ -694,6 +706,7 @@ function App() {
           isScanningActive: false,
           results: nonFollowers,
           totalScanned: checkedCount,
+          followingChecked: checkedCount,
         };
       });
 

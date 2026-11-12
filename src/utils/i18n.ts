@@ -19,6 +19,8 @@ export const translations = {
 
     // Toolbar
     scanNoticeBanner: "⚡ Fetching accounts in real time...",
+    indexingFollowersBanner: "📥 Step 1 of 2: Indexing your followers (%s loaded)...",
+    scanningFollowingBanner: "⚡ Step 2 of 2: Checking followed accounts (%s analyzed)...",
     copyList: "Copy List",
     exportJson: "Export JSON",
     exportCsv: "Export CSV",
@@ -57,6 +59,11 @@ export const translations = {
     clear: "Clear",
     displayed: "Displayed",
     totalScanned: "Total scanned",
+    indexingPhaseTitle: "Step 1 of 2: Indexing your followers",
+    indexingPhaseDesc: "Indexed %s followers so far. This step is necessary to guarantee 100% accuracy and prevent false positives. Once complete, your followed accounts will be checked and non-followers will appear here in real time.",
+    indexedFollowers: "Followers indexed",
+    followingChecked: "Followed checked",
+    phase: "Phase",
     scanSummary: "Scan Summary",
     unfollowCount: "Unfollow (%s)",
     unfollowConfirm: "Are you sure you want to unfollow the selected accounts?",
@@ -136,6 +143,8 @@ export const translations = {
 
     // Toolbar
     scanNoticeBanner: "⚡ Obteniendo cuentas en tiempo real...",
+    indexingFollowersBanner: "📥 Paso 1 de 2: Indexando tus seguidores (%s cargados)...",
+    scanningFollowingBanner: "⚡ Paso 2 de 2: Comprobando seguidos (%s analizados)...",
     copyList: "Copiar Lista",
     exportJson: "Exportar JSON",
     exportCsv: "Exportar CSV",
@@ -174,6 +183,11 @@ export const translations = {
     clear: "Limpiar",
     displayed: "Mostrados",
     totalScanned: "Total escaneados",
+    indexingPhaseTitle: "Paso 1 de 2: Indexando tus seguidores",
+    indexingPhaseDesc: "Se han indexado %s seguidores hasta el momento. Este paso es necesario para garantizar 100% de precisión y evitar falsos positivos. En cuanto finalice, se analizarán tus seguidos y aparecerán aquí en tiempo real quienes no te siguen.",
+    indexedFollowers: "Seguidores indexados",
+    followingChecked: "Seguidos revisados",
+    phase: "Fase",
     scanSummary: "Resumen",
     unfollowCount: "Dejar de Seguir (%s)",
     unfollowConfirm: "¿Estás seguro de dejar de seguir a las cuentas seleccionadas?",

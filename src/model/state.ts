@@ -17,6 +17,9 @@ type ScanningState = {
   readonly scanIncomplete?: boolean;
   readonly isScanningActive?: boolean;
   readonly totalScanned?: number;
+  readonly scanPhase?: 'followers' | 'following';
+  readonly followersIndexed?: number;
+  readonly followingChecked?: number;
 };
 
 type UnfollowingState = {
