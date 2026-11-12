@@ -263,7 +263,6 @@ export interface UnfollowResult {
 
 interface WebSessionTokens {
   readonly fbDtsg: string;
-  readonly lsd: string;
   readonly revision?: string;
 }
 
@@ -271,16 +270,15 @@ let cachedWebSessionTokens: WebSessionTokens | null = null;
 
 function tokensFromHtml(html: string): WebSessionTokens | null {
   const fbDtsg = /"DTSGInitialData",\[\],\{"token":"([^"]+)"/.exec(html)?.[1] ?? /"dtsg":\{"token":"([^"]+)"/.exec(html)?.[1];
-  const lsd = /"LSD",\[\],\{"token":"([^"]+)"/.exec(html)?.[1];
-  if (!fbDtsg || !lsd) {
+  if (!fbDtsg) {
     return null;
   }
-  return { fbDtsg, lsd, revision: /"client_revision":(\d+)/.exec(html)?.[1] };
+  return { fbDtsg, revision: /"client_revision":(\d+)/.exec(html)?.[1] };
 }
 
-// fb_dtsg and lsd are the per-session tokens instagram.com's GraphQL writes
-// carry. They come from the page's module registry when it is still loaded,
-// otherwise from the inline page data, otherwise from a fresh copy of the page.
+// fb_dtsg is the per-session token instagram.com's write endpoints carry.
+// It is read from the page's module registry when available, otherwise from
+// inline page HTML, otherwise from a fresh fetch of the home page.
 async function getWebSessionTokens(): Promise<WebSessionTokens | null> {
   if (cachedWebSessionTokens !== null) {
     return cachedWebSessionTokens;
@@ -289,9 +287,8 @@ async function getWebSessionTokens(): Promise<WebSessionTokens | null> {
     const req = (window as any).require;
     if (typeof req === 'function') {
       const fbDtsg = req('DTSGInitialData')?.token;
-      const lsd = req('LSD')?.token;
-      if (fbDtsg && lsd) {
-        cachedWebSessionTokens = { fbDtsg, lsd, revision: String(req('SiteData')?.client_revision ?? '') || undefined };
+      if (fbDtsg) {
+        cachedWebSessionTokens = { fbDtsg, revision: String(req('SiteData')?.client_revision ?? '') || undefined };
         return cachedWebSessionTokens;
       }
     }
@@ -335,8 +332,8 @@ function findFriendshipStatus(node: any): any {
   return undefined;
 }
 
-// Searches the viewer's own following list for one account, the same way the
-// followers search in probe/issue.md works. Returns null if the lookup failed.
+// Searches the viewer's own following list for a single account to confirm
+// unfollow state. Returns null if the lookup failed.
 export async function isStillFollowing(user: { readonly id: string; readonly username: string }): Promise<boolean | null> {
   const viewerId = getCookie('ds_user_id');
   if (viewerId === null) {
@@ -365,7 +362,7 @@ export async function isStillFollowing(user: { readonly id: string; readonly use
 export async function unfollowUser(user: { readonly id: string; readonly username: string }, csrftoken: string): Promise<UnfollowResult> {
   const tokens = await getWebSessionTokens();
   if (tokens === null) {
-    return { outcome: 'failed', detail: 'could not find the fb_dtsg/lsd session tokens on the page' };
+    return { outcome: 'failed', detail: 'could not find the fb_dtsg session token on the page' };
   }
   const body = new URLSearchParams({
     container_module: 'profile',

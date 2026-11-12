@@ -91,6 +91,14 @@ export const Searching = ({
     });
   };
 
+  const selectMatchingUsers = (predicate: (user: UserNode) => boolean) => {
+    const currentIds = new Set(state.selectedResults.map(u => u.id));
+    const toAdd = usersForDisplay.filter(u => predicate(u) && !currentIds.has(u.id));
+    if (toAdd.length > 0) {
+      setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
+    }
+  };
+
   return (
     <section className="workspace-layout">
       <aside className="app-sidebar">
@@ -134,36 +142,21 @@ export const Searching = ({
             <button
               className="button-secondary"
               disabled={Boolean(state.isScanningActive)}
-              onClick={() => {
-                const verifiedUsers = usersForDisplay.filter(u => u.is_verified);
-                const currentIds = new Set(state.selectedResults.map(u => u.id));
-                const toAdd = verifiedUsers.filter(u => !currentIds.has(u.id));
-                setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
-              }}
+              onClick={() => selectMatchingUsers(u => u.is_verified)}
             >
               {t(lang, "verified")}
             </button>
             <button
               className="button-secondary"
               disabled={Boolean(state.isScanningActive)}
-              onClick={() => {
-                const privateUsers = usersForDisplay.filter(u => u.is_private);
-                const currentIds = new Set(state.selectedResults.map(u => u.id));
-                const toAdd = privateUsers.filter(u => !currentIds.has(u.id));
-                setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
-              }}
+              onClick={() => selectMatchingUsers(u => u.is_private)}
             >
               {t(lang, "private")}
             </button>
             <button
               className="button-secondary"
               disabled={Boolean(state.isScanningActive)}
-              onClick={() => {
-                const noPicUsers = usersForDisplay.filter(u => isWithoutProfilePicture(u));
-                const currentIds = new Set(state.selectedResults.map(u => u.id));
-                const toAdd = noPicUsers.filter(u => !currentIds.has(u.id));
-                setState({ ...state, selectedResults: [...state.selectedResults, ...toAdd] });
-              }}
+              onClick={() => selectMatchingUsers(u => isWithoutProfilePicture(u))}
             >
               {t(lang, "noPic")}
             </button>
@@ -348,19 +341,15 @@ export const Searching = ({
           </button>
         </nav>
         {state.isScanningActive && state.scanPhase === "followers" && (
-          <div style={{ textAlign: "center", padding: "48px 24px", color: "#94a3b8" }}>
-            <div style={{ fontSize: "2.8rem", marginBottom: "12px" }}>📥</div>
-            <h3 style={{ fontSize: "1.25rem", fontWeight: "bold", marginBottom: "8px", color: "#f8fafc" }}>
-              {t(lang, "indexingPhaseTitle")}
-            </h3>
-            <p style={{ maxWidth: "480px", margin: "0 auto", lineHeight: "1.6", fontSize: "0.95rem" }}>
-              {t(lang, "indexingPhaseDesc", state.followersIndexed ?? 0)}
-            </p>
+          <div className="phase-info-card">
+            <div className="phase-icon">📥</div>
+            <h3>{t(lang, "indexingPhaseTitle")}</h3>
+            <p>{t(lang, "indexingPhaseDesc", state.followersIndexed ?? 0)}</p>
           </div>
         )}
         {usersForDisplay.length === 0 && (!state.isScanningActive || state.scanPhase !== "followers") && (
-          <div style={{ textAlign: "center", padding: "48px 24px", color: "#94a3b8" }}>
-            <p style={{ fontSize: "1rem" }}>{t(lang, "noUsersFound")}</p>
+          <div className="empty-results-card">
+            <p>{t(lang, "noUsersFound")}</p>
           </div>
         )}
         {getCurrentPageUnfollowers(usersForDisplay, currentPage).map(user => {

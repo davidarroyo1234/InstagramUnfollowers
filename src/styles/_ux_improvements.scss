@@ -136,5 +136,31 @@
     cursor: not-allowed;
     filter: grayscale(0.6);
   }
+
+  .phase-info-card,
+  .empty-results-card {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--muted, #94a3b8);
+
+    .phase-icon {
+      font-size: 2.8rem;
+      margin-bottom: 12px;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0 0 8px;
+      color: var(--text, #f8fafc);
+    }
+
+    p {
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+  }
 }
 

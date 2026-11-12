@@ -38,6 +38,22 @@ export const Toolbar = ({
 
   const [settingMenu, setSettingMenu] = useState(false);
 
+  const displayedUsers = state.status === "scanning"
+    ? getUsersForDisplay(
+        state.results,
+        state.whitelistedResults,
+        state.currentTab,
+        state.searchTerm,
+        state.filter,
+      )
+    : [];
+  const selectedIds = state.status === "scanning"
+    ? new Set(state.selectedResults.map(u => u.id))
+    : new Set<string>();
+  const currentPageUsers = state.status === "scanning"
+    ? getCurrentPageUnfollowers(displayedUsers, Math.min(state.page, getMaxPage(displayedUsers)))
+    : [];
+
   return (
     <header className="app-header">
       {state.status === "scanning" && Boolean(state.isScanningActive) && (
@@ -92,16 +108,7 @@ export const Toolbar = ({
             onClick={() => {
               switch (state.status) {
                 case "scanning":
-                  return copyListToClipboard(
-                    getUsersForDisplay(
-                      state.results,
-                      state.whitelistedResults,
-                      state.currentTab,
-                      state.searchTerm,
-                      state.filter,
-                    ),
-                    t(lang, "copiedToClipboard")
-                  );
+                  return copyListToClipboard(displayedUsers, t(lang, "copiedToClipboard"));
                 case "initial":
                 case "unfollowing":
                   return;
@@ -118,7 +125,7 @@ export const Toolbar = ({
             title={t(lang, "exportJson")}
             onClick={() => {
               if (state.status === "scanning") {
-                exportToJSON(getUsersForDisplay(state.results, state.whitelistedResults, state.currentTab, state.searchTerm, state.filter));
+                exportToJSON(displayedUsers);
               }
             }}
             disabled={state.status !== "scanning"}
@@ -130,7 +137,7 @@ export const Toolbar = ({
             title={t(lang, "exportCsv")}
             onClick={() => {
               if (state.status === "scanning") {
-                exportToCSV(getUsersForDisplay(state.results, state.whitelistedResults, state.currentTab, state.searchTerm, state.filter));
+                exportToCSV(displayedUsers);
               }
             }}
             disabled={state.status !== "scanning"}
@@ -189,14 +196,7 @@ export const Toolbar = ({
                 type="checkbox"
                 // Avoid allowing selection only while the scan is actively fetching
                 disabled={Boolean(state.isScanningActive)}
-                checked={
-                  (() => {
-                    const displayed = getUsersForDisplay(state.results, state.whitelistedResults, state.currentTab, state.searchTerm, state.filter);
-                    const currentPage = Math.min(state.page, getMaxPage(displayed));
-                    const pageUsers = getCurrentPageUnfollowers(displayed, currentPage);
-                    return pageUsers.length > 0 && pageUsers.every(u => state.selectedResults.some(s => s.id === u.id));
-                  })()
-                }
+                checked={currentPageUsers.length > 0 && currentPageUsers.every(u => selectedIds.has(u.id))}
                 className="toggle-all-checkbox"
                 onChange={toggleCurrentePageUsers}
               />
@@ -210,18 +210,7 @@ export const Toolbar = ({
                 type="checkbox"
                 // Avoid allowing selection only while the scan is actively fetching
                 disabled={Boolean(state.isScanningActive)}
-                checked={
-                  (() => {
-                    const displayed = getUsersForDisplay(
-                      state.results,
-                      state.whitelistedResults,
-                      state.currentTab,
-                      state.searchTerm,
-                      state.filter,
-                    );
-                    return displayed.length > 0 && displayed.every(u => state.selectedResults.some(s => s.id === u.id));
-                  })()
-                }
+                checked={displayedUsers.length > 0 && displayedUsers.every(u => selectedIds.has(u.id))}
                 className="toggle-all-checkbox"
                 onChange={toggleAllUsers}
               />
