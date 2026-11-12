@@ -38,19 +38,19 @@ export const SettingMenu = ({
   const handleSave = (event: any) => {
     event.preventDefault();
     setTimings({
-      timeBetweenSearchCycles,
-      timeToWaitAfterFiveSearchCycles,
-      timeBetweenUnfollows,
+      timeBetweenSearchCycles: Math.max(500, timeBetweenSearchCycles),
+      timeToWaitAfterFiveSearchCycles: Math.max(1000, timeToWaitAfterFiveSearchCycles),
+      timeBetweenUnfollows: Math.max(500, timeBetweenUnfollows),
       unfollowsPerBatch: Math.max(1, unfollowsPerBatch),
-      timeToWaitAfterUnfollowBatch,
-      usersPerSearchCycle,
+      timeToWaitAfterUnfollowBatch: Math.max(1000, timeToWaitAfterUnfollowBatch),
+      usersPerSearchCycle: Math.max(1, usersPerSearchCycle),
     });
     setSettingState(false);
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>, setter: (value: number) => void) => {
-    const value = Math.max(0, Number(event.currentTarget.value));
-    setter(value);
+    const parsed = Number(event.currentTarget.value);
+    setter(Number.isFinite(parsed) ? Math.max(0, parsed) : 0);
   };
 
   return (

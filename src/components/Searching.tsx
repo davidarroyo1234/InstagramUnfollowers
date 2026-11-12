@@ -323,6 +323,7 @@ export const Searching = ({
                 ...state,
                 currentTab: "non_whitelisted",
                 page: 1,
+                selectedResults: [],
               });
             }}
           >
@@ -339,6 +340,7 @@ export const Searching = ({
                 ...state,
                 currentTab: "whitelisted",
                 page: 1,
+                selectedResults: [],
               });
             }}
           >

@@ -1000,7 +1000,7 @@ function App() {
       assertUnreachable(state);
   }
 
-  const showScanWarning = state.status === "scanning" && state.results.length === 0;
+  const showScanWarning = state.status === "scanning" && Boolean(state.isScanningActive);
 
   return (
     <main id="main" role="main" className={`iu ${showScanWarning ? "has-scan-warning" : ""}`}>

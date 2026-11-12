@@ -7,14 +7,28 @@ import { UnfollowFilter } from "../model/unfollow-filter";
 
 export async function copyListToClipboard(nonFollowersList: readonly UserNode[], alertMessage: string = 'List copied to clipboard!'): Promise<void> {
   const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
+  const output = sortedList.map(user => user.username).join('\n') + (sortedList.length > 0 ? '\n' : '');
 
-  let output = '';
-  sortedList.forEach(user => {
-    output += user.username + '\n';
-  });
-
-  await navigator.clipboard.writeText(output);
-  alert(alertMessage);
+  try {
+    await navigator.clipboard.writeText(output);
+    alert(alertMessage);
+  } catch (e) {
+    console.warn('Clipboard API failed, using fallback copy method:', e);
+    const textarea = document.createElement('textarea');
+    textarea.value = output;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      alert(alertMessage);
+    } catch (fallbackErr) {
+      console.error('Copy fallback failed:', fallbackErr);
+    } finally {
+      textarea.remove();
+    }
+  }
 }
 
 function downloadBlob(blob: Blob, filename: string): void {
