@@ -13,7 +13,7 @@
 A nifty tool that lets you see who doesn't follow you back on Instagram.  
 <u>Browser-based and requires no downloads or installations!</u>
 
-> ⚡ **Live Streaming & Fast Cache:** Accounts now appear dynamically on screen in real time as batches are fetched from Instagram. In addition, completed scans are cached locally so you can reload your audit instantly (0ms) without making unnecessary API calls!
+> ⚡ **Two-Phase Zero-False-Positive Scan & Fast Cache:** Phase 1 indexes all your followers by ID and normalized username; Phase 2 compares your following list and streams verified non-followers live to your screen! Completed scans are cached per account for instant (0ms) reload.
 
 ### 🖥️ Desktop Usage
 
@@ -50,26 +50,30 @@ For Android users who want to use it on mobile:
 
 ### ✨ Features
 
-- 🔍 **Scan & Detect**: Accurately identifies users who don't follow you back.
-- ⚡ **Live Progressive Streaming**: Accounts stream dynamically onto your screen as each batch arrives, eliminating blank waiting screens on large accounts.
-- ⚡ **Instant Local Cache (0ms load)**: Re-open and review previously completed audits instantly without re-scraping from scratch.
+- 🔍 **Accurate 2-Phase Detection**: Indexes followers first (Phase 1) and checks followed accounts (Phase 2) by both ID and lowercase username for zero false positives, showing live phase progress.
+- ⚡ **Live Progressive Streaming**: Verified non-followers stream dynamically onto your screen as each batch arrives during Phase 2.
+- ⚡ **Instant Account-Scoped Cache (0ms load)**: Re-open previously completed audits per account (`ds_user_id`) without mixing data across profiles.
+- 📦 **Batch Unfollowing (50 / 30s Pause)**: Processes unfollows in batches of **50 accounts** with a live **30-second countdown pause** between batches (fully configurable in Settings).
 - 🌐 **Bilingual (EN / ES)**: Native English and Spanish support with instant switching.
-- 🛡️ **Anti-Ban & Session Protection**: Uses full Instagram Web headers (`X-ASBD-ID`, `X-CSRFToken`, `XMLHttpRequest`) to prevent forced logouts and suspicious activity flags.
-- 🛡️ **Action-Block Guard**: Double-checks unfollow API responses to prevent ghost unfollows; halts the queue automatically if Instagram returns `feedback_required` to protect your account.
-- ⏳ **Smart Rate-Limit & Soft-Block Backoff**: Automatically pauses and retries if Instagram returns HTTP 429 or HTTP 400 (`feedback_required`) with exponential cooldowns instead of failing.
-- ⚠️ **Wrong-Detect Guard**: Expanded page limits supporting accounts with tens of thousands of followers, with safe lock preventing accidental unfollows if a scan is interrupted.
-- 🤍 **Persistent & Bulk Whitelist**: Protect specific accounts with local persistence, JSON export/import, and direct username list pasting.
-- ⚙️ **Customizable Timings**: Control request pacing to match your account safety preferences.
-- 🎨 **Apple-inspired UI**: Clean, responsive, and minimalist interface.
-- 🔒 **100% Client-Side Privacy**: All data is processed locally in your browser. No credentials or data are sent to external servers.
+- 🛡️ **Anti-Ban & Session Protection**: Uses full Instagram Web headers (`X-ASBD-ID`, `X-IG-WWW-Claim`, `X-Web-Session-ID`, `X-CSRFToken`) and automatically aborts if you switch Instagram accounts mid-scan or mid-unfollow.
+- 🛡️ **Action-Block & Verification Guard**: Confirms every unfollow via Instagram REST status / following search to prevent ghost unfollows; halts immediately and sets a persistent 10-minute cooldown if Instagram triggers a block.
+- ⏳ **Smart Rate-Limit & HTML Soft-Block Retry**: Automatically pauses with countdown and retries on HTTP 429 or HTML soft-block responses instead of crashing.
+- ⚠️ **Large-Account & Duplicate Guard**: Up to 2,000 pages per list, cursor-loop protection, ID deduplication, and safe lock preventing accidental unfollows on incomplete scans.
+- 🤍 **Persistent & Bulk Whitelist**: Protect accounts with JSON export/import and bulk username pasting (matched by both ID and username).
+- 📄 **Safe CSV / JSON Export**: Uses `Blob` downloads with UTF-8 BOM for Excel and spreadsheet formula-injection protection.
+- ⚙️ **Customizable Timings**: Control search pacing, unfollow batch size, and pause intervals.
+- 🎨 **Clean Modern UI**: Responsive dark interface with real-time progress bar and toast countdowns.
+- 🔒 **100% Client-Side Privacy**: Everything runs locally in your browser. No credentials or data are sent to external servers.
 
 ### 🛠️ Development
 
-- Node version: Node 16+ / Node 18+ / Node 20+
+- Node version: Node 18+ / Node 20+ / Node 22+
 - Install dependencies: `npm install`
+- Type check & lint: `npx tsc --noEmit` and `npx eslint src`
 - Build: `npm run build`
 - Dev server with live reload: `npm run build-dev`
-- Do not edit `public/index.html` manually: it is regenerated automatically by GitHub Actions, and PRs that modify it are rejected.
+- Project layout: `src/main.tsx` (app shell & state), `src/utils/scanner.ts` (2-phase scan & batch unfollow runner), `src/utils/utils.ts` (Instagram API & filtering), `src/utils/whitelist-manager.ts` (storage & account cache), `src/utils/i18n.ts` (EN/ES translations), `src/utils/preview.ts` (localhost preview data).
+- Upstream PR note: do not commit manual edits to `public/index.html` when submitting PRs to `davidarroyo1234/InstagramUnfollowers`, as GitHub Actions regenerates it on release.
 
 ---
 
@@ -79,7 +83,7 @@ For Android users who want to use it on mobile:
 Una herramienta práctica y ligera que te permite ver quién no te sigue de vuelta en Instagram.  
 <u>¡Funciona directamente en tu navegador y no requiere descargas ni instalaciones externas!</u>
 
-> ⚡ **Transmisión en vivo y caché rápido:** Ahora las cuentas aparecen dinámicamente en pantalla en tiempo real a medida que se descargan los lotes de Instagram. Además, los escaneos completados se guardan localmente para recargar tu lista al instante (0ms) sin hacer peticiones innecesarias.
+> ⚡ **Escaneo en 2 Fases (Cero Falsos Positivos) y Caché Rápido:** La Fase 1 indexa a todos tus seguidores por ID y usuario normalizado; la Fase 2 compara tus seguidos y muestra en vivo únicamente a quienes no te siguen. Los escaneos completados se guardan localmente por cuenta para recargarlos al instante (0ms).
 
 ### 🖥️ Uso en Computadora (Escritorio)
 
@@ -116,26 +120,30 @@ Para usuarios de Android que quieran utilizarlo desde el móvil:
 
 ### ✨ Características Principales
 
-- 🔍 **Detección precisa**: Encuentra rápidamente a quienes sigues pero no te siguen de vuelta.
-- ⚡ **Carga progresiva en vivo**: Las cuentas aparecen en pantalla en tiempo real mientras se descargan, evitando pantallas en blanco en cuentas con muchos seguidos.
-- ⚡ **Caché local instantáneo (0ms)**: Carga escaneos anteriores con un solo clic desde la pantalla inicial sin hacer peticiones innecesarias.
+- 🔍 **Detección precisa en 2 fases**: Indexa primero a tus seguidores (Fase 1) y luego analiza tus seguidos (Fase 2) comparando tanto por ID como por nombre de usuario en minúsculas, eliminando falsos positivos y mostrando el progreso claro de cada fase.
+- ⚡ **Carga progresiva en vivo**: Durante la Fase 2, quienes realmente no te siguen aparecen en pantalla en tiempo real.
+- ⚡ **Caché aislado por cuenta (0ms)**: Guarda y recarga escaneos anteriores por ID de cuenta (`ds_user_id`), evitando mezclar resultados si cambias de perfil.
+- 📦 **Unfollow por lotes (50 cuentas / espera de 30s)**: Deja de seguir en lotes de **50 personas** con una pausa de **30 segundos** y cuenta regresiva visible entre lotes (totalmente configurable en Ajustes).
 - 🌐 **Soporte Bilingüe (Español / Inglés)**: Interfaz completamente en español e inglés con cambio instantáneo.
-- 🛡️ **Protección antibloqueo y anti-cierre de sesión**: Envía cabeceras completas de Instagram Web (`X-ASBD-ID`, `X-CSRFToken`, `XMLHttpRequest`) para evitar alertas de actividad sospechosa y cierres de sesión forzados.
-- 🛡️ **Protección contra bloqueos de acción (Action Block)**: Verifica la respuesta real de la API de Instagram al dejar de seguir evitando falsos éxitos ("ghost unfollows"); detiene la cola automáticamente ante `feedback_required` para proteger tu cuenta de suspensiones.
-- ⏳ **Manejo inteligente de Rate Limit y bloqueos suaves**: Pausa y reintenta automáticamente con pausas exponenciales ante respuestas HTTP 429 o HTTP 400 (`feedback_required`) evitando que el escaneo falle.
-- ⚠️ **Protección contra falsos no-seguidores**: Límites de páginas ampliados para cuentas con decenas de miles de seguidores, y bloqueo de seguridad del unfollow si el escaneo se interrumpió.
-- 🤍 **Lista blanca persistente y masiva**: Protege a tus amigos y familiares con guardado local, exportación/importación en JSON y opción de pegar nombres de usuario directamente.
-- ⚙️ **Tiempos configurables**: Ajusta los intervalos entre peticiones para mayor seguridad.
-- 🎨 **Diseño limpio y moderno**: Interfaz minimalista y responsiva inspirada en el diseño de Apple.
-- 🔒 **Privacidad total**: Todo se ejecuta localmente en tu navegador. Tus datos y contraseñas nunca salen de tu sesión ni van a servidores externos.
+- 🛡️ **Protección antibloqueo y cambio de cuenta**: Envía cabeceras completas de Instagram Web (`X-ASBD-ID`, `X-IG-WWW-Claim`, `X-Web-Session-ID`, `X-CSRFToken`) y detiene automáticamente el escaneo o unfollow si cambias de cuenta a mitad del proceso.
+- 🛡️ **Verificación real de Unfollow y Cooldown**: Confirma cada unfollow con la respuesta REST de Instagram o verificando la lista de seguidos para evitar falsos éxitos; ante bloqueos detiene la cola y activa un enfriamiento persistente de 10 minutos.
+- ⏳ **Reintentos inteligentes ante Rate Limit y bloqueos HTML**: Pausa con cuenta regresiva y reintenta automáticamente ante HTTP 429 o respuestas HTML inesperadas.
+- ⚠️ **Soporte para cuentas grandes y sin duplicados**: Límite ampliado a 2,000 páginas por lista, detección de cursores repetidos, deduplicación por ID y bloqueo preventivo del unfollow si el escaneo quedó incompleto.
+- 🤍 **Lista blanca persistente y por usuario**: Protege cuentas con respaldo JSON y pegado masivo de nombres de usuario (coincide por ID y por `@usuario`).
+- 📄 **Exportación segura CSV / JSON**: Descargas mediante `Blob` con BOM UTF-8 para Excel y protección contra inyección de fórmulas.
+- ⚙️ **Tiempos configurables**: Ajusta intervalos, cantidad por lote y tiempo de pausa tras cada lote.
+- 🎨 **Diseño limpio y moderno**: Interfaz responsiva en modo oscuro con barra de progreso y notificaciones claras.
+- 🔒 **Privacidad total**: Todo se ejecuta localmente en tu navegador; tus datos y credenciales nunca salen a servidores externos.
 
 ### 🛠️ Desarrollo
 
-- Versión de Node: Node 16+ / Node 18+ / Node 20+
+- Versión de Node: Node 18+ / Node 20+ / Node 22+
 - Instalar dependencias: `npm install`
+- Verificar tipos y linter: `npx tsc --noEmit` y `npx eslint src`
 - Compilar: `npm run build`
 - Servidor de desarrollo con recarga automática: `npm run build-dev`
-- No edites `public/index.html` a mano: se regenera automáticamente con GitHub Actions, y los PRs que lo modifican son rechazados.
+- Estructura del proyecto: `src/main.tsx` (estado e interfaz principal), `src/utils/scanner.ts` (motor de escaneo en 2 fases y cola por lotes), `src/utils/utils.ts` (API de Instagram y filtros), `src/utils/whitelist-manager.ts` (persistencia y caché por cuenta), `src/utils/i18n.ts` (traducciones EN/ES), `src/utils/preview.ts` (datos locales de prueba).
+- Nota para PRs al repositorio original: no modifiques `public/index.html` si vas a enviar un PR a `davidarroyo1234/InstagramUnfollowers`, ya que GitHub Actions lo regenera al publicar.
 
 ---
 
