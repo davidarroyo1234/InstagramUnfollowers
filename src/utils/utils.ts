@@ -6,7 +6,7 @@ import { UnfollowLogEntry } from "../model/unfollow-log-entry";
 import { UnfollowFilter } from "../model/unfollow-filter";
 
 export async function copyListToClipboard(nonFollowersList: readonly UserNode[], alertMessage: string = 'List copied to clipboard!'): Promise<void> {
-  const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
+  const sortedList = [...nonFollowersList].sort((a, b) => a.username.localeCompare(b.username));
   const output = sortedList.map(user => user.username).join('\n') + (sortedList.length > 0 ? '\n' : '');
 
   try {
@@ -77,8 +77,9 @@ export function getMaxPage(nonFollowersList: readonly UserNode[]): number {
 }
 
 export function getCurrentPageUnfollowers(nonFollowersList: readonly UserNode[], currentPage: number): readonly UserNode[] {
-  const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
-  const startIndex = UNFOLLOWERS_PER_PAGE * (currentPage - 1);
+  const sortedList = [...nonFollowersList].sort((a, b) => a.username.localeCompare(b.username));
+  const safePage = Math.max(1, currentPage);
+  const startIndex = UNFOLLOWERS_PER_PAGE * (safePage - 1);
   return sortedList.slice(startIndex, startIndex + UNFOLLOWERS_PER_PAGE);
 }
 
@@ -197,10 +198,10 @@ export function sleep(ms: number): Promise<any> {
 export function getCookie(name: string): string | null {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
-  if (parts.length !== 2) {
+  if (parts.length < 2) {
     return null;
   }
-  return parts.pop()!.split(';').shift()!;
+  return parts.pop()!.split(';').shift() ?? null;
 }
 
 // --- Headers instagram.com's own web client sends on /api/v1 calls --------

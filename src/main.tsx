@@ -541,11 +541,21 @@ function App() {
           0,
           activeTimings.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000), // +/- 5 seconds
         );
-        setToast({
-          show: true,
-          text: t(langRef.current, "sleepingSafety", Math.round(longSleepVar / 1000)),
-        });
-        await sleep(longSleepVar);
+        const sleepSeconds = Math.round(longSleepVar / 1000);
+        for (let sec = sleepSeconds; sec > 0; sec--) {
+          if (cancelled) {
+            return false;
+          }
+          const activeId = getCookie("ds_user_id");
+          if (activeId !== null && activeId !== expectedViewerId) {
+            return false;
+          }
+          setToast({
+            show: true,
+            text: t(langRef.current, "sleepingSafety", sec),
+          });
+          await sleep(1000);
+        }
       }
       if (!cancelled) {
         setToast({ show: false });

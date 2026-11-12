@@ -497,7 +497,7 @@ html {
     background-color: variables.$clr-white;
     font-size: 1.25em;
     border-radius: 6px;
-    z-index: 2;
+    z-index: 50;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
     animation: slide-out 0.5s ease-in-out;
 
