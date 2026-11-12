@@ -1,7 +1,7 @@
 import { UserNode } from "../model/user";
 import { Timings } from "../model/timings";
 import { WHITELISTED_RESULTS_STORAGE_KEY, TIMINGS_STORAGE_KEY, LAST_SCAN_RESULTS_STORAGE_KEY, LAST_SCAN_TIMESTAMP_STORAGE_KEY, BLOCKED_UNTIL_STORAGE_KEY } from "../constants/constants";
-import { getCookie } from "./utils";
+import { deduplicateUsersById, getCookie } from "./utils";
 
 /**
  * Export whitelist to a JSON file
@@ -198,7 +198,7 @@ export const loadCachedScanResults = (): { results: readonly UserNode[]; timesta
       return null;
     }
     return {
-      results: parsed as readonly UserNode[],
+      results: deduplicateUsersById(parsed as readonly UserNode[]),
       timestamp: Number(time),
     };
   } catch {
