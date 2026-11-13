@@ -500,6 +500,14 @@ function App() {
           // Soft-blocks get longer, more patient retries than plain network errors.
           const maxRetries = isRateLimitOrSoftBlock ? SOFT_BLOCK_MAX_RETRIES : 3;
 
+          if (isNetworkError && !isRateLimitOrSoftBlock && !navigator.onLine) {
+            // The browser is offline: wait for the connection to come back
+            // without using up retries, instead of blaming Instagram.
+            setToast({ show: true, text: t(lang, "connectionLost") });
+            await new Promise<void>(resolve => window.addEventListener("online", () => resolve(), { once: true }));
+            setToast({ show: false });
+            continue;
+          }
           if (isTransient && retries < maxRetries) {
             retries++;
             const waitSeconds = isRateLimitOrSoftBlock
@@ -508,7 +516,7 @@ function App() {
             for (let sec = waitSeconds; sec > 0; sec--) {
               setToast({
                 show: true,
-                text: t(lang, "rateLimitPause", sec),
+                text: t(lang, isRateLimitOrSoftBlock ? "rateLimitPause" : "networkRetry", sec),
               });
               await sleep(1000);
             }
