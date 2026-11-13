@@ -18,6 +18,11 @@ import {
   CHECKS_BEFORE_LONG_SLEEP,
   INSTAGRAM_HOSTNAME,
   RATE_LIMIT_COOLDOWN_SECONDS,
+  FOLLOWERS_CHECKPOINT_EVERY_PAGES,
+  SLOWDOWN_AFTER_USERS,
+  STRONG_SLOWDOWN_AFTER_USERS,
+  SOFT_BLOCK_MAX_RETRIES,
+  FOLLOWERS_CHECKPOINT_TTL_MS,
 } from "./constants/constants";
 import {
   addFollowerToIndex,
@@ -42,7 +47,7 @@ import { Searching } from "./components/Searching";
 import { Toolbar } from "./components/Toolbar";
 import { Unfollowing } from "./components/Unfollowing";
 import { Timings } from "./model/timings";
-import { getBlockedUntil, loadCachedScanResults, loadTimings, loadWhitelist, saveCachedScanResults, saveTimings, saveWhitelist, setBlockedUntil } from "./utils/whitelist-manager";
+import { clearFollowersCheckpoint, getBlockedUntil, loadCachedScanResults, loadFollowersCheckpoint, saveFollowersCheckpoint, loadTimings, loadWhitelist, saveCachedScanResults, saveTimings, saveWhitelist, setBlockedUntil } from "./utils/whitelist-manager";
 import { getInitialLanguage, Language, saveLanguage, t } from "./utils/i18n";
 
 const LOCAL_PREVIEW_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
@@ -147,6 +152,38 @@ function App() {
 
   const [lang, setLang] = useState<Language>(() => getInitialLanguage());
 
+  useEffect(() => {
+    console.info(`InstagramUnfollowers version ${__BUILD_VERSION__}`);
+  }, []);
+
+  // Followers saved by an interrupted scan of the current account, offered as
+  // "Resume scan" on the launch screen and after a blocked scan.
+  const readResume = () => {
+    const checkpoint = loadFollowersCheckpoint(getCookie("ds_user_id"));
+    return checkpoint === null
+      ? null
+      : { count: checkpoint.count, expiresAt: checkpoint.timestamp + FOLLOWERS_CHECKPOINT_TTL_MS };
+  };
+  const [resume, setResume] = useState(readResume);
+
+  // Seconds left on the cooldown set after Instagram blocks a scan, ticking
+  // down so the scan buttons say how long to wait instead of failing silently.
+  const readCooldownSeconds = () => Math.max(0, Math.ceil((getBlockedUntil() - Date.now()) / 1000));
+  const [cooldownSeconds, setCooldownSeconds] = useState(readCooldownSeconds);
+  const cooldownActive = cooldownSeconds > 0;
+  useEffect(() => {
+    if (!cooldownActive) {
+      return;
+    }
+    const id = setInterval(() => setCooldownSeconds(readCooldownSeconds()), 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cooldownActive]);
+
+  // Bumped to start another scan while already on the results screen (resume
+  // after a block), since the scan effect otherwise only runs on status changes.
+  const [scanRunId, setScanRunId] = useState(0);
+
   const [scanningPaused, setScanningPaused] = useState(false);
   const scanningPausedRef = React.useRef(false);
 
@@ -210,6 +247,38 @@ function App() {
     });
   };
 
+  const startScan = () => {
+    const blockedUntil = getBlockedUntil();
+    if (blockedUntil > Date.now()) {
+      setCooldownSeconds(readCooldownSeconds());
+      setToast({
+        show: true,
+        text: t(lang, "rateLimitPause", Math.ceil((blockedUntil - Date.now()) / 1000)),
+      });
+      return;
+    }
+    scanningPausedRef.current = false;
+    setScanningPaused(false);
+    setScanRunId(id => id + 1);
+    const whitelistedResults = loadWhitelist();
+    setState({
+      status: "scanning",
+      page: 1,
+      searchTerm: "",
+      currentTab: "non_whitelisted",
+      percentage: 0,
+      isScanningActive: true,
+      results: [],
+      selectedResults: [],
+      whitelistedResults,
+      filter: {
+        showVerified: true,
+        showPrivate: true,
+        showWithOutProfilePicture: true,
+      },
+    });
+  };
+
   const onScan = async () => {
     if (state.status !== "initial") {
       return;
@@ -234,31 +303,15 @@ function App() {
       });
       return;
     }
-    const blockedUntil = getBlockedUntil();
-    if (blockedUntil > Date.now()) {
-      setToast({
-        show: true,
-        text: t(lang, "rateLimitPause", Math.ceil((blockedUntil - Date.now()) / 1000)),
-      });
+    startScan();
+  };
+
+  // Resumes a followers download that Instagram interrupted, from the results screen.
+  const onResumeScan = () => {
+    if (state.status !== "scanning" || state.isScanningActive) {
       return;
     }
-    const whitelistedResults = loadWhitelist();
-    setState({
-      status: "scanning",
-      page: 1,
-      searchTerm: "",
-      currentTab: "non_whitelisted",
-      percentage: 0,
-      isScanningActive: true,
-      results: [],
-      selectedResults: [],
-      whitelistedResults,
-      filter: {
-        showVerified: true,
-        showPrivate: true,
-        showWithOutProfilePicture: true,
-      },
-    });
+    startScan();
   };
 
   const handleScanFilter = (e: ChangeEvent<HTMLInputElement>) => {
@@ -415,6 +468,10 @@ function App() {
     // `blocked` is true when retries were exhausted for such a transient error
     // (the scan should stop); false means a different, non-retryable error
     // (e.g. 404 / unavailable account), which callers may choose to skip.
+    // Set when the last failed page was a transient block (as opposed to e.g. a
+    // dead cursor), so a saved checkpoint is only kept when resuming can help.
+    let lastFailureBlocked = false;
+
     type PageResult =
       | { readonly ok: true; readonly page: FriendshipsPage }
       | { readonly ok: false; readonly blocked: boolean };
@@ -426,7 +483,6 @@ function App() {
       userId?: string,
     ): Promise<PageResult> => {
       let retries = 0;
-      const maxRetries = 3;
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (true) {
         try {
@@ -441,7 +497,17 @@ function App() {
               /feedback_required|checkpoint|rate limit|please wait/i.test(message));
           const isNetworkError = e instanceof TypeError || /fetch|network/i.test(message);
           const isTransient = isRateLimitOrSoftBlock || isNetworkError;
+          // Soft-blocks get longer, more patient retries than plain network errors.
+          const maxRetries = isRateLimitOrSoftBlock ? SOFT_BLOCK_MAX_RETRIES : 3;
 
+          if (isNetworkError && !isRateLimitOrSoftBlock && !navigator.onLine) {
+            // The browser is offline: wait for the connection to come back
+            // without using up retries, instead of blaming Instagram.
+            setToast({ show: true, text: t(lang, "connectionLost") });
+            await new Promise<void>(resolve => window.addEventListener("online", () => resolve(), { once: true }));
+            setToast({ show: false });
+            continue;
+          }
           if (isTransient && retries < maxRetries) {
             retries++;
             const waitSeconds = isRateLimitOrSoftBlock
@@ -450,7 +516,7 @@ function App() {
             for (let sec = waitSeconds; sec > 0; sec--) {
               setToast({
                 show: true,
-                text: t(lang, "rateLimitPause", sec),
+                text: t(lang, isRateLimitOrSoftBlock ? "rateLimitPause" : "networkRetry", sec),
               });
               await sleep(1000);
             }
@@ -462,12 +528,18 @@ function App() {
             // Remember the 429 so the next scan/unfollow does not walk straight back into it.
             setBlockedUntil(Date.now() + BLOCKED_COOLDOWN_MS);
           }
+          lastFailureBlocked = isTransient;
           return { ok: false, blocked: isTransient };
         }
       }
     };
 
     let requestsSinceLongSleep = 0;
+    // Stretches every pause on very long lists, where Instagram starts
+    // soft-blocking (1 = normal pace).
+    let pacingFactor = 1;
+    const pacingFactorFor = (loaded: number): number =>
+      loaded >= STRONG_SLOWDOWN_AFTER_USERS ? 3 : loaded >= SLOWDOWN_AFTER_USERS ? 2 : 1;
     const paceRequest = async () => {
       // Pause scanning if user requested so.
       while (scanningPausedRef.current) {
@@ -476,14 +548,14 @@ function App() {
       }
 
       await sleep(Math.floor(Math.random() * 700) + 300);
-      await sleep(Math.floor(Math.random() * (timings.timeBetweenSearchCycles - timings.timeBetweenSearchCycles * 0.7)) + timings.timeBetweenSearchCycles);
+      await sleep((Math.floor(Math.random() * (timings.timeBetweenSearchCycles - timings.timeBetweenSearchCycles * 0.7)) + timings.timeBetweenSearchCycles) * pacingFactor);
 
       requestsSinceLongSleep++;
       if (requestsSinceLongSleep >= CHECKS_BEFORE_LONG_SLEEP) {
         requestsSinceLongSleep = 0;
         const longSleepVar = Math.max(
           0,
-          timings.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000), // +/- 5 seconds
+          timings.timeToWaitAfterFiveSearchCycles * pacingFactor + (Math.random() * 10000 - 5000), // +/- 5 seconds
         );
         setToast({
           show: true,
@@ -502,8 +574,12 @@ function App() {
       kind: FriendshipsListKind,
       pageSafetyLimit: number,
       onPageUsers: (pageUsers: readonly RawFriendshipUser[]) => Promise<boolean>,
+      // Resume support: start from this cursor, and get told the next cursor
+      // after each page has been handed to `onPageUsers`.
+      startMaxId?: string,
+      onNextCursor?: (nextMaxId: string, pagesFetched: number) => void,
     ): Promise<boolean> => {
-      let maxId: string | undefined;
+      let maxId: string | undefined = startMaxId;
       let pagesFetched = 0;
 
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -536,6 +612,9 @@ function App() {
           return false;
         }
         maxId = page.next_max_id;
+        if (maxId !== undefined) {
+          onNextCursor?.(maxId, pagesFetched);
+        }
 
         await paceRequest();
       }
@@ -562,12 +641,42 @@ function App() {
       // We dual-index by ID and normalized lowercase username to guarantee zero false positives.
       const followerIndex = createFollowerIndex();
       let followersCount = 0;
+      // Cursor of the next followers page to fetch; kept so an interrupted
+      // download can be saved and resumed instead of restarted.
+      let followersCursor: string | undefined;
+
+      // Picks up an earlier download that Instagram interrupted (same account,
+      // not older than the checkpoint TTL).
+      const checkpoint = loadFollowersCheckpoint(viewerId);
+      if (checkpoint !== null) {
+        checkpoint.ids.forEach(id => followerIndex.ids.add(id));
+        checkpoint.usernames.forEach(username => followerIndex.usernames.add(username));
+        followersCount = checkpoint.count;
+        followersCursor = checkpoint.maxId;
+        pacingFactor = pacingFactorFor(followersCount);
+        setToast({ show: true, text: t(lang, "resumingFollowers", followersCount) });
+      }
+
+      const persistFollowersCheckpoint = () => {
+        if (followersCursor === undefined) {
+          return;
+        }
+        saveFollowersCheckpoint({
+          accountId: viewerId,
+          ids: Array.from(followerIndex.ids),
+          usernames: Array.from(followerIndex.usernames),
+          count: followersCount,
+          maxId: followersCursor,
+          timestamp: Date.now(),
+        });
+      };
 
       const indexFollowersPage = async (pageUsers: readonly RawFriendshipUser[]): Promise<boolean> => {
         for (const user of pageUsers) {
           addFollowerToIndex(followerIndex, user);
           followersCount++;
         }
+        pacingFactor = pacingFactorFor(followersCount);
 
         const followersProgress = Math.min(49, Math.round(50 * (1 - 1 / (1 + followersCount / 150))));
         setState(prevState =>
@@ -592,12 +701,29 @@ function App() {
         "followers",
         FOLLOWERS_PAGE_SAFETY_LIMIT,
         indexFollowersPage,
+        followersCursor,
+        (nextMaxId, pagesFetched) => {
+          followersCursor = nextMaxId;
+          if (pagesFetched % FOLLOWERS_CHECKPOINT_EVERY_PAGES === 0) {
+            persistFollowersCheckpoint();
+          }
+        },
       );
 
       if (!followersCompleted) {
         // If followers list could not be fully loaded, aborting is mandatory.
         // Proceeding with an incomplete follower index would cause true followers
-        // to be falsely flagged as unfollowers.
+        // to be falsely flagged as unfollowers. What was downloaded is saved so
+        // the next scan resumes from there; a cursor Instagram rejects for a
+        // non-transient reason is dropped so the next scan starts clean.
+        const canResume = lastFailureBlocked && followersCursor !== undefined && followersCount > 0;
+        if (canResume) {
+          persistFollowersCheckpoint();
+        } else {
+          clearFollowersCheckpoint();
+        }
+        setResume(readResume());
+        setCooldownSeconds(readCooldownSeconds());
         setState(prevState =>
           prevState.status === "scanning"
             ? { ...prevState, isScanningActive: false, scanIncomplete: true }
@@ -605,10 +731,15 @@ function App() {
         );
         setToast({
           show: true,
-          text: t(lang, "scanFailedFollowers"),
+          text: canResume ? t(lang, "followersProgressSaved", followersCount) : t(lang, "scanFailedFollowers"),
         });
         return;
       }
+
+      // The full followers list is in memory: nothing left to resume.
+      clearFollowersCheckpoint();
+      setResume(null);
+      pacingFactor = 1;
 
       // Mark Phase 1 complete at 50%
       setState(prevState =>
@@ -707,7 +838,7 @@ function App() {
     scan();
     // Dependency array not entirely legit, but works this way. TODO: Find a way to fix.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.status]);
+  }, [state.status, scanRunId]);
 
   useEffect(() => {
     const unfollow = async () => {
@@ -812,7 +943,7 @@ function App() {
   let markup: React.JSX.Element;
   switch (state.status) {
     case "initial":
-      markup = <NotSearching onScan={onScan} lang={lang} cachedScan={cachedScan} onLoadCached={onLoadCached}></NotSearching>;
+      markup = <NotSearching onScan={onScan} lang={lang} cachedScan={cachedScan} onLoadCached={onLoadCached} resume={resume} cooldownSeconds={cooldownSeconds}></NotSearching>;
       break;
 
     case "scanning": {
@@ -826,6 +957,9 @@ function App() {
         UserCheckIcon={UserCheckIcon}
         UserUncheckIcon={UserUncheckIcon}
         lang={lang}
+        resume={resume}
+        cooldownSeconds={cooldownSeconds}
+        onResumeScan={onResumeScan}
       ></Searching>;
       break;
     }

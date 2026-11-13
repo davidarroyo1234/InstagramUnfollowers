@@ -1,5 +1,5 @@
 import React from "react";
-import { assertUnreachable, getCurrentPageUnfollowers, getMaxPage, getUsersForDisplay, isWithoutProfilePicture } from "../utils/utils";
+import { assertUnreachable, formatCooldown, getCurrentPageUnfollowers, getMaxPage, getUsersForDisplay, isWithoutProfilePicture } from "../utils/utils";
 import { State } from "../model/state";
 import { UserNode } from "../model/user";
 import { WHITELISTED_RESULTS_STORAGE_KEY } from "../constants/constants";
@@ -16,6 +16,9 @@ export interface SearchingProps {
   UserCheckIcon: React.FC;
   UserUncheckIcon: React.FC;
   lang: Language;
+  resume: { readonly count: number; readonly expiresAt: number } | null;
+  cooldownSeconds: number;
+  onResumeScan: () => void;
 }
 
 export const Searching = ({
@@ -28,6 +31,9 @@ export const Searching = ({
   UserCheckIcon,
   UserUncheckIcon,
   lang,
+  resume,
+  cooldownSeconds,
+  onResumeScan,
 }: SearchingProps) => {
   if (state.status !== "scanning") {
     return null;
@@ -291,6 +297,18 @@ export const Searching = ({
         {state.scanIncomplete && (
           <div className="scan-warning-banner scan-incomplete-banner" role="alert">
             <span>{t(lang, "partialScanWarning")}</span>
+            {resume && !state.isScanningActive && (
+              <button
+                type="button"
+                className="resume-scan"
+                onClick={onResumeScan}
+                disabled={cooldownSeconds > 0}
+              >
+                {cooldownSeconds > 0
+                  ? t(lang, "cooldownWait", formatCooldown(cooldownSeconds))
+                  : t(lang, "resumeScan", resume.count)}
+              </button>
+            )}
           </div>
         )}
         <nav className="tabs-container">

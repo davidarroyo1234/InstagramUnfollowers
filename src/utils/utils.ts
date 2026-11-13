@@ -570,3 +570,17 @@ export function isUserInFollowerIndex(
   return false;
 }
 
+
+const pad2 = (n: number): string => (n < 10 ? `0${n}` : String(n));
+
+// "m:ss" for a countdown of `seconds`.
+export function formatCooldown(seconds: number): string {
+  const s = Math.max(0, Math.ceil(seconds));
+  return `${Math.floor(s / 60)}:${pad2(s % 60)}`;
+}
+
+// Local "HH:MM" for a timestamp.
+export function formatClockTime(timestamp: number): string {
+  const d = new Date(timestamp);
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}

@@ -44,6 +44,21 @@ export const DEFAULT_TIME_BETWEEN_UNFOLLOWS = 4000;
 export const DEFAULT_TIME_TO_WAIT_AFTER_FIVE_UNFOLLOWS = 300000;
 export const DEFAULT_USERS_PER_SEARCH_CYCLE = 50;
 
+// Resumable followers download. A scan that Instagram interrupts keeps the
+// followers loaded so far (and the cursor to continue from) for this long.
+// New followers appear at the start of the list, which a resumed scan does not
+// revisit, so the checkpoint must not live for long.
+export const FOLLOWERS_CHECKPOINT_STORAGE_KEY = "iu_followers_checkpoint";
+export const FOLLOWERS_CHECKPOINT_TTL_MS = 2 * 60 * 60 * 1000;
+// Persist the checkpoint every N pages (it is also written when a scan stops).
+export const FOLLOWERS_CHECKPOINT_EVERY_PAGES = 10;
+// Instagram soft-blocks long followers walks (mid-scan HTML/redirect answers
+// from roughly 5,000 followers up), so the pacing stretches as the list grows.
+export const SLOWDOWN_AFTER_USERS = 5000;
+export const STRONG_SLOWDOWN_AFTER_USERS = 10000;
+// Retries (with growing cooldowns) before giving up on a soft-block.
+export const SOFT_BLOCK_MAX_RETRIES = 5;
+
 // FILTER CONSTANTS
 export const WITHOUT_PROFILE_PICTURE_URL_IDS = [
   "44884218_345707102882519_2446069589734326272_n",
