@@ -62,6 +62,16 @@ export function getMaxPage(nonFollowersList: readonly UserNode[]): number {
   return pageCalc < 1 ? 1 : pageCalc;
 }
 
+export function deduplicateUsersById(users: readonly UserNode[], seenIds = new Set<string>()): UserNode[] {
+  return users.filter(user => {
+    if (seenIds.has(user.id)) {
+      return false;
+    }
+    seenIds.add(user.id);
+    return true;
+  });
+}
+
 export function getCurrentPageUnfollowers(nonFollowersList: readonly UserNode[], currentPage: number): readonly UserNode[] {
   const sortedList = [...nonFollowersList].sort((a, b) => (a.username > b.username ? 1 : -1));
   const startIndex = UNFOLLOWERS_PER_PAGE * (currentPage - 1);
