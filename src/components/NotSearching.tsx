@@ -1,15 +1,18 @@
 import React from 'react';
 import { Language, t } from '../utils/i18n';
 import { UserNode } from '../model/user';
+import { CancelRequest } from '../model/cancel-request';
+import { PendingRequestsDropzone } from './PendingRequestsDropzone';
 
 interface NotSearchingProps {
   onScan?: () => void;
   lang: Language;
   cachedScan?: { readonly results: readonly UserNode[]; readonly timestamp: number } | null;
   onLoadCached?: () => void;
+  onLoadRequests?: (requests: readonly CancelRequest[]) => void;
 }
 
-export const NotSearching = ({onScan, lang, cachedScan, onLoadCached}: NotSearchingProps) => (
+export const NotSearching = ({onScan, lang, cachedScan, onLoadCached, onLoadRequests}: NotSearchingProps) => (
   <section className="launch-screen">
     <div className="launch-copy">
       <span className="eyebrow">{t(lang, "localAccountAudit")}</span>
@@ -26,6 +29,7 @@ export const NotSearching = ({onScan, lang, cachedScan, onLoadCached}: NotSearch
             ⚡ {t(lang, "loadCachedScan", cachedScan.results.length)}
           </button>
         )}
+        <PendingRequestsDropzone lang={lang} onLoadRequests={onLoadRequests} />
         <span className="launch-note">{t(lang, "runsInBrowserOnly")}</span>
       </div>
     </div>

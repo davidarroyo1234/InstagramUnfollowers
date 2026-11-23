@@ -6,6 +6,8 @@ import { Typename, UserNode } from "./model/user";
 import { Toast } from "./components/Toast";
 import { UserCheckIcon } from "./components/icons/UserCheckIcon";
 import { UserUncheckIcon } from "./components/icons/UserUncheckIcon";
+import { CancelRequests } from "./components/CancelRequests";
+import { CancelRequest } from "./model/cancel-request";
 import {
   DEFAULT_TIME_BETWEEN_SEARCH_CYCLES,
   DEFAULT_TIME_BETWEEN_UNFOLLOWS,
@@ -176,9 +178,17 @@ function App() {
     case "unfollowing":
       isActiveProcess = !state.aborted && state.percentage < 100;
       break;
+    case "cancelling":
+      isActiveProcess = false; // CancelRequests manages its own active-process / beforeunload guard
+      break;
     default:
       assertUnreachable(state);
   }
+
+  // Pending Requests: a parsed pending_follow_requests.json moves the app into the cancelling state.
+  const onLoadRequests = (requests: readonly CancelRequest[]) => {
+    setState({ status: "cancelling", requests });
+  };
 
   const onLoadCached = () => {
     // Re-read instead of trusting the mount-time snapshot: the account may have
@@ -830,7 +840,7 @@ function App() {
   let markup: React.JSX.Element;
   switch (state.status) {
     case "initial":
-      markup = <NotSearching onScan={onScan} lang={lang} cachedScan={cachedScan} onLoadCached={onLoadCached}></NotSearching>;
+      markup = <NotSearching onScan={onScan} lang={lang} cachedScan={cachedScan} onLoadCached={onLoadCached} onLoadRequests={onLoadRequests}></NotSearching>;
       break;
 
     case "scanning": {
@@ -854,6 +864,10 @@ function App() {
         handleUnfollowFilter={handleUnfollowFilter}
         lang={lang}
       ></Unfollowing>;
+      break;
+
+    case "cancelling":
+      markup = <CancelRequests state={state} setState={setState} lang={lang} onLanguageChange={handleLanguageChange}></CancelRequests>;
       break;
 
     default:

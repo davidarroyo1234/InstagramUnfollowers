@@ -198,7 +198,7 @@ function getWwwClaim(): string {
   return wwwClaim;
 }
 
-function rememberWwwClaim(response: Response): void {
+export function rememberWwwClaim(response: Response): void {
   const claim = response.headers.get('x-ig-set-www-claim');
   if (claim) {
     wwwClaim = claim;
@@ -257,7 +257,7 @@ function tokensFromHtml(html: string): WebSessionTokens | null {
 // fb_dtsg and lsd are the per-session tokens instagram.com's GraphQL writes
 // carry. They come from the page's module registry when it is still loaded,
 // otherwise from the inline page data, otherwise from a fresh copy of the page.
-async function getWebSessionTokens(): Promise<WebSessionTokens | null> {
+export async function getWebSessionTokens(): Promise<WebSessionTokens | null> {
   if (cachedWebSessionTokens !== null) {
     return cachedWebSessionTokens;
   }
@@ -287,7 +287,7 @@ async function getWebSessionTokens(): Promise<WebSessionTokens | null> {
 }
 
 // Instagram's checksum of fb_dtsg: "2" followed by the sum of its char codes.
-function jazoest(fbDtsg: string): string {
+export function jazoest(fbDtsg: string): string {
   let sum = 0;
   for (let i = 0; i < fbDtsg.length; i++) {
     sum += fbDtsg.charCodeAt(i);
@@ -295,7 +295,7 @@ function jazoest(fbDtsg: string): string {
   return `2${sum}`;
 }
 
-function findFriendshipStatus(node: any): any {
+export function findFriendshipStatus(node: any): any {
   if (node === null || typeof node !== 'object') {
     return undefined;
   }
