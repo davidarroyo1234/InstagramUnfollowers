@@ -41,6 +41,14 @@ A nifty tool that lets you see who doesn't follow you back on Instagram.
 12. ⚙️ **Customize script timings and language** via the "Settings" button:
     <br/><img src="./assets/settings.png" alt="Settings screen" />
 
+### 📭 Manage Pending Follow Requests
+
+1. Export `pending_follow_requests.json` from your Instagram data export (`connections/followers_and_following`)
+2. Drop it on the "Manage pending requests" area next to RUN
+3. Scan and select which requests to manage
+
+   <br/><img src="./assets/pending_requests.png" alt="Pending requests screen" />
+
 ### 📱 Mobile Usage
 
 For Android users who want to use it on mobile:
@@ -59,6 +67,7 @@ For Android users who want to use it on mobile:
 - ⏳ **Smart Rate-Limit & Soft-Block Backoff**: Automatically pauses and retries if Instagram returns HTTP 429 or HTTP 400 (`feedback_required`) with exponential cooldowns instead of failing.
 - ⚠️ **Wrong-Detect Guard**: Expanded page limits supporting accounts with tens of thousands of followers, with safe lock preventing accidental unfollows if a scan is interrupted.
 - 🤍 **Persistent & Bulk Whitelist**: Protect specific accounts with local persistence, JSON export/import, and direct username list pasting.
+- 📭 **Pending Requests Manager**: Upload `pending_follow_requests.json` from your Instagram data export to review the follow requests you sent and cancel the pending ones.
 - ⚙️ **Customizable Timings**: Control request pacing to match your account safety preferences.
 - 🎨 **Apple-inspired UI**: Clean, responsive, and minimalist interface.
 - 🔒 **100% Client-Side Privacy**: All data is processed locally in your browser. No credentials or data are sent to external servers.
@@ -107,6 +116,14 @@ Una herramienta práctica y ligera que te permite ver quién no te sigue de vuel
 12. ⚙️ **Personaliza los tiempos de espera y el idioma** desde el botón de "Ajustes":
     <br/><img src="./assets/settings.png" alt="Pantalla de configuración" />
 
+### 📭 Gestionar Solicitudes de Seguimiento Pendientes
+
+1. Exporta `pending_follow_requests.json` desde la exportación de datos de Instagram (`connections/followers_and_following`)
+2. Suéltalo en el recuadro "Gestionar solicitudes pendientes" junto a Iniciar Escaneo
+3. Escanea y selecciona qué solicitudes gestionar
+
+   <br/><img src="./assets/pending_requests.png" alt="Pantalla de solicitudes pendientes" />
+
 ### 📱 Uso en Móvil (Android)
 
 Para usuarios de Android que quieran utilizarlo desde el móvil:
@@ -125,6 +142,7 @@ Para usuarios de Android que quieran utilizarlo desde el móvil:
 - ⏳ **Manejo inteligente de Rate Limit y bloqueos suaves**: Pausa y reintenta automáticamente con pausas exponenciales ante respuestas HTTP 429 o HTTP 400 (`feedback_required`) evitando que el escaneo falle.
 - ⚠️ **Protección contra falsos no-seguidores**: Límites de páginas ampliados para cuentas con decenas de miles de seguidores, y bloqueo de seguridad del unfollow si el escaneo se interrumpió.
 - 🤍 **Lista blanca persistente y masiva**: Protege a tus amigos y familiares con guardado local, exportación/importación en JSON y opción de pegar nombres de usuario directamente.
+- 📭 **Gestor de solicitudes pendientes**: Sube `pending_follow_requests.json` desde la exportación de datos de Instagram para revisar las solicitudes que enviaste y cancelar las pendientes.
 - ⚙️ **Tiempos configurables**: Ajusta los intervalos entre peticiones para mayor seguridad.
 - 🎨 **Diseño limpio y moderno**: Interfaz minimalista y responsiva inspirada en el diseño de Apple.
 - 🔒 **Privacidad total**: Todo se ejecuta localmente en tu navegador. Tus datos y contraseñas nunca salen de tu sesión ni van a servidores externos.

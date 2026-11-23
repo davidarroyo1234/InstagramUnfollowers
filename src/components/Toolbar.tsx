@@ -38,6 +38,12 @@ export const Toolbar = ({
 
   const [settingMenu, setSettingMenu] = useState(false);
 
+  // The Pending Requests module renders its own header, so this Toolbar is not shown in that
+  // state. The early return also narrows `state` so the rest of the component stays type-safe.
+  if (state.status === "cancelling") {
+    return null;
+  }
+
   return (
     <header className="app-header">
       {state.status === "scanning" && state.results.length === 0 && (

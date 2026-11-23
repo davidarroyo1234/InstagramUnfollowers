@@ -49,3 +49,27 @@ export const WITHOUT_PROFILE_PICTURE_URL_IDS = [
   "44884218_345707102882519_2446069589734326272_n",
   "464760996_1254146839119862_3605321457742435801_n",
 ];
+
+// ── Pending Requests feature ──────────────────────────────────────────────
+export const CANCEL_WHITELIST_STORAGE_KEY = "iucr_whitelist";
+// Scan/cancel pacing (anti-ban). Reuses the search-cycle defaults above for the scan timings.
+export const DEFAULT_TIME_BETWEEN_CANCELS = 5000;
+export const DEFAULT_CANCELS_BEFORE_PAUSE = 5;
+export const DEFAULT_TIME_TO_WAIT_AFTER_BURST = 60000;
+// Block recovery: the cooldown grows with each attempt on the same account (1, 2, 3 minutes),
+// attempts are capped, and several accounts refused in a row stop the run - that pattern means a
+// session or header problem that no amount of waiting fixes.
+export const RATE_LIMIT_COOLDOWN = 60000;
+export const MAX_BLOCK_RETRIES = 3;
+export const MAX_CONSECUTIVE_BLOCKS = 3;
+// The pending scan makes up to three requests per account (the follower scan gets a whole page per request),
+// so it needs a slower pace of its own to stay under Instagram's limits.
+export const PROFILES_BEFORE_SCAN_PAUSE = 10;
+export const SCAN_BATCH_SIZES: readonly number[] = [20, 50, 100];
+// ETA estimates (ms per request) + minimums for the settings panel.
+export const EST_SCAN_REQUEST_MS = 800;
+export const EST_CANCEL_REQUEST_MS = 800;
+export const MIN_SCAN_DELAY = 3000;
+export const MIN_SCAN_LONG_PAUSE = 15000;
+export const MIN_TIME_BETWEEN_CANCELS = 1000;
+export const MIN_BURST_PAUSE = 30000;
