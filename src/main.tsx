@@ -148,6 +148,14 @@ function App() {
 
   const [lang, setLang] = useState<Language>(() => getInitialLanguage());
 
+  // The scan / unfollow effects run for minutes and only re-run on status
+  // changes, so they read language and timings through refs to pick up
+  // changes the user makes while they are running.
+  const langRef = React.useRef(lang);
+  langRef.current = lang;
+  const timingsRef = React.useRef(timings);
+  timingsRef.current = timings;
+
   const [scanningPaused, setScanningPaused] = useState(false);
   const scanningPausedRef = React.useRef(false);
 
@@ -421,7 +429,7 @@ function App() {
       setState(prevState =>
         prevState.status === "scanning" ? { ...prevState, isScanningActive: false } : prevState,
       );
-      setToast({ show: true, text: t(lang, "scanFailedFollowing") });
+      setToast({ show: true, text: t(langRef.current, "scanFailedFollowing") });
       return;
     }
 
@@ -473,7 +481,7 @@ function App() {
               checkScanAccount();
               setToast({
                 show: true,
-                text: t(lang, "rateLimitPause", sec),
+                text: t(langRef.current, "rateLimitPause", sec),
               });
               await sleep(1000);
             }
@@ -500,18 +508,18 @@ function App() {
       }
 
       await sleep(Math.floor(Math.random() * 700) + 300);
-      await sleep(Math.floor(Math.random() * (timings.timeBetweenSearchCycles - timings.timeBetweenSearchCycles * 0.7)) + timings.timeBetweenSearchCycles);
+      await sleep(Math.floor(Math.random() * (timingsRef.current.timeBetweenSearchCycles - timingsRef.current.timeBetweenSearchCycles * 0.7)) + timingsRef.current.timeBetweenSearchCycles);
 
       requestsSinceLongSleep++;
       if (requestsSinceLongSleep >= CHECKS_BEFORE_LONG_SLEEP) {
         requestsSinceLongSleep = 0;
         const longSleepVar = Math.max(
           0,
-          timings.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000), // +/- 5 seconds
+          timingsRef.current.timeToWaitAfterFiveSearchCycles + (Math.random() * 10000 - 5000), // +/- 5 seconds
         );
         setToast({
           show: true,
-          text: t(lang, "sleepingSafety", Math.round(longSleepVar / 1000)),
+          text: t(langRef.current, "sleepingSafety", Math.round(longSleepVar / 1000)),
         });
         await sleep(longSleepVar);
       }
@@ -532,7 +540,7 @@ function App() {
 
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (true) {
-        const result = await fetchPageWithRetry(kind, maxId, timings.usersPerSearchCycle);
+        const result = await fetchPageWithRetry(kind, maxId, timingsRef.current.usersPerSearchCycle);
         checkScanAccount();
         if (!result.ok) {
           console.error(`Stopping ${kind} scan early.`);
@@ -591,7 +599,7 @@ function App() {
 
         setToast({
           show: true,
-          text: t(lang, "indexingFollowersProgress", followersCount),
+          text: t(langRef.current, "indexingFollowersProgress", followersCount),
         });
 
         return true;
@@ -615,7 +623,7 @@ function App() {
         );
         setToast({
           show: true,
-          text: t(lang, "scanFailedFollowers"),
+          text: t(langRef.current, "scanFailedFollowers"),
         });
         return;
       }
@@ -661,7 +669,7 @@ function App() {
 
         setToast({
           show: true,
-          text: t(lang, "scanningFollowingProgress", checkedCount),
+          text: t(langRef.current, "scanningFollowingProgress", checkedCount),
         });
 
         return true;
@@ -680,7 +688,7 @@ function App() {
         );
         setToast({
           show: true,
-          text: t(lang, "scanFailedFollowing"),
+          text: t(langRef.current, "scanFailedFollowing"),
         });
         return;
       }
@@ -709,19 +717,28 @@ function App() {
       setToast({
         show: true,
         text: scanIsComplete
-          ? t(lang, "scanCompleted")
-          : t(lang, "partialScanInterrupted", checkedCount),
+          ? t(langRef.current, "scanCompleted")
+          : t(langRef.current, "partialScanInterrupted", checkedCount),
       });
     };
     scan().catch(error => {
       if (error !== scanAccountChanged) {
-        throw error;
+        // Unexpected failure: stop the scan instead of leaving the UI stuck
+        // in "scanning" forever. Unfollowing stays locked (scanIncomplete).
+        console.error("Scan failed unexpectedly:", error);
+        setState(prevState =>
+          prevState.status === "scanning"
+            ? { ...prevState, isScanningActive: false, scanIncomplete: true }
+            : prevState,
+        );
+        setToast({ show: true, text: t(langRef.current, "scanUnexpectedError") });
+        return;
       }
       scanningPausedRef.current = false;
       setScanningPaused(false);
       setCachedScan(loadCachedScanResults());
       setState({ status: "initial" });
-      setToast({ show: true, text: t(lang, "scanAccountChanged") });
+      setToast({ show: true, text: t(langRef.current, "scanAccountChanged") });
     });
     // Dependency array not entirely legit, but works this way. TODO: Find a way to fix.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -737,7 +754,7 @@ function App() {
       if (blockedUntil > Date.now()) {
         setToast({
           show: true,
-          text: t(lang, "rateLimitPause", Math.ceil((blockedUntil - Date.now()) / 1000)),
+          text: t(langRef.current, "rateLimitPause", Math.ceil((blockedUntil - Date.now()) / 1000)),
         });
         setState(prevState => (prevState.status === "unfollowing" ? { ...prevState, aborted: true } : prevState));
         return;
@@ -745,7 +762,11 @@ function App() {
 
       const csrftoken = getCookie("csrftoken");
       if (csrftoken === null) {
-        throw new Error("csrftoken cookie is null");
+        // Throwing here would be an unhandled rejection and freeze the queue UI.
+        console.error("csrftoken cookie is null");
+        setToast({ show: true, text: t(langRef.current, "sessionTokenMissing") });
+        setState(prevState => (prevState.status === "unfollowing" ? { ...prevState, aborted: true } : prevState));
+        return;
       }
 
       let counter = 0;
@@ -782,7 +803,7 @@ function App() {
             setBlockedUntil(Date.now() + BLOCKED_COOLDOWN_MS);
             setToast({
               show: true,
-              text: t(lang, "actionBlockedWarning"),
+              text: t(langRef.current, "actionBlockedWarning"),
             });
             setState(prevState => (prevState.status === "unfollowing" ? { ...prevState, aborted: true } : prevState));
             break;
@@ -810,14 +831,14 @@ function App() {
         if (user === state.selectedResults[state.selectedResults.length - 1]) {
           break;
         }
-        await sleep(Math.floor(Math.random() * (timings.timeBetweenUnfollows * 1.2 - timings.timeBetweenUnfollows)) + timings.timeBetweenUnfollows);
+        await sleep(Math.floor(Math.random() * (timingsRef.current.timeBetweenUnfollows * 1.2 - timingsRef.current.timeBetweenUnfollows)) + timingsRef.current.timeBetweenUnfollows);
 
         if (counter % 5 === 0) {
           setToast({
             show: true,
-            text: t(lang, "sleepingSafety", `${Math.round(timings.timeToWaitAfterFiveUnfollows / 60000)}m`),
+            text: t(langRef.current, "sleepingSafety", `${Math.round(timingsRef.current.timeToWaitAfterFiveUnfollows / 60000)}m`),
           });
-          await sleep(timings.timeToWaitAfterFiveUnfollows);
+          await sleep(timingsRef.current.timeToWaitAfterFiveUnfollows);
         }
         setToast({ show: false });
       }

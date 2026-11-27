@@ -1,7 +1,7 @@
 import { UserNode } from "../model/user";
 import { Timings } from "../model/timings";
 import { WHITELISTED_RESULTS_STORAGE_KEY, TIMINGS_STORAGE_KEY, LAST_SCAN_RESULTS_STORAGE_KEY, LAST_SCAN_TIMESTAMP_STORAGE_KEY, BLOCKED_UNTIL_STORAGE_KEY } from "../constants/constants";
-import { deduplicateUsersById, getCookie } from "./utils";
+import { deduplicateUsersById, downloadBlob, getCookie } from "./utils";
 
 /**
  * Export whitelist to a JSON file
@@ -13,17 +13,10 @@ export const exportWhitelist = (whitelistedUsers: readonly UserNode[]): void => 
   }
 
   const dataStr = JSON.stringify(whitelistedUsers, null, 2);
-  const dataBlob = new Blob([dataStr], { type: "application/json" });
-  const url = URL.createObjectURL(dataBlob);
-  
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `instagram-whitelist-${new Date().toISOString().split('T')[0]}.json`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  URL.revokeObjectURL(url);
+  downloadBlob(
+    new Blob([dataStr], { type: "application/json" }),
+    `instagram-whitelist-${new Date().toISOString().split('T')[0]}.json`,
+  );
 };
 
 /**

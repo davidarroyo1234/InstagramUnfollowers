@@ -2,13 +2,13 @@ import React from "react";
 import { assertUnreachable, getCurrentPageUnfollowers, getMaxPage, getUsersForDisplay, isWithoutProfilePicture } from "../utils/utils";
 import { State } from "../model/state";
 import { UserNode } from "../model/user";
-import { WHITELISTED_RESULTS_STORAGE_KEY } from "../constants/constants";
+import { saveWhitelist } from "../utils/whitelist-manager";
 import { Language, t } from "../utils/i18n";
 
 
 export interface SearchingProps {
   state: State;
-  setState: (state: State) => void;
+  setState: (state: State | ((prevState: State) => State)) => void;
   scanningPaused: boolean;
   pauseScan: () => void;
   handleScanFilter: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -72,10 +72,7 @@ export const Searching = ({
         assertUnreachable(state.currentTab);
     }
 
-    localStorage.setItem(
-      WHITELISTED_RESULTS_STORAGE_KEY,
-      JSON.stringify(whitelistedResults),
-    );
+    saveWhitelist(whitelistedResults);
     setState({
       ...state,
       whitelistedResults,
@@ -260,8 +257,6 @@ export const Searching = ({
             if (!confirm(t(lang, "unfollowConfirm"))) {
               return;
             }
-            //TODO TEMP until types are properly fixed
-            // @ts-ignore
             setState(prevState => {
               if (prevState.status !== "scanning") {
                 return prevState;
@@ -343,7 +338,9 @@ export const Searching = ({
                       let whitelistedResults: readonly UserNode[] = [];
                       switch (state.currentTab) {
                         case "non_whitelisted":
-                          whitelistedResults = [...state.whitelistedResults, user];
+                          whitelistedResults = state.whitelistedResults.some(result => result.id === user.id)
+                            ? state.whitelistedResults
+                            : [...state.whitelistedResults, user];
                           break;
 
                         case "whitelisted":
@@ -355,10 +352,7 @@ export const Searching = ({
                         default:
                           assertUnreachable(state.currentTab);
                       }
-                      localStorage.setItem(
-                        WHITELISTED_RESULTS_STORAGE_KEY,
-                        JSON.stringify(whitelistedResults),
-                      );
+                      saveWhitelist(whitelistedResults);
                       setState({ ...state, whitelistedResults });
                     }}
                   >
