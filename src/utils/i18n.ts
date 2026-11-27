@@ -120,6 +120,8 @@ export const translations = {
     sleepingSafety: "Sleeping %s seconds to prevent getting temp blocked",
     loadedFromCache: "Loaded %s accounts from cache!",
     actionBlockedWarning: "⚠️ Instagram Action Block detected (feedback_required). Unfollow queue stopped to protect your account.",
+    scanUnexpectedError: "Scan stopped due to an unexpected error. Check the console for details.",
+    sessionTokenMissing: "Could not find your Instagram session token (csrftoken). Reload Instagram and log in again.",
   },
   es: {
     // Launch Screen
@@ -238,6 +240,8 @@ export const translations = {
     sleepingSafety: "Esperando %s segundos para prevenir bloqueos temporales",
     loadedFromCache: "¡Se cargaron %s cuentas del historial!",
     actionBlockedWarning: "⚠️ Bloqueo de acción de Instagram detectado (feedback_required). La cola se detuvo para proteger tu cuenta.",
+    scanUnexpectedError: "El escaneo se detuvo por un error inesperado. Revisa la consola para más detalles.",
+    sessionTokenMissing: "No se encontró el token de sesión de Instagram (csrftoken). Recarga Instagram e inicia sesión de nuevo.",
   },
 } as const;
 
